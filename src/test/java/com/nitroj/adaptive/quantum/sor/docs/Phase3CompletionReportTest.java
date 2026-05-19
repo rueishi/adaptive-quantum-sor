@@ -38,6 +38,7 @@ final class Phase3CompletionReportTest {
         assertContains(markdown, "## Audit Lineage");
         assertContains(markdown, "optimizer run ID");
         assertContains(markdown, "objective linear coefficients");
+        assertContains(markdown, "objective pair coefficients");
         assertContains(markdown, "selected venue IDs");
         assertContains(markdown, "## Accepted And Rejected Result Evidence");
         assertContains(markdown, "StrategicOptimizerAudit.accepted");
@@ -48,6 +49,7 @@ final class Phase3CompletionReportTest {
         assertContains(markdown, "CudaQFailureFallbackTest");
         assertContains(markdown, "StrategicOptimizerAuditTest");
         assertContains(markdown, "cudaq_strategic_optimizer_test");
+        assertContains(markdown, "pair penalty changes the");
     }
 
     private static void assertContains(final String markdown, final String expected) {

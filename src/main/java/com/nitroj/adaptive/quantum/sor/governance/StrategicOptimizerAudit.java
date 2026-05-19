@@ -38,6 +38,7 @@ public final class StrategicOptimizerAudit {
     public final int minSubsetSize;
     public final int maxSubsetSize;
     public final int[] objectiveLinearCoefficients;
+    public final int[] objectivePairCoefficients;
     public final short[] selectedVenueIds;
     public final long strategicResultVersion;
     public final PolicyDiff policyDiff;
@@ -67,6 +68,7 @@ public final class StrategicOptimizerAudit {
         this.minSubsetSize = objective.minSubsetSize();
         this.maxSubsetSize = objective.maxSubsetSize();
         this.objectiveLinearCoefficients = objective.linearCoefficients();
+        this.objectivePairCoefficients = objective.pairCoefficients();
         this.selectedVenueIds = result == null || result.selectedVenueIds == null
                 ? new short[0]
                 : Arrays.copyOf(result.selectedVenueIds, result.selectedVenueIds.length);

@@ -8,7 +8,10 @@ Phase 3 is complete for the Adaptive Quantum SOR scope. It defines the route-lev
 QUBO/Ising formulation, builds a Gradle-owned C++ CUDA-Q strategic backend
 artifact, exposes a Java strategic backend bridge, integrates approved
 strategic results with the tactical optimizer contract, handles backend failure
-and timeout fallback safely, and records strategic optimizer audit lineage.
+and timeout fallback safely, and records strategic optimizer audit lineage. The
+formulation includes quadratic pair coefficients for venue co-selection risk, so
+the strategic objective is no longer only independent venue ranking plus a
+cardinality bound.
 
 ## Implemented Acceptance Criteria
 
@@ -46,6 +49,7 @@ model signal version
 current policy version
 route key coordinates
 objective linear coefficients
+objective pair coefficients
 subset size limits
 selected venue IDs
 strategic result version
@@ -87,6 +91,9 @@ StrategicOptimizerAuditTest
 Phase3CompletionReportTest
 cudaq_strategic_optimizer_test
 ```
+
+The QUBO tests include interaction cases where a pair penalty changes the
+selected subset versus the independent linear ranking.
 
 Gradle `check` builds the C++ strategic backend and runs CTest alongside the
 Java JUnit suite.

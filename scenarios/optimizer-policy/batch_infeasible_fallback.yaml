@@ -1,0 +1,47 @@
+# Cross-parent infeasible batch fallback scenario.
+
+scenarioId: batch-infeasible-fallback
+description: Aggregate parent demand exceeds configured venue capacity, proving the batch allocator fails closed and falls back safely.
+category: optimizer-policy
+tags:
+  - optimizer
+  - phase-6
+  - batch-allocation
+  - fallback
+  - infeasible
+seed: 67676
+ticks: 28
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 15000
+    urgency: HIGH
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-infeasible-buy
+  - instrumentId: 1
+    side: BUY
+    quantity: 15000
+    urgency: HIGH
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-infeasible-cross-buy
+
+windows:
+  - name: demand-exceeds-capacity
+    startTick: 0
+    endTick: 11
+    regime: THIN_BOOK
+  - name: fallback-policy-remains-active
+    startTick: 12
+    endTick: 27
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - infeasible_batch_publishes_no_unsafe_plan
+    - latest_approved_plan_or_route_policy_remains_active
+    - report_lists_fallback_status

@@ -35,6 +35,7 @@ venue outage and recovery
 latency, toxicity, rejects, and venue health
 auction, halt, open, and close behavior
 optimizer lineage, tie-breaks, and policy safety
+quadratic QUBO venue interactions and concentration/anti-gaming risk
 live reset modes for notebook/API testing
 ML dataset and label generation
 risk, throttle, capacity, and oversized parent orders

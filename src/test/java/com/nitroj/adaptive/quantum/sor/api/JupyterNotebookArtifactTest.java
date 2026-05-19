@@ -34,12 +34,22 @@ final class JupyterNotebookArtifactTest {
 
         assertTrue(submit.contains("requests.post"));
         assertTrue(submit.contains("/orders"));
+        assertTrue(submit.contains("Widget Control Panel"));
+        assertTrue(submit.contains("read_widget_inputs"));
+        assertTrue(submit.contains("Parent Order Submission Report"));
+        assertTrue(submit.contains("Submission Manifest"));
+        assertTrue(submit.contains("Result List"));
         assertTrue(stats.contains("/stats/current"));
         assertTrue(stats.contains("/policy/current"));
         assertTrue(stats.contains("pandas"));
         assertTrue(stats.contains("sor-kpi-grid"));
         assertTrue(stats.contains("sor-bar-panel"));
         assertTrue(stats.contains("SorNotebookClient"));
+        assertTrue(stats.contains("Widget Control Panel"));
+        assertTrue(stats.contains("read_widget_inputs"));
+        assertTrue(stats.contains("Live SOR Monitor"));
+        assertTrue(stats.contains("Combined Stats And Policy"));
+        assertTrue(stats.contains("Order Summary"));
         assertTrue(scenario.contains("reset_scenario"));
         assertTrue(scenario.contains("run_scenario"));
         assertTrue(scenario.contains("parent_order"));
@@ -48,6 +58,13 @@ final class JupyterNotebookArtifactTest {
         assertTrue(scenario.contains("clientOrderRef"));
         assertTrue(scenario.contains("scenario_summary_dataframe"));
         assertTrue(scenario.contains("scenario_events_dataframe"));
+        assertTrue(scenario.contains("Scenario Execution Report"));
+        assertTrue(scenario.contains("Widget Control Panel"));
+        assertTrue(scenario.contains("read_widget_inputs"));
+        assertTrue(scenario.contains("Run Manifest"));
+        assertTrue(scenario.contains("Result List"));
+        assertTrue(scenario.contains("Venue Fill Breakdown"));
+        assertTrue(scenario.contains("Lifecycle Event Log"));
         assertTrue(notebookReadme.contains("# Jupyter Notebook User Guide"));
         assertTrue(notebookReadme.contains("## Start JupyterLab"));
         assertTrue(notebookReadme.contains("scripts/start-jupyter-lab.sh"));

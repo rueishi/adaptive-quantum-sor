@@ -56,10 +56,14 @@ final class CrossPhaseDocumentationTest {
                 "```mermaid",
                 "## Parent Order Routing",
                 "## Policy Optimization Cycle",
+                "## Cross-Parent Batch Venue Allocation",
                 "## Policy Publication",
                 "## Jupyter Order Submission",
                 "## Live Jupyter Scenario Run With Explicit Reset And Parent Orders",
                 "## Venue Behavior Outcome Loop",
+                "BatchAllocationProblem",
+                "BatchAllocationPlanStore",
+                "BatchAllocationReport",
                 "Scenario Catalog Library",
                 "parentOrders[]",
                 "ParentOrderIntentQueue",
@@ -82,10 +86,12 @@ final class CrossPhaseDocumentationTest {
         assertContains(spec, "docs/sequence_diagrams.drawio");
         assertContains(spec, "docs/sequence_parent_order_routing.png");
         assertContains(spec, "docs/sequence_policy_optimization_cycle.png");
+        assertContains(spec, "docs/sequence_cross_parent_batch_allocation.png");
         assertContains(spec, "docs/sequence_policy_publication.png");
         assertContains(spec, "docs/sequence_jupyter_order_submission.png");
         assertContains(spec, "docs/sequence_live_jupyter_scenario_parent_orders.png");
         assertContains(spec, "docs/sequence_venue_behavior_outcome_loop.png");
+        assertContains(drawio, "Cross-Parent Batch Venue Allocation");
         assertContains(drawio, "Live Jupyter Scenario Run With Explicit Reset And Parent Orders");
         assertContains(drawio, "Parent Order Routing");
         assertContains(drawio, "Policy Optimization Cycle");
@@ -95,6 +101,7 @@ final class CrossPhaseDocumentationTest {
         for (final String png : new String[]{
                 "docs/sequence_parent_order_routing.png",
                 "docs/sequence_policy_optimization_cycle.png",
+                "docs/sequence_cross_parent_batch_allocation.png",
                 "docs/sequence_policy_publication.png",
                 "docs/sequence_jupyter_order_submission.png",
                 "docs/sequence_live_jupyter_scenario_parent_orders.png",

@@ -1,0 +1,51 @@
+# Cross-parent shared venue capacity scenario.
+
+scenarioId: batch-shared-capacity
+description: Concurrent parent orders exceed the best venue capacity and must be allocated jointly across venues.
+category: optimizer-policy
+tags:
+  - optimizer
+  - phase-6
+  - batch-allocation
+  - capacity
+  - generalized-assignment
+seed: 65656
+ticks: 34
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 9000
+    urgency: HIGH
+    atTick: 2
+    submitMode: SIMULATED
+    clientOrderRef: batch-capacity-buy
+  - instrumentId: 1
+    side: SELL
+    quantity: 9000
+    urgency: HIGH
+    atTick: 2
+    submitMode: SIMULATED
+    clientOrderRef: batch-capacity-sell
+
+windows:
+  - name: capacity-looks-sufficient-individually
+    startTick: 0
+    endTick: 8
+    regime: NORMAL
+  - name: aggregate-capacity-binds
+    startTick: 9
+    endTick: 25
+    regime: VOLATILE
+  - name: constrained-thin-book
+    startTick: 26
+    endTick: 33
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - shared_capacity_forces_cross_parent_diversification
+    - aggregate_participation_cap_is_enforced
+    - fallback_remains_available_if_batch_is_infeasible

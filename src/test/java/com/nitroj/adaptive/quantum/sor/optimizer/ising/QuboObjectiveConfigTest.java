@@ -39,8 +39,26 @@ final class QuboObjectiveConfigTest {
         assertEquals(1, objective.maxSubsetSize());
         assertEquals(-6_736, objective.linearCoefficient(0));
         assertEquals(-5_374, objective.linearCoefficient(1));
-        assertEquals(0, objective.pairCoefficient(0, 1));
+        assertEquals(370, objective.pairCoefficient(0, 1));
+        assertEquals(370, objective.pairCoefficient(1, 0));
         assertTrue(objective.energy(new boolean[]{true, false}) < objective.energy(new boolean[]{false, true}));
+    }
+
+    @Test
+    void builderPopulatesPairPenaltiesThatCanChangeBestSubset() {
+        final PolicyOptimizationInput input = input(3);
+        input.modelSignals.setVenueScoreBps(0, 0, 0, 10_000);
+        input.modelSignals.setVenueScoreBps(0, 1, 0, 9_900);
+        input.modelSignals.setVenueScoreBps(0, 2, 0, 9_100);
+        input.venueStats.update(0, 0, 0, 10_000, 5_000, 3_000, 2_000, 0, 0);
+        input.venueStats.update(0, 1, 0, 10_000, 5_000, 3_000, 2_000, 0, 0);
+        input.venueStats.update(0, 2, 0, 10_000, 5_000, 0, 0, 0, 0);
+
+        final QuboObjectiveConfig objective = QuboObjectiveConfig.fromInput(input, 0, 0, 0, 2);
+
+        assertEquals(1_500, objective.pairCoefficient(0, 1));
+        assertTrue(objective.energy(new boolean[]{true, false, true})
+                < objective.energy(new boolean[]{true, true, false}));
     }
 
     @Test
@@ -74,13 +92,17 @@ final class QuboObjectiveConfigTest {
     }
 
     private static PolicyOptimizationInput input() {
+        return input(2);
+    }
+
+    private static PolicyOptimizationInput input(final int venueCount) {
         final PolicyOptimizationInput input = new PolicyOptimizationInput();
         input.instrumentCount = 1;
-        input.venueCount = 2;
+        input.venueCount = venueCount;
         input.regimeCount = 1;
         input.urgencyCount = 1;
-        input.modelSignals = new ModelSignalState(1, 2, 1);
-        input.venueStats = new VenueStatsState(1, 2, 1);
+        input.modelSignals = new ModelSignalState(1, venueCount, 1);
+        input.venueStats = new VenueStatsState(1, venueCount, 1);
         return input;
     }
 }

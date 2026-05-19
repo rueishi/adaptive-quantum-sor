@@ -1,0 +1,51 @@
+# Shared pool venue concentration scenario.
+
+scenarioId: concentration-penalty-shared-pool
+description: Several high-quality venues behave like one underlying pool, testing quadratic concentration penalties.
+category: optimizer-policy
+tags:
+  - optimizer
+  - qubo
+  - quadratic
+  - concentration
+  - shared-pool
+seed: 61616
+ticks: 36
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 12000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: concentration-normal-buy
+  - instrumentId: 1
+    side: BUY
+    quantity: 10000
+    urgency: HIGH
+    atTick: 18
+    submitMode: SIMULATED
+    clientOrderRef: concentration-high-buy
+
+windows:
+  - name: same-pool-venues-look-good
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: concentration-risk-emerges
+    startTick: 12
+    endTick: 27
+    regime: VOLATILE
+  - name: thin-book-rewards-diversification
+    startTick: 28
+    endTick: 35
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - pair_penalty_limits_shared_pool_concentration
+    - lower_ranked_uncorrelated_venue_can_be_selected
+    - selected_subset_diversifies_execution_sources

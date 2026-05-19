@@ -9,6 +9,7 @@ int main() {
     input.min_subset_size = 1;
     input.max_subset_size = 2;
     input.linear_coefficients = linear;
+    input.pair_coefficients = nullptr;
     SorStrategicQuboOutput output{};
 
     assert(sor_cudaq_strategic_optimize(&input, &output) == SOR_STRATEGIC_OK);
@@ -16,6 +17,24 @@ int main() {
     assert(output.selected_venue_ids[0] == 1);
     assert(output.selected_venue_ids[1] == 2);
     assert(output.objective_energy == -70);
+
+    const std::int32_t interaction_linear[] = {-100, -90, -80};
+    const std::int32_t pair[] = {
+        0, 1000, 0,
+        1000, 0, 0,
+        0, 0, 0
+    };
+    input.venue_count = 3;
+    input.min_subset_size = 1;
+    input.max_subset_size = 2;
+    input.linear_coefficients = interaction_linear;
+    input.pair_coefficients = pair;
+
+    assert(sor_cudaq_strategic_optimize(&input, &output) == SOR_STRATEGIC_OK);
+    assert(output.selected_count == 2);
+    assert(output.selected_venue_ids[0] == 0);
+    assert(output.selected_venue_ids[1] == 2);
+    assert(output.objective_energy == -180);
 
     input.venue_count = 0;
     assert(sor_cudaq_strategic_optimize(&input, &output) == SOR_STRATEGIC_INVALID_INPUT);

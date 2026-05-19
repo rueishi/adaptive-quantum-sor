@@ -13,6 +13,7 @@ struct SorStrategicQuboInput {
     std::int32_t min_subset_size;
     std::int32_t max_subset_size;
     const std::int32_t* linear_coefficients;
+    const std::int32_t* pair_coefficients;
 };
 
 struct SorStrategicQuboOutput {

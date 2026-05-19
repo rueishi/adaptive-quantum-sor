@@ -1,0 +1,51 @@
+# Risk-coupled toxic pair scenario.
+
+scenarioId: risk-coupling-toxic-pair
+description: Two venues are acceptable alone but become toxic together, requiring quadratic risk coupling.
+category: optimizer-policy
+tags:
+  - optimizer
+  - qubo
+  - quadratic
+  - toxicity
+  - risk-coupling
+seed: 62626
+ticks: 32
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: SELL
+    quantity: 8000
+    urgency: NORMAL
+    atTick: 2
+    submitMode: SIMULATED
+    clientOrderRef: toxic-pair-normal-sell
+  - instrumentId: 0
+    side: BUY
+    quantity: 8000
+    urgency: HIGH
+    atTick: 14
+    submitMode: SIMULATED
+    clientOrderRef: toxic-pair-high-buy
+
+windows:
+  - name: pair-looks-safe-individually
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: co-selection-amplifies-toxicity
+    startTick: 8
+    endTick: 23
+    regime: VOLATILE
+  - name: residual-risk-after-toxicity
+    startTick: 24
+    endTick: 31
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - risk_coupling_pair_penalty_is_positive
+    - toxic_pair_is_not_selected_together
+    - route_remains_valid_with_uncorrelated_alternative

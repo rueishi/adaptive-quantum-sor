@@ -18,8 +18,9 @@ import java.util.Arrays;
  * immutable after construction.</p>
  *
  * <p>Design intent: lower energy is better. Linear coefficients are negative
- * venue quality scores, while cardinality penalties make empty or over-large
- * subsets expensive without hiding their raw score contribution.</p>
+ * venue quality scores, pair coefficients penalize toxic or concentration-prone
+ * co-selection, and cardinality penalties make empty or over-large subsets
+ * expensive without hiding their raw score contribution.</p>
  */
 public final class QuboObjectiveConfig {
     public static final int DEFAULT_MIN_SUBSET_SIZE = 1;
@@ -96,7 +97,14 @@ public final class QuboObjectiveConfig {
         final int[] linear = new int[input.venueCount];
         final int[] pair = new int[input.venueCount * input.venueCount];
         for (int venueId = 0; venueId < input.venueCount; venueId++) {
-            linear[venueId] = -venueQualityScore(input, instrumentId, venueId, regimeId);
+            linear[venueId] = -clampBps(venueQualityScore(input, instrumentId, venueId, regimeId));
+        }
+        for (int leftVenueId = 0; leftVenueId < input.venueCount; leftVenueId++) {
+            for (int rightVenueId = leftVenueId + 1; rightVenueId < input.venueCount; rightVenueId++) {
+                final int penalty = pairPenalty(input, instrumentId, leftVenueId, rightVenueId, regimeId);
+                pair[leftVenueId * input.venueCount + rightVenueId] = penalty;
+                pair[rightVenueId * input.venueCount + leftVenueId] = penalty;
+            }
         }
         return new QuboObjectiveConfig(
                 instrumentId,
@@ -133,7 +141,56 @@ public final class QuboObjectiveConfig {
         if (input.riskLimits != null && input.riskLimits.maxParticipationBps(instrumentId, venueId) == 0) {
             score -= DEFAULT_PENALTY;
         }
+        if (input.venueMetadata != null
+                && (!input.venueMetadata.isEnabled(venueId) || !input.venueMetadata.supportsInstrument(instrumentId, venueId))) {
+            score -= DEFAULT_PENALTY;
+        }
         return score;
+    }
+
+    private static int pairPenalty(
+            final PolicyOptimizationInput input,
+            final int instrumentId,
+            final int leftVenueId,
+            final int rightVenueId,
+            final int regimeId
+    ) {
+        if (input.venueStats == null) {
+            return 0;
+        }
+        final int leftIdx = input.venueStats.idxIVR(instrumentId, leftVenueId, regimeId);
+        final int rightIdx = input.venueStats.idxIVR(instrumentId, rightVenueId, regimeId);
+
+        int penalty = 0;
+        penalty += sharedRiskPenalty(input.venueStats.toxicityBps[leftIdx], input.venueStats.toxicityBps[rightIdx], 1_000, 5, 1_500);
+        penalty += sharedRiskPenalty(input.venueStats.rejectRateBps[leftIdx], input.venueStats.rejectRateBps[rightIdx], 1_000, 5, 1_500);
+        penalty += sharedRiskPenalty(input.venueStats.marketImpactBps[leftIdx], input.venueStats.marketImpactBps[rightIdx], 1_000, 5, 1_000);
+
+        final int profileDistance =
+                Math.abs(input.venueStats.toxicityBps[leftIdx] - input.venueStats.toxicityBps[rightIdx]) / 10
+                        + Math.abs(input.venueStats.rejectRateBps[leftIdx] - input.venueStats.rejectRateBps[rightIdx]) / 10
+                        + Math.abs(input.venueStats.marketImpactBps[leftIdx] - input.venueStats.marketImpactBps[rightIdx]) / 10
+                        + Math.abs(input.venueStats.fillProbabilityBps[leftIdx] - input.venueStats.fillProbabilityBps[rightIdx]) / 20
+                        + Math.abs(input.venueStats.latencyNanos[leftIdx] - input.venueStats.latencyNanos[rightIdx]) / 100_000;
+        penalty += Math.max(0, 1_000 - Math.min(1_000, profileDistance)) / 2;
+        return Math.min(DEFAULT_PENALTY, penalty);
+    }
+
+    private static int sharedRiskPenalty(
+            final int left,
+            final int right,
+            final int threshold,
+            final int divisor,
+            final int cap
+    ) {
+        if (left < threshold || right < threshold) {
+            return 0;
+        }
+        return Math.min(cap, ((left + right) / 2) / divisor);
+    }
+
+    private static int clampBps(final int value) {
+        return Math.max(0, Math.min(10_000, value));
     }
 
     /**

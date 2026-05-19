@@ -26,6 +26,12 @@ CPU SOR execution
 audit, metrics, and reports
 ```
 
+Phase 6 adds cross-parent batch venue allocation: a warm-path optimizer that
+allocates multiple concurrent parent orders jointly across venues subject to
+shared capacity, participation, self-impact, and correlated information-leakage
+constraints. It is intentionally separate from the existing per-parent
+execution hot path.
+
 The launchable application class is:
 
 ```text
@@ -131,10 +137,14 @@ that engine over HTTP.
 Useful notebooks:
 
 ```text
-notebooks/submit_parent_order.ipynb             parent order submission panel
-notebooks/live_stats_monitor.ipynb              stats and policy monitor
-notebooks/scenario_runner.ipynb                 scenario reset and replay review
+notebooks/submit_parent_order.ipynb             widget-driven parent order submission report
+notebooks/live_stats_monitor.ipynb              widget-driven stats, policy, and order summary monitor
+notebooks/scenario_runner.ipynb                 widget-driven scenario execution report
 ```
+
+The notebooks use `ipywidgets` controls for normal demo operation, plus
+professional report sections for run manifests, result lists, KPI cards, fill
+breakdowns, and lifecycle/evidence tables.
 
 Optional ports:
 
@@ -150,7 +160,8 @@ The scenario catalog under `scenarios/<category>/*.yaml` drives replayable
 simulation tests and notebook/API scenario exploration. Scenarios cover baseline
 replay, regime transitions, liquidity disappearance, stale feeds, venue outages,
 toxic venues, lineage, live reset modes, feature/ML generation, risk, throttles,
-capacity, and multi-instrument behavior.
+capacity, multi-instrument behavior, and Phase 6 cross-parent batch allocation
+cases.
 
 Run deterministic scenario coverage:
 

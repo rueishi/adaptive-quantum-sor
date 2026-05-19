@@ -47,6 +47,7 @@ final class StrategicOptimizerAuditTest {
         assertEquals(0, audit.regimeId);
         assertEquals(0, audit.urgencyId);
         assertArrayEquals(new int[]{-10, -20}, audit.objectiveLinearCoefficients);
+        assertArrayEquals(new int[]{0, 30, 30, 0}, audit.objectivePairCoefficients);
         assertArrayEquals(new short[]{1}, audit.selectedVenueIds);
         assertEquals(4L, audit.strategicResultVersion);
         assertEquals(5L, audit.policyDiff.previousPolicyVersion);
@@ -82,7 +83,9 @@ final class StrategicOptimizerAuditTest {
     }
 
     private static QuboObjectiveConfig objective() {
-        return new QuboObjectiveConfig(0, 0, 0, 2, 1, 1, 100, new int[]{-10, -20}, new int[4]);
+        return new QuboObjectiveConfig(0, 0, 0, 2, 1, 1, 100,
+                new int[]{-10, -20},
+                new int[]{0, 30, 30, 0});
     }
 
     private static PolicyOptimizationInput input() {

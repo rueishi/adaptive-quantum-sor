@@ -14,6 +14,7 @@ Rendered PNGs:
 ```text
 docs/sequence_parent_order_routing.png
 docs/sequence_policy_optimization_cycle.png
+docs/sequence_cross_parent_batch_allocation.png
 docs/sequence_policy_publication.png
 docs/sequence_jupyter_order_submission.png
 docs/sequence_live_jupyter_scenario_parent_orders.png
@@ -60,6 +61,36 @@ sequenceDiagram
     Input->>Tactical: optimize(strategic, input)
     Tactical-->>Candidate: TacticalPolicyResult
     Tactical->>Candidate: apply weights, penalties, limits
+```
+
+## Cross-Parent Batch Venue Allocation
+
+![Cross-parent batch venue allocation](sequence_cross_parent_batch_allocation.png)
+
+```mermaid
+sequenceDiagram
+    participant Trigger as Warm-path Trigger
+    participant Snapshot as Parent/Market Snapshot
+    participant Problem as BatchAllocationProblem
+    participant Backend as BatchAllocationBackend
+    participant Reference as DeterministicBatchVenueAllocator
+    participant Store as BatchAllocationPlanStore
+    participant Input as PolicyOptimizationInput
+    participant Report as BatchAllocationReport
+
+    Trigger->>Snapshot: collect active parent orders and venue state
+    Snapshot->>Problem: build parent x venue quantities, capacities, pair costs
+    Problem->>Reference: solve small deterministic reference
+    Problem->>Backend: optional native/cuOpt/QUBO allocation
+    Backend-->>Problem: plan or failure status
+    Problem->>Problem: validate feasibility and objective
+    alt backend unavailable, timeout, or invalid
+        Problem-->>Store: keep latest approved plan
+    else valid allocation
+        Problem->>Store: approve(BatchVenueAllocationPlan)
+        Store->>Input: attach latest applicable plan by inputSnapshotId
+        Store->>Report: render objective, constraints, fallback, quantities
+    end
 ```
 
 ## Policy Publication

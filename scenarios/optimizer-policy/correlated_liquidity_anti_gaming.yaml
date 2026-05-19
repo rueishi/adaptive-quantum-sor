@@ -1,0 +1,51 @@
+# Correlated liquidity anti-gaming scenario.
+
+scenarioId: correlated-liquidity-anti-gaming
+description: Individually strong venues share a detectable liquidity source, so co-selecting them should carry anti-gaming risk.
+category: optimizer-policy
+tags:
+  - optimizer
+  - qubo
+  - quadratic
+  - anti-gaming
+  - venue-correlation
+seed: 60606
+ticks: 34
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 9000
+    urgency: NORMAL
+    atTick: 2
+    submitMode: SIMULATED
+    clientOrderRef: anti-gaming-normal-buy
+  - instrumentId: 0
+    side: SELL
+    quantity: 9000
+    urgency: HIGH
+    atTick: 15
+    submitMode: SIMULATED
+    clientOrderRef: anti-gaming-high-sell
+
+windows:
+  - name: individually-attractive-correlated-venues
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: correlated-toxic-detection
+    startTick: 10
+    endTick: 25
+    regime: VOLATILE
+  - name: diversify-away-from-shared-pool
+    startTick: 26
+    endTick: 33
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - pair_penalty_discourages_correlated_liquidity_pool
+    - selected_subset_is_not_independent_top_two
+    - anti_gaming_risk_is_recorded_in_qubo_pair_terms

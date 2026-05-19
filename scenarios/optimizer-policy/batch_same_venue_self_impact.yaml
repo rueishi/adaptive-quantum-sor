@@ -1,0 +1,51 @@
+# Cross-parent same-venue self-impact scenario.
+
+scenarioId: batch-same-venue-self-impact
+description: Two concurrent parent orders independently prefer one venue, but joint self-impact should diversify the batch allocation.
+category: optimizer-policy
+tags:
+  - optimizer
+  - phase-6
+  - batch-allocation
+  - self-impact
+  - quadratic
+seed: 64646
+ticks: 32
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 7000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-impact-buy-1
+  - instrumentId: 0
+    side: BUY
+    quantity: 7000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-impact-buy-2
+
+windows:
+  - name: both-parents-prefer-primary-venue
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: self-impact-dominates-primary-venue
+    startTick: 10
+    endTick: 23
+    regime: VOLATILE
+  - name: diversified-batch-recovers
+    startTick: 24
+    endTick: 31
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - same_venue_self_impact_changes_batch_allocation
+    - independent_per_parent_routing_is_not_optimal
+    - batch_report_lists_objective_and_constraints

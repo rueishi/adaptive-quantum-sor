@@ -1,0 +1,51 @@
+# Quadratic pair override scenario.
+
+scenarioId: quadratic-pair-override
+description: The top two linear-score venues should lose to a lower-ranked venue because their pair penalty dominates.
+category: optimizer-policy
+tags:
+  - optimizer
+  - qubo
+  - quadratic
+  - pair-override
+  - deterministic
+seed: 63636
+ticks: 30
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 7000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: pair-override-normal-buy
+  - instrumentId: 1
+    side: SELL
+    quantity: 7000
+    urgency: HIGH
+    atTick: 12
+    submitMode: SIMULATED
+    clientOrderRef: pair-override-high-sell
+
+windows:
+  - name: linear-ranking-favors-correlated-pair
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: quadratic-penalty-dominates
+    startTick: 10
+    endTick: 21
+    regime: VOLATILE
+  - name: diversified-subset-stays-safe
+    startTick: 22
+    endTick: 29
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - pair_penalty_overrides_linear_ranking
+    - reference_solver_selects_lower_energy_interaction_subset
+    - native_and_java_qubo_energy_agree

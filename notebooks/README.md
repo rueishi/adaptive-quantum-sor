@@ -10,9 +10,9 @@ the production hot path.
 ## What Is In This Folder
 
 ```text
-notebooks/submit_parent_order.ipynb             parent order submission panel
-notebooks/live_stats_monitor.ipynb              stats and policy monitor
-notebooks/scenario_runner.ipynb                 scenario reset, run, and result review
+notebooks/submit_parent_order.ipynb             widget-driven parent order submission report
+notebooks/live_stats_monitor.ipynb              widget-driven stats, policy, and order summary monitor
+notebooks/scenario_runner.ipynb                 widget-driven scenario execution report
 ```
 
 Related files outside this folder:
@@ -34,8 +34,9 @@ java -version
 python3 --version
 ```
 
-The launcher creates `.venv-notebook`, installs `python/requirements.txt` and
-JupyterLab there, and sets `PYTHONPATH=python` automatically. If you run
+The launcher creates `.venv-notebook`, installs `python/requirements.txt`
+including pandas and ipywidgets, installs JupyterLab there, and sets
+`PYTHONPATH=python` automatically. If you run
 notebooks or Python manually, set it yourself:
 
 ```bash
@@ -85,10 +86,9 @@ Typical flow:
 1. Start JupyterLab with `scripts/start-jupyter-lab.sh`.
 2. Open `submit_parent_order.ipynb`.
 3. Run the setup cell.
-4. Edit the order payload.
-5. Submit the order.
-6. Fetch the order status.
-7. Inspect current stats and policy in `live_stats_monitor.ipynb`.
+4. Choose order values in the widget control panel.
+5. Submit the order and review the generated report.
+6. Inspect current stats and policy in `live_stats_monitor.ipynb`.
 
 Example parent order payload:
 
@@ -115,11 +115,13 @@ one explicit parent order or `simulator_generated_orders=True`.
 
 Typical flow:
 
-1. Choose a scenario from `scenarios/**/*.yaml`.
-2. Choose a reset mode.
+1. Choose a scenario from the widget dropdown.
+2. Choose reset mode, seed, ticks, route limits, and parent-order fields.
 3. Run scenario reset.
 4. Run the scenario with the parent order intent you want to test.
-5. Inspect scenario summary, events, order results, and policy behavior.
+5. Inspect the professional report: run manifest, result list, parent order
+   results, venue fill breakdown, scenario summary, reset evidence, run
+   evidence, and lifecycle events.
 
 Parent order fields:
 
@@ -243,27 +245,31 @@ liquidity stress regime: higher reject rates and residual quantities
 
 ### `submit_parent_order.ipynb`
 
-Purpose: submit parent orders into the SOR control-plane API and inspect the
-accepted order response.
+Purpose: submit parent orders into the SOR control-plane API through a widget
+control panel and inspect a polished submission report.
 
-Expected result: a JSON response containing `parentOrderId`, `remainingQty`,
-and `status`.
+Expected result: a report with API manifest, exact payload, result list,
+submit response, order status, child-order evidence, and KPI cards for filled
+and remaining quantity.
 
 ### `live_stats_monitor.ipynb`
 
-Purpose: inspect current SOR policy and stats as pandas tables.
+Purpose: inspect current SOR policy, stats, optional cumulative order summary,
+and numeric charts through a widget-driven monitor.
 
-Expected result: pandas DataFrames from `/stats/current` and
-`/policy/current`, including policy version and venue count.
+Expected result: a live monitor report with KPI cards, combined stats/policy
+table, raw endpoint tables, optional order-summary tables, and a numeric metric
+chart.
 
 ### `scenario_runner.ipynb`
 
-Purpose: reset live demo scenario state, run a fixed-seed scenario, and inspect
-the scenario summary and lifecycle events.
+Purpose: reset live demo scenario state, run a fixed-seed scenario selected
+from widgets, and produce a user-friendly scenario execution report.
 
 Expected result: reset summary, scenario run result, replay-safety status, and
-scenario events, including parent order route evidence and venue-level fill
-rows with instrument/venue names, filled quantity, price, and notional.
+scenario events, including run manifest, result list, parent order route
+evidence, and venue-level fill rows with instrument/venue names, filled
+quantity, price, and notional.
 `APPEND` mode is intentionally not replay-safe because it preserves existing
 live state.
 

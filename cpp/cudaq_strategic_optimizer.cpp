@@ -40,6 +40,18 @@ extern "C" SorStrategicStatus sor_cudaq_strategic_optimize(
                 energy += input->linear_coefficients[venue];
             }
         }
+        if (input->pair_coefficients != nullptr) {
+            for (int left = 0; left < input->venue_count; ++left) {
+                if ((mask & (1 << left)) == 0) {
+                    continue;
+                }
+                for (int right = left + 1; right < input->venue_count; ++right) {
+                    if ((mask & (1 << right)) != 0) {
+                        energy += input->pair_coefficients[left * input->venue_count + right];
+                    }
+                }
+            }
+        }
         if (energy < best_energy || (energy == best_energy && mask < best_mask)) {
             best_energy = energy;
             best_mask = mask;

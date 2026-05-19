@@ -12,6 +12,7 @@ HTTP API and lifecycle stream
 simulation, feature, and stats state
 ML signal and optimizer input state
 strategic optimizer
+cross-parent batch allocator
 tactical optimizer
 policy lint, compile, validate, publish
 CPU SOR execution
@@ -93,6 +94,31 @@ result storage, fallback/health handling, and strategic audit lineage.
 Approved strategic results are stored separately from failed attempts so the
 tactical optimizer consumes the latest approved result, not merely the latest
 attempted result.
+
+## Cross-Parent Batch Allocation
+
+Phase 6 adds a warm-path batch allocator between strategic venue selection and
+tactical policy/execution. It optimizes parent x venue quantities across
+multiple active parent orders at once, then publishes only validated
+`BatchVenueAllocationPlan` records.
+
+The allocation objective is deliberately quadratic:
+
+```text
+linearCost[p,v] for parent p using venue v
+sameVenuePairCost[p,q,v] when two parents use the same venue
+venueCorrelationPairCost[v,w] when parents use correlated venues
+```
+
+Those pair terms represent the hard cases that independent per-parent routing
+cannot express: self-impact, shared venue capacity, aggregate participation
+caps, and correlated information leakage. Small problems are solved by the
+deterministic reference allocator; larger future integrations can plug in
+cuOpt, QUBO/Ising, CUDA-Q, or native backends behind `BatchAllocationBackend`.
+
+The batch allocator is not part of L0. If a backend is unavailable, times out,
+or returns an invalid plan, `BatchAllocationPlanStore` keeps the latest approved
+plan and execution continues with the existing route-level policy.
 
 ## Python And Jupyter
 

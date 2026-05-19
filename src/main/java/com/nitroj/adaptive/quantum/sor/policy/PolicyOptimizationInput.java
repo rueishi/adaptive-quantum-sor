@@ -7,6 +7,7 @@ import com.nitroj.adaptive.quantum.sor.metadata.VenueMetadata;
 import com.nitroj.adaptive.quantum.sor.model.ModelSignalState;
 import com.nitroj.adaptive.quantum.sor.optimizer.StrategicVenueSubsetResult;
 import com.nitroj.adaptive.quantum.sor.optimizer.TacticalPolicyResult;
+import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchVenueAllocationPlan;
 import com.nitroj.adaptive.quantum.sor.risk.RiskLimitSnapshot;
 import com.nitroj.adaptive.quantum.sor.state.ChildOrderState;
 import com.nitroj.adaptive.quantum.sor.state.FeedHealthState;
@@ -101,6 +102,7 @@ public final class PolicyOptimizationInput {
     public SorPolicy currentPolicy;
     public StrategicVenueSubsetResult latestStrategicSubset;
     public TacticalPolicyResult latestTacticalResult;
+    public BatchVenueAllocationPlan latestBatchAllocationPlan;
 
     public PolicyOptimizationInput() {
     }

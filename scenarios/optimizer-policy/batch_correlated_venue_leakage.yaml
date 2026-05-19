@@ -1,0 +1,52 @@
+# Cross-parent correlated venue leakage scenario.
+
+scenarioId: batch-correlated-venue-leakage
+description: Parent orders on correlated venues create information leakage even when they avoid the same venue.
+category: optimizer-policy
+tags:
+  - optimizer
+  - phase-6
+  - batch-allocation
+  - correlated-venues
+  - information-leakage
+  - quadratic
+seed: 66666
+ticks: 36
+venueProfilesEnabled: true
+
+parentOrders:
+  - instrumentId: 0
+    side: SELL
+    quantity: 8000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-leakage-sell
+  - instrumentId: 1
+    side: SELL
+    quantity: 8000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: batch-leakage-cross-sell
+
+windows:
+  - name: venues-look-independent
+    startTick: 0
+    endTick: 10
+    regime: NORMAL
+  - name: correlated-leakage-emerges
+    startTick: 11
+    endTick: 27
+    regime: VOLATILE
+  - name: uncorrelated-diversification
+    startTick: 28
+    endTick: 35
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - correlated_venue_pair_penalty_changes_batch_allocation
+    - batch_optimizer_avoids_cross_parent_information_leakage
+    - qubo_and_cuopt_boundaries_share_reference_evidence

@@ -116,6 +116,31 @@ final class ScenarioDefinitionLoaderTest {
     }
 
     @Test
+    void phase6BatchAllocationScenariosDocumentHardCases() throws Exception {
+        final ScenarioDefinitionLoader loader = new ScenarioDefinitionLoader();
+
+        for (String scenario : new String[]{
+                "batch_same_venue_self_impact.yaml",
+                "batch_shared_capacity.yaml",
+                "batch_correlated_venue_leakage.yaml",
+                "batch_infeasible_fallback.yaml"
+        }) {
+            final Path file = Path.of("scenarios/optimizer-policy", scenario);
+            final ScenarioDefinition definition = loader.load(file);
+            final String content = Files.readString(file);
+
+            assertTrue(content.contains("\ncategory: optimizer-policy\n"),
+                    () -> scenario + " must declare optimizer-policy category");
+            assertTrue(content.contains("\n  - phase-6\n"), () -> scenario + " must be tagged phase-6");
+            assertTrue(content.contains("\n  - batch-allocation\n"),
+                    () -> scenario + " must be tagged batch-allocation");
+            assertTrue(content.contains("expected:\n"), () -> scenario + " must document expected evidence");
+            assertFalse(definition.parentOrders().length == 0,
+                    () -> scenario + " must include user-editable parent order defaults");
+        }
+    }
+
+    @Test
     void rejectsInvalidScenarioFileBeforeRuntimeStateExists() {
         final ScenarioDefinitionLoader loader = new ScenarioDefinitionLoader();
 

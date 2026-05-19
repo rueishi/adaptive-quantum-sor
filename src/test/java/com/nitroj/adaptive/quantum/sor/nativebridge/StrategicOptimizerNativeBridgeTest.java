@@ -52,6 +52,24 @@ final class StrategicOptimizerNativeBridgeTest {
     }
 
     @Test
+    void pairPenaltyCanOverrideIndependentVenueRanking() {
+        final int[] pair = new int[9];
+        pair[1] = 1_000;
+        pair[3] = 1_000;
+        final QuboObjectiveConfig objective = new QuboObjectiveConfig(
+                0, 0, 0, 3, 1, 2, 100,
+                new int[]{-100, -90, -80},
+                pair
+        );
+
+        final StrategicOptimizerNativeBridge.NativeResult result = bridge().optimize(objective);
+
+        assertEquals(StrategicOptimizerNativeBridge.StrategicOptimizerNativeStatus.OK, result.status());
+        assertArrayEquals(new short[]{0, 2}, result.selectedVenueIds());
+        assertEquals(-180L, result.objectiveEnergy());
+    }
+
+    @Test
     void invalidNativeResultRejected() {
         final StrategicOptimizerNativeBridge bridge = bridge();
 

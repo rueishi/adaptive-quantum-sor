@@ -129,7 +129,7 @@ static SOR comparison
 ```text
 FPGA acceleration
 cross-cluster coordination
-cross-asset portfolio execution
+cross-asset portfolio construction outside local SOR batch allocation
 federated optimizer clusters
 real exchange connectivity
 ```
@@ -141,6 +141,7 @@ Phase 2 — real CUDA / cuOpt tactical optimizer
 Phase 3 — real CUDA-Q / Ising strategic optimizer
 Phase 4 — automated ML/RL model pipeline
 Phase 5 — stateful stochastic/regime simulation upgrade
+Phase 6 — cross-parent batch venue allocation
 ```
 
 CUDA/CUDA-Q/Ising are represented by clean interfaces and realistic stubs first.
@@ -154,12 +155,12 @@ CUDA/CUDA-Q/Ising are represented by clean interfaces and realistic stubs first.
 | L6 | Historical / Synthetic Simulation Layer | hourly / manual | Replay, scenario testing, model evaluation |
 | L5 | ML / Feature Model Layer | 5–60 min / stub | Fill, toxicity, slippage, regime, queue signals |
 | L4 | Ising / CUDA-Q Strategic Optimizer | 5–30 min | Venue subset selection, structural constraints |
+| L3.5 | Cross-Parent Batch Allocation | warm path / event-driven | Joint parent x venue allocation under shared capacity and quadratic coupling |
 | L3 | CUDA / cuOpt Tactical Optimizer | 1–5 min | Weights, penalties, child sizes, participation |
 | L2 | Streaming Feature Aggregation | 1–60 sec | Rolling venue stats from live simulated data |
 | L1 | Policy Compiler / Publisher | on candidate | Validate, compile, version, publish policy |
 | L0 | CPU SOR Execution Layer | per order | Deterministic routing using active policy |
 
----
 ### 3.2 L6 — Historical / Synthetic Simulation Layer
 #### Purpose
 
@@ -379,6 +380,73 @@ public final class StrategicVenueSubsetResult {
     public int optimizerType;
 }
 ```
+
+---
+### 3.4.5 L3.5 — Cross-Parent Batch Allocation
+#### Purpose
+
+Allocates venue usage across multiple active parent orders as one warm-path
+optimization problem. This layer exists because the hard venue-selection cases
+are interaction effects: two parents using the same venue can self-impact, two
+correlated venues can leak information jointly, and one venue's capacity or
+participation limit is shared by every parent in the batch.
+
+#### Cadence
+
+```text
+Adaptive Quantum SOR: on material parent-order / market-state change
+Production-style: warm path, periodic, or event-driven; never inside L0
+```
+
+#### Model
+
+```text
+q[p,v] = quantity from parent p allocated to venue v
+
+minimize:
+  linearCost[p,v] * q[p,v]
+  + sameVenuePairCost[p,q,v] * min(q[p,v], q[q,v])
+  + venueCorrelationPairCost[v,w] * min(q[p,v], q[q,w])
+
+subject to:
+  each parent quantity is allocated
+  aggregate venue capacity is respected
+  venue participation caps are respected
+```
+
+The pair terms are the bottleneck-bearing part of the formulation. Without
+them, the model collapses to independent venue ranking. With them, batch
+allocation is a constrained quadratic assignment / generalized-assignment
+problem suitable for a deterministic reference solver at small size and for
+future cuOpt, QUBO/Ising, CUDA-Q, or native backends at larger size.
+
+#### Reads
+
+```text
+active parent-order snapshot
+venue capacity and participation snapshots
+market/feature/stat state
+venue correlation and pair-penalty source
+latest strategic venue subset
+latest tactical policy parameters
+```
+
+#### Writes
+
+```text
+BatchVenueAllocationPlan
+BatchAllocationRunMetadata
+BatchAllocationConstraintReport
+PolicyOptimizationInput.latestBatchAllocationPlan
+BatchAllocationReport
+```
+
+#### Safety Boundary
+
+Batch allocation publishes only validated plans. If allocation is infeasible,
+times out, or a backend returns an invalid result, the latest approved batch
+plan remains available and execution falls back to the existing route-level
+policy. L0 execution must not call the batch optimizer directly.
 
 ---
 ### 3.5 L3 — CUDA / cuOpt Tactical Optimizer
@@ -2028,7 +2096,7 @@ venueCount
 minSubsetSize
 maxSubsetSize
 linearCoefficient[v]
-optional pairPenalty[v1, v2]
+pairPenalty[v1, v2]
 selectedVenueOutputCapacity
 ```
 
@@ -2074,6 +2142,15 @@ linearCoefficient[v] = -clamp(strategicQualityBps, 0, 10000)
 Lower QUBO energy is better.
 
 #### 7.3.9 Strategic Energy Function
+
+The pair penalty is part of the required production formulation, not decoration.
+It encodes anti-gaming, correlated-venue concentration, and risk-coupling terms
+that cannot be represented by independently ranking venues. Implementations may
+derive the coefficient from a venue-correlation matrix when available. The
+deterministic baseline derives it from the optimizer input snapshot by
+penalizing co-selection of venues with similar toxicity/reject/market-impact/
+latency/fill profiles and by adding extra penalty when both venues are toxic,
+reject-prone, or market-impact-heavy.
 
 For a mask/subset:
 
@@ -3006,15 +3083,22 @@ Shows chronological lifecycle event stream.
 
 ##### Panel 2 — Parent Order Submission + Fill Results
 
-Allows interactive parent-order submission and fill inspection.
+Allows interactive parent-order submission and fill inspection through a
+notebook widget control panel. The panel must let the user choose API URL,
+timeout, instrument, side, quantity, and urgency without editing Python code,
+then render a professional report with submission manifest, payload, result
+list, order status, and child-order evidence.
 
 ##### Panel 3 — Live Statistics + Policy State
 
 Shows:
 
 ```text
+widget controls for API URL, timeout, order-summary toggle, and chart toggle
 KPI cards for venue count, policy version, parent order count, and child order count
 live numeric bar charts for stats/policy fields
+combined stats/policy report table
+optional cumulative order summary
 venue weights
 fill probability
 latency
@@ -3029,6 +3113,10 @@ optimizer cadence
 
 Allows explicit scenario reset, scenario run, summary inspection, event
 inspection, and parent-order-intent testing for Jupyter/API scenario workflows.
+The panel must include user-friendly widgets for scenario, reset mode, seed,
+ticks, route limits, submit mode, and parent-order fields, then render a
+shippable execution report that makes the run manifest, result list, venue fill
+breakdown, reset evidence, and lifecycle event log clear to non-developers.
 
 The one-command launcher shall open all four notebook panels:
 
@@ -3055,6 +3143,7 @@ Rendered PNGs:
 ```text
 docs/sequence_parent_order_routing.png
 docs/sequence_policy_optimization_cycle.png
+docs/sequence_cross_parent_batch_allocation.png
 docs/sequence_policy_publication.png
 docs/sequence_jupyter_order_submission.png
 docs/sequence_live_jupyter_scenario_parent_orders.png
@@ -3101,6 +3190,36 @@ sequenceDiagram
     Input->>Tactical: optimize(strategic, input)
     Tactical-->>Candidate: TacticalPolicyResult
     Tactical->>Candidate: apply weights, penalties, limits
+```
+
+##### Cross-Parent Batch Venue Allocation
+
+![Cross-parent batch venue allocation](docs/sequence_cross_parent_batch_allocation.png)
+
+```mermaid
+sequenceDiagram
+    participant Trigger as Warm-path Trigger
+    participant Snapshot as Parent/Market Snapshot
+    participant Problem as BatchAllocationProblem
+    participant Reference as DeterministicBatchVenueAllocator
+    participant Backend as BatchAllocationBackend
+    participant Store as BatchAllocationPlanStore
+    participant Input as PolicyOptimizationInput
+    participant Report as BatchAllocationReport
+
+    Trigger->>Snapshot: collect active parent orders and venue state
+    Snapshot->>Problem: build parent x venue quantities, capacities, pair costs
+    Problem->>Reference: solve small deterministic reference
+    Problem->>Backend: optional native/cuOpt/QUBO allocation
+    Backend-->>Problem: plan or failure status
+    Problem->>Problem: validate feasibility and objective
+    alt backend unavailable, timeout, or invalid
+        Problem-->>Store: keep latest approved plan
+    else valid allocation
+        Problem->>Store: approve(BatchVenueAllocationPlan)
+        Store->>Input: attach latest applicable plan by inputSnapshotId
+        Store->>Report: render objective, constraints, fallback, quantities
+    end
 ```
 
 ##### Policy Publication
@@ -4519,7 +4638,8 @@ subset and break energy ties by lower bitmask/lower venue IDs.
 
 The C++ strategic tests must cover invalid inputs, impossible subset bounds,
 simple expected subsets, cardinality constraints, deterministic tie-breaking,
-and stable objective energy reporting.
+pair penalties that change the selected subset, and stable objective energy
+reporting.
 
 ---
 ### 11.6 Phase 4 Acceptance Criteria — Automated ML/RL Model Pipeline
@@ -4933,7 +5053,95 @@ before running it, then run the scenario with those parent orders and inspect
 route/outcome results.
 
 ---
-### 11.8 Cross-Phase Acceptance Criteria
+### 11.8 Phase 6 Acceptance Criteria — Cross-Parent Batch Venue Allocation
+Phase 6 introduces a warm-path batch optimizer that allocates venue usage across
+multiple concurrent parent orders jointly. It is designed for the constrained
+quadratic assignment / generalized-assignment class where independent
+per-parent routing is suboptimal because parents share venue capacity,
+participation caps, self-impact, and correlated information-leakage risks.
+
+#### P6-BATCH-001 Positive: batch allocation model represents concurrent parents
+
+Given multiple active parent orders across one or more instruments,
+when the batch allocation model is built,
+then it must represent parent x venue allocation variables, parent quantity
+requirements, venue capacity, participation caps, and optimizer lineage.
+
+#### P6-BATCH-002 Positive: single-parent compatibility
+
+Given a batch contains exactly one parent order,
+then the batch allocator must produce an allocation equivalent to the existing
+route-level policy for the same market, venue, and risk state unless a stricter
+batch constraint is configured.
+
+#### P6-BATCH-003 Positive: quadratic self-impact changes allocation
+
+Given two parent orders independently prefer the same venue,
+when a same-venue self-impact or market-impact coupling penalty is high,
+then the batch allocator must be able to diversify one parent to a lower-ranked
+venue because the joint allocation has lower total objective cost.
+
+#### P6-BATCH-004 Positive: shared venue capacity is enforced
+
+Given a venue has finite displayed or configured batch capacity,
+then aggregate child quantity assigned to that venue across all parents must not
+exceed the capacity or participation limit.
+
+#### P6-BATCH-005 Positive: correlated venue leakage is quadratic
+
+Given venues v and w are correlated for information leakage or shared liquidity,
+then assigning parent A to v and parent B to w must add a pairwise penalty that
+cannot be represented by independent venue ranking alone.
+
+#### P6-BATCH-006 Backend boundary and reference equivalence
+
+Given a small deterministic batch allocation problem,
+then any cuOpt, QUBO/Ising, or native backend must match the deterministic
+reference solver on feasibility, objective cost, selected allocations, and
+tie-breaks.
+
+#### P6-BATCH-007 Off-hot-path safety
+
+Batch optimization must not run inside the L0 execution hot path. It may run on
+a warm-path cadence or on material parent-order/market-state changes and publish
+only validated allocation plans.
+
+#### P6-BATCH-008 Audit and explainability
+
+Every approved or rejected batch allocation attempt must record:
+
+```text
+batchAllocationRunId
+inputSnapshotId
+parentOrderIds
+venue capacity snapshot
+pair penalty source/version
+objective cost
+constraint report
+selected parent x venue quantities
+fallback decision when applicable
+createdAtNanos
+```
+
+#### P6-BATCH-009 Failure safety
+
+If batch allocation is infeasible, times out, returns invalid quantities, or
+violates constraints, then no unsafe plan may be published and the system must
+fall back to the latest approved batch plan or existing route-level policy.
+
+#### P6-BATCH-010 Scenario and report evidence
+
+Phase 6 must include scenarios and user-facing reports that show at least:
+
+```text
+same-venue self-impact changes allocation versus independent routing
+shared capacity forces cross-parent diversification
+correlated venue leakage changes allocation versus independent routing
+fallback behavior when the batch problem is infeasible
+```
+
+---
+### 11.9 Cross-Phase Acceptance Criteria
 #### X-DET-001 Deterministic execution
 
 Given the same:
@@ -5064,7 +5272,7 @@ This section breaks the Adaptive Quantum SOR into executable development task ca
 
 Every acceptance criterion listed under a task card must be associated with at least one test in that task card's `Tests` section or explicitly marked as deferred/blocked by a later dependency. When an acceptance criterion spans multiple implemented components, the task card must include an integration test in addition to unit-level coverage.
 
-The implementation plan follows five phases:
+The implementation plan follows six phases:
 
 ```text
 Phase 1 — Java-only adaptive policy SOR reference
@@ -5072,6 +5280,7 @@ Phase 2 — real CUDA / cuOpt tactical optimizer
 Phase 3 — real CUDA-Q / Ising strategic optimizer
 Phase 4 — automated ML/RL model pipeline
 Phase 5 — stateful stochastic/regime simulation upgrade
+Phase 6 — cross-parent batch venue allocation
 ```
 
 ---
@@ -6975,9 +7184,9 @@ X-SECURITY-001
 
 ```text
 notebook panel 1: real-time narrative log
-notebook panel 2: submit order and view fills
-notebook panel 3: live stats and policy state with KPI cards and lightweight charts
-notebook panel 4: scenario reset, run, summary, and events
+notebook panel 2: widget-driven submit order report with fills
+notebook panel 3: widget-driven live stats and policy report with KPI cards and lightweight charts
+notebook panel 4: widget-driven scenario reset/run report with summary, fills, and events
 one-command launcher that starts the Java engine API and opens all four notebook panels
 ```
 
@@ -7013,6 +7222,7 @@ order status display
 live event display
 stats tables, KPI cards, and live numeric charts
 scenario reset/run summary and event display
+professional report sections for manifest, result list, evidence tables, and lifecycle logs
 ```
 
 **Implementation notes:**
@@ -7021,6 +7231,7 @@ scenario reset/run summary and event display
 Use Python requests for REST.
 Use SSE/WebSocket client for lifecycle stream.
 Use pandas for stats display.
+Use ipywidgets for user-friendly dropdowns, sliders, text fields, and toggles in user-facing notebooks.
 Use notebook-native HTML/CSS for lightweight live stats KPI cards and charts without adding plotting dependencies.
 Expose SorNotebookClient for DataFrame-friendly notebook workflows.
 Keep Python/Jupyter helpers control-plane only.
@@ -7035,6 +7246,8 @@ notebook can submit order
 notebook can fetch status
 notebook can stream logs
 notebook can display stats
+notebook artifacts include widget control panels for submit order, live stats, and scenario runner workflows
+notebook artifacts include professional report sections for manifest, result list, and evidence tables
 notebook artifact includes live stats KPI cards and chart panel
 launcher opens dashboard, order submitter, live stats, and scenario runner notebooks
 launcher starts AdaptiveQuantumSorApplication with --api-port before opening notebooks
@@ -8056,6 +8269,15 @@ The quality score combines:
 Risk limits with zero participation apply a large negative quality adjustment,
 making the venue unattractive while leaving the objective explicit and testable.
 
+Venue pairs receive a quadratic coefficient from interaction risk:
+  pair[v1,v2] > 0 penalizes co-selection of venues that are toxic together,
+  reject-prone together, market-impact-heavy together, or similar enough in
+  profile to represent venue concentration / anti-gaming risk.
+
+The objective must sum both linear and pair terms:
+  energy += linear[v] * x[v]
+  energy += pair[v1,v2] * x[v1] * x[v2]
+
 Subset size is enforced through cardinality penalties:
   energy += penalty * (minSubsetSize - selectedCount)^2 when selectedCount is too small
   energy += penalty * (selectedCount - maxSubsetSize)^2 when selectedCount is too large
@@ -8070,6 +8292,7 @@ The formulation handles one instrument/regime/urgency route key at a time.
 
 ```text
 objective builder creates expected coefficients for simple cases
+pair penalty can change the best subset versus independent ranking
 constraints penalize invalid subsets
 ```
 
@@ -8135,6 +8358,7 @@ Same Java pipeline must consume stub or real CUDA-Q result identically.
 ```text
 backend loads
 simple small QUBO returns valid subset
+pairwise QUBO returns subset selected by interaction energy
 invalid native result rejected
 ```
 
@@ -9634,7 +9858,315 @@ P5-TC-008 Scenario Parent Order Intent Execution
 ```
 
 ---
-### 12.8 Cross-Phase Implementation Tasks
+### 12.8 Phase 6 Implementation Plan — Cross-Parent Batch Venue Allocation
+Phase 6 introduces a warm-path batch allocator that optimizes venue allocation
+across multiple concurrent parent orders instead of routing each parent intent
+independently.
+
+This is the strongest large-scale optimization case for Adaptive Quantum SOR:
+
+```text
+Given N active parent orders across instruments,
+choose child quantities by parent/order/instrument/venue,
+subject to shared venue capacity, participation, risk, and information-leakage
+constraints,
+while penalizing pairwise coupling when two of our own orders compete on the
+same venue or correlated venues.
+```
+
+This constrained quadratic assignment / generalized-assignment problem is a
+natural fit for classical cuOpt-style solvers and, after discretization, a
+legitimate QUBO/Ising target. It remains off the microsecond execution hot path:
+the allocator publishes bounded, auditable allocation plans that execution can
+consume or safely ignore.
+
+#### P6-TC-001 — Batch Allocation Problem Model
+
+**Phase:** 6
+
+**Goal:** Define the cross-parent allocation model and data contracts.
+
+**Scope:**
+
+```text
+batch parent-order snapshot
+candidate parent/instrument/venue variables
+venue capacity and participation constraints
+aggregate child quantity conservation
+pairwise self-impact and information-leakage terms
+batch allocation result contract
+lineage and replay fields
+```
+
+**Primary files:**
+
+```text
+optimizer/batch/*
+policy/PolicyOptimizationInput.java
+adaptive_quantum_sor_spec_v1.md
+```
+
+**Inputs:**
+
+```text
+active parent orders
+venue stats and capacity
+market books and visible liquidity
+venue correlation / pair penalty matrix
+risk limits
+current strategic venue subset
+current tactical policy parameters
+```
+
+**Outputs:**
+
+```text
+BatchVenueAllocationPlan
+parent x venue child quantity targets
+constraint satisfaction report
+objective energy/cost
+optimizer lineage
+```
+
+**Implementation notes:**
+
+```text
+Decision variable q[p,v] is the child quantity from parent p allocated to venue v.
+Binary or discretized variables may be used for QUBO/Ising backends.
+Continuous/integer quantities may be used for cuOpt or MILP-style reference solvers.
+
+The objective must include:
+  linear execution quality/cost for parent p using venue v
+  pair cost when parent p and parent q both use venue v
+  pair cost when parent p uses venue v and parent q uses correlated venue w
+  penalties for venue-capacity, participation, and parent-quantity residuals
+
+The model allocates already-arrived parent orders. It does not decide whether
+the strategy should trade.
+```
+
+**Tests:**
+
+```text
+model rejects impossible capacity / quantity constraints
+single-parent batch matches existing route-level behavior
+two-parent same-venue self-impact changes allocation versus independent routing
+correlated venue pair penalty changes allocation versus independent routing
+deterministic tie-breaks and lineage are stable
+```
+
+**Acceptance criteria covered:**
+
+```text
+P6-BATCH-001
+P6-BATCH-002
+P6-BATCH-003
+P6-BATCH-008
+```
+
+**Dependencies:** Phase 3 strategic pair penalties, Phase 5 scenario parent
+order execution and lineage, existing policy publication safety.
+
+**Out of scope:** Production OMS scheduling, portfolio construction, real
+exchange capacity feeds, multi-cluster allocation.
+
+#### P6-TC-002 — Deterministic Reference Batch Solver
+
+**Phase:** 6
+
+**Goal:** Implement a deterministic small-problem reference solver for batch
+allocation.
+
+**Scope:**
+
+```text
+small batch exhaustive / dynamic-programming reference
+capacity feasibility checks
+objective energy calculation
+tie-breaks
+result validation
+```
+
+**Primary files:**
+
+```text
+optimizer/batch/BatchVenueAllocator.java
+optimizer/batch/BatchAllocationObjective.java
+src/test/java/com/nitroj/adaptive/quantum/sor/optimizer/batch/*
+```
+
+**Tests:**
+
+```text
+reference solver finds lowest-cost feasible allocation
+independent per-parent optimum loses when self-impact pair term is high
+shared venue capacity forces diversification
+invalid or infeasible batches fail closed without changing active policy
+```
+
+**Acceptance criteria covered:**
+
+```text
+P6-BATCH-002
+P6-BATCH-003
+P6-BATCH-004
+P6-BATCH-009
+```
+
+**Dependencies:** P6-TC-001.
+
+#### P6-TC-003 — cuOpt / QUBO Backend Boundary
+
+**Phase:** 6
+
+**Goal:** Add a swappable backend boundary for generalized assignment and
+QUBO/Ising batch allocation.
+
+**Scope:**
+
+```text
+backend interface
+native/cuOpt input layout
+QUBO/Ising discretization path
+fallback policy
+timeout behavior
+small-case equivalence tests against reference solver
+```
+
+**Primary files:**
+
+```text
+optimizer/batch/BatchAllocationBackend.java
+nativebridge/BatchAllocatorNativeBridge.java
+cpp/batch_allocator*
+```
+
+**Tests:**
+
+```text
+backend unavailable falls back to deterministic reference or prior plan
+backend timeout publishes no unsafe allocation
+small backend result matches reference solver objective and constraints
+```
+
+**Acceptance criteria covered:**
+
+```text
+P6-BATCH-005
+P6-BATCH-006
+P6-BATCH-009
+```
+
+**Dependencies:** P6-TC-002, Phase 2 native build pattern, Phase 3 backend
+fallback pattern.
+
+#### P6-TC-004 — Batch Allocation Integration And Publication Gate
+
+**Phase:** 6
+
+**Goal:** Integrate approved batch allocation plans with policy compilation and
+execution without moving optimization into the hot path.
+
+**Scope:**
+
+```text
+BatchVenueAllocationPlan store
+allocation versioning
+policy/compiler consumption
+execution fallback when no plan applies
+publication lint/validation
+audit and lifecycle evidence
+```
+
+**Primary files:**
+
+```text
+optimizer/batch/BatchAllocationPlanStore.java
+policy/compile/*
+policy/lint/*
+execution/PolicyDrivenSorExecutioner.java
+governance/*
+```
+
+**Tests:**
+
+```text
+approved batch plan is consumed by route generation
+failed batch attempt does not replace latest approved plan
+stale/inapplicable plan falls back to route-level policy safely
+publication gate rejects plans violating capacity or risk constraints
+```
+
+**Acceptance criteria covered:**
+
+```text
+P6-BATCH-004
+P6-BATCH-007
+P6-BATCH-008
+P6-BATCH-009
+```
+
+**Dependencies:** P6-TC-002, existing policy compiler/lint/publisher.
+
+#### P6-TC-005 — Batch Scenario Evidence And User Reports
+
+**Phase:** 6
+
+**Goal:** Add scenarios and notebook/report evidence that show cross-parent
+batch allocation beating independent per-parent routing when interactions are
+material.
+
+**Scope:**
+
+```text
+multi-parent scenario scripts
+shared venue capacity scenarios
+same-venue self-impact scenarios
+correlated venue information-leakage scenarios
+comparison report output
+Jupyter report surfaces
+```
+
+**Primary files:**
+
+```text
+scenarios/optimizer-policy/*
+notebooks/scenario_runner.ipynb
+metrics/*
+docs/PHASE_6_COMPLETION_REPORT.md
+```
+
+**Tests:**
+
+```text
+scenario with two parents on same venue diversifies under batch allocation
+scenario with correlated venues diversifies under pair penalty
+report lists batch objective, constraints, selected venues, residuals, and fallback status
+```
+
+**Acceptance criteria covered:**
+
+```text
+P6-BATCH-001
+P6-BATCH-003
+P6-BATCH-007
+P6-BATCH-010
+```
+
+**Dependencies:** P6-TC-004, Phase 5 scenario runner.
+
+#### Phase 6 Order
+
+```text
+P6-TC-001 Batch Allocation Problem Model
+P6-TC-002 Deterministic Reference Batch Solver
+P6-TC-003 cuOpt / QUBO Backend Boundary
+P6-TC-004 Batch Allocation Integration And Publication Gate
+P6-TC-005 Batch Scenario Evidence And User Reports
+```
+
+---
+### 12.9 Cross-Phase Implementation Tasks
 #### X-TC-001 — Documentation and Glossary
 
 **Goal:** Add glossary and developer documentation.
@@ -9740,7 +10272,7 @@ X-DOC-001
 ```
 
 ---
-### 12.9 Recommended Task Execution Order
+### 12.10 Recommended Task Execution Order
 #### Phase 1 Order
 
 ```text
@@ -9806,6 +10338,29 @@ P4-TC-002 Python ML/RL Training Pipeline
 P4-TC-003 Model Artifact Import and Validation
 P4-TC-004 Model Signal Integration with Optimizers
 P4-TC-005 ML/RL Failure Handling and Phase 4 Report
+```
+
+#### Phase 5 Order
+
+```text
+P5-TC-001 Simulator Configuration and Scenario Contracts
+P5-TC-002 Stateful Regime-Aware MarketDataSimulator
+P5-TC-003 Stateful Session, Feed, and Order-Flow Simulators
+P5-TC-004 Market-State-Dependent VenueBehaviorSimulator
+P5-TC-005 Scenario Generator, Replay, and Optimizer Snapshot Lineage
+P5-TC-006 End-to-End Test Harness and Documentation Evidence
+P5-TC-007 Live Jupyter Scenario Reset and Control-Plane API
+P5-TC-008 Scenario Parent Order Intent Execution
+```
+
+#### Phase 6 Order
+
+```text
+P6-TC-001 Batch Allocation Problem Model
+P6-TC-002 Deterministic Reference Batch Solver
+P6-TC-003 cuOpt / QUBO Backend Boundary
+P6-TC-004 Batch Allocation Integration And Publication Gate
+P6-TC-005 Batch Scenario Evidence And User Reports
 ```
 
 

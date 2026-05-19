@@ -4,7 +4,8 @@ This directory contains the Python helper package, datasets, and research
 scripts for Adaptive Quantum SOR. It supports notebooks, offline feature
 analysis, static-vs-adaptive comparison, and model-artifact generation.
 
-The Jupyter workflow guide now lives in `notebooks/README.md`.
+The Jupyter workflow guide now lives in `notebooks/README.md`. The notebooks
+use pandas plus ipywidgets for friendly control panels and report-style output.
 
 ## What Is In This Folder
 
