@@ -110,6 +110,9 @@ final class PythonNotebookLibraryTest {
         assertTrue(client.contains("/scenario/reset"));
         assertTrue(client.contains("def run_scenario"));
         assertTrue(client.contains("/scenario/run"));
+        assertTrue(client.contains("simulatorGeneratedOrders"));
+        assertTrue(client.contains("submitMode"));
+        assertTrue(client.contains("clientOrderRef"));
         assertTrue(client.contains("scenario_summary_dataframe"));
         assertTrue(client.contains("scenario_events_dataframe"));
     }

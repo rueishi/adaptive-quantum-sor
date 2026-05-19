@@ -32,4 +32,20 @@ public final class Side {
     public static boolean isValid(final int side) {
         return side == BUY || side == SELL;
     }
+
+    /**
+     * Parses a control-plane side value into the dense side constant.
+     *
+     * @param value side text such as {@code BUY}, {@code SELL}, {@code 1}, or {@code 2}
+     * @return dense side constant
+     */
+    public static int parse(final String value) {
+        if ("BUY".equalsIgnoreCase(value) || "1".equals(value)) {
+            return BUY;
+        }
+        if ("SELL".equalsIgnoreCase(value) || "2".equals(value)) {
+            return SELL;
+        }
+        throw new IllegalArgumentException("side must be BUY or SELL");
+    }
 }

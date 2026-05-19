@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, TextIO
+from typing import Iterable, Mapping, TextIO
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +23,7 @@ class Scenario:
     tags: tuple[str, ...]
     seed: str
     ticks: str
+    parent_orders: tuple[dict[str, str], ...] = ()
 
     @property
     def relative_path(self) -> Path:
@@ -42,23 +43,26 @@ def load_scenarios(scenarios_dir: Path | str = DEFAULT_SCENARIOS_DIR) -> list[Sc
         scenarios.append(
             Scenario(
                 path=path,
-                scenario_id=values.get("scenarioId", ""),
-                description=values.get("description", ""),
-                category=values.get("category", path.parent.name),
-                tags=tuple(values.get("tags", "").split(",")) if values.get("tags") else (),
-                seed=values.get("seed", ""),
-                ticks=values.get("ticks", ""),
+                scenario_id=str(values.get("scenarioId", "")),
+                description=str(values.get("description", "")),
+                category=str(values.get("category", path.parent.name)),
+                tags=tuple(str(values.get("tags", "")).split(",")) if values.get("tags") else (),
+                seed=str(values.get("seed", "")),
+                ticks=str(values.get("ticks", "")),
+                parent_orders=tuple(values.get("parentOrders", [])),
             )
         )
     return scenarios
 
 
-def parse_scenario_file(path: Path | str) -> dict[str, str]:
+def parse_scenario_file(path: Path | str) -> dict[str, object]:
     """Parse the small YAML subset used by scenario metadata files."""
     scenario_path = Path(path)
-    values: dict[str, str] = {}
+    values: dict[str, object] = {}
     section = ""
     tags: list[str] = []
+    parent_orders: list[dict[str, str]] = []
+    current_parent_order: dict[str, str] | None = None
     for raw in scenario_path.read_text(encoding="utf-8").splitlines():
         line = raw.split("#", 1)[0].rstrip()
         stripped = line.strip()
@@ -66,11 +70,25 @@ def parse_scenario_file(path: Path | str) -> dict[str, str]:
             continue
         if not line.startswith(" ") and stripped.endswith(":"):
             section = stripped[:-1]
+            current_parent_order = None
             continue
         if not line.startswith(" "):
             section = ""
+            current_parent_order = None
         if section == "tags" and stripped.startswith("- "):
             tags.append(stripped[2:].strip())
+            continue
+        if section == "parentOrders" and stripped.startswith("- "):
+            current_parent_order = {}
+            parent_orders.append(current_parent_order)
+            item = stripped[2:].strip()
+            if ":" in item:
+                key, value = item.split(":", 1)
+                current_parent_order[key.strip()] = value.strip().strip('"')
+            continue
+        if section == "parentOrders" and current_parent_order is not None and ":" in stripped:
+            key, value = stripped.split(":", 1)
+            current_parent_order[key.strip()] = value.strip().strip('"')
             continue
         if section:
             continue
@@ -79,6 +97,8 @@ def parse_scenario_file(path: Path | str) -> dict[str, str]:
             values[key.strip()] = value.strip().strip('"')
     if tags:
         values["tags"] = ",".join(tags)
+    if parent_orders:
+        values["parentOrders"] = parent_orders
     return values
 
 
@@ -115,6 +135,9 @@ def find_scenario(scenarios: Iterable[Scenario], scenario_id: str) -> Scenario:
 
 def parent_order_suggestions(scenario: Scenario) -> list[str]:
     """Return human-readable parent order suggestions for a scenario."""
+    if scenario.parent_orders:
+        return [format_parent_order(order) for order in scenario.parent_orders]
+
     tags = set(scenario.tags)
     category = scenario.category
     base: list[str] = []
@@ -149,6 +172,19 @@ def parent_order_suggestions(scenario: Scenario) -> list[str]:
             unique.append(item)
             seen.add(item)
     return unique or ["BUY instrumentId=0 quantity=4000 urgency=NORMAL # generic deterministic smoke order"]
+
+
+def format_parent_order(order: Mapping[str, str]) -> str:
+    """Format one scenario-file parent order default for display."""
+    side = order.get("side", "BUY")
+    instrument = order.get("instrumentId", "0")
+    quantity = order.get("quantity", "4000")
+    urgency = order.get("urgency", order.get("urgencyId", "NORMAL"))
+    at_tick = order.get("atTick", "0")
+    submit_mode = order.get("submitMode", order.get("submitVia", "SIMULATED"))
+    ref = order.get("clientOrderRef", "")
+    suffix = f" ref={ref}" if ref else ""
+    return f"{side} instrumentId={instrument} quantity={quantity} urgency={urgency} atTick={at_tick} submitMode={submit_mode}{suffix}"
 
 
 def format_scenarios(scenarios: Iterable[Scenario]) -> str:

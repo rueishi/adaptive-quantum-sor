@@ -73,7 +73,16 @@ client.run_scenario(
     seed=42,
     ticks=10,
     reset_mode="PURGE_AND_REPOPULATE",
-    parent_orders=[{"instrumentId": 0, "side": 1, "quantity": 1000, "urgencyId": 0}],
+    parent_orders=[{
+        "instrumentId": 0,
+        "side": "BUY",
+        "quantity": 1000,
+        "urgencyId": 0,
+        "atTick": 1,
+        "submitMode": "SIMULATED",
+        "clientOrderRef": "readme-parent-1",
+    }],
+    simulator_generated_orders=False,
 )
 client.scenario_summary_dataframe()
 client.scenario_events_dataframe()

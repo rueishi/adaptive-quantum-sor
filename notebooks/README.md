@@ -110,7 +110,8 @@ Use `scenario_runner.ipynb` when you want a controlled scenario environment.
 Scenario setup changes market state, venue behavior, feed behavior, and related
 simulation inputs. Parent order intents can be included directly in
 `run_scenario(..., parent_orders=[...])` so the result shows route evidence for
-the order you edited in the notebook.
+the order you edited in the notebook. Live scenario runs require either at least
+one explicit parent order or `simulator_generated_orders=True`.
 
 Typical flow:
 
@@ -119,6 +120,18 @@ Typical flow:
 3. Run scenario reset.
 4. Run the scenario with the parent order intent you want to test.
 5. Inspect scenario summary, events, order results, and policy behavior.
+
+Parent order fields:
+
+```text
+instrumentId       dense instrument id
+side               BUY or SELL; numeric 1/2 is also accepted
+quantity           parent order quantity
+urgencyId          dense urgency id
+atTick             scenario tick for scheduling the parent order
+submitMode         SIMULATED or API
+clientOrderRef     optional notebook/user reference
+```
 
 Reset modes:
 
@@ -249,8 +262,10 @@ Purpose: reset live demo scenario state, run a fixed-seed scenario, and inspect
 the scenario summary and lifecycle events.
 
 Expected result: reset summary, scenario run result, replay-safety status, and
-scenario events. `APPEND` mode is intentionally not replay-safe because it
-preserves existing live state.
+scenario events, including parent order route evidence and venue-level fill
+rows with instrument/venue names, filled quantity, price, and notional.
+`APPEND` mode is intentionally not replay-safe because it preserves existing
+live state.
 
 ## Troubleshooting
 

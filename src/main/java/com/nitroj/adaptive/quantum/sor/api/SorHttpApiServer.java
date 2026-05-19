@@ -317,11 +317,13 @@ public final class SorHttpApiServer {
 
     private ScenarioParentOrderResult[] routeParentOrders(final ScenarioRunRequest request) {
         final ScenarioParentOrderIntent[] parentOrders = request.parentOrders();
+        java.util.Arrays.sort(parentOrders, java.util.Comparator.comparingInt(ScenarioParentOrderIntent::atTick));
         final ScenarioParentOrderResult[] results = new ScenarioParentOrderResult[parentOrders.length];
         for (int i = 0; i < parentOrders.length; i++) {
+            final ScenarioParentOrderIntent parentOrder = parentOrders[i];
             final long id = nextParentOrderId++;
             final long deadline = System.nanoTime() + request.routeTimeoutMillis() * 1_000_000L;
-            long remaining = parentOrders[i].quantity();
+            long remaining = parentOrder.quantity();
             long filled = 0L;
             int status = OrderStatus.NEW;
             int routeAttempts = 0;
@@ -337,8 +339,8 @@ public final class SorHttpApiServer {
                     timedOut = true;
                     break;
                 }
-                final OrderIntent intent = new OrderIntent(id, parentOrders[i].instrumentId(), parentOrders[i].side(),
-                        remaining, parentOrders[i].urgencyId(), Math.max(1L, System.nanoTime()));
+                final OrderIntent intent = new OrderIntent(id, parentOrder.instrumentId(), parentOrder.side(),
+                        remaining, parentOrder.urgencyId(), scenarioOrderTimeNanos(request, parentOrder, routeAttempts));
                 if (!orderQueue.offer(intent)) {
                     throw new IllegalStateException("order queue is full");
                 }
@@ -380,7 +382,12 @@ public final class SorHttpApiServer {
                 remaining = route.residualQty;
                 lifecycleStore.append(new LifecycleEvent(id, Math.max(1L, System.nanoTime()), 1,
                         LifecycleEventType.SOR_DECISION, id,
-                        "scenario parent order routed " + id + " attempt=" + routeAttempts
+                        "scenario " + request.resetRequest().scenarioId()
+                                + " parent order routed " + id
+                                + " ref=" + parentOrder.clientOrderRef()
+                                + " mode=" + parentOrder.submitMode()
+                                + " atTick=" + parentOrder.atTick()
+                                + " attempt=" + routeAttempts
                                 + " childOrders=" + route.childOrderCount + " residual=" + route.residualQty));
             }
             if (remaining == 0L) {
@@ -394,7 +401,11 @@ public final class SorHttpApiServer {
             view.childOrders = copiedChildren.toArray(ChildOrder[]::new);
             orders.put(id, view);
             results[i] = new ScenarioParentOrderResult(
+                    request.resetRequest().scenarioId(),
                     view.parentOrderId,
+                    parentOrder.atTick(),
+                    parentOrder.submitMode(),
+                    parentOrder.clientOrderRef(),
                     view.filledQty,
                     view.remainingQty,
                     view.status,
@@ -406,6 +417,16 @@ public final class SorHttpApiServer {
             cumulativeOrderStats.record(results[i]);
         }
         return results;
+    }
+
+    private static long scenarioOrderTimeNanos(
+            final ScenarioRunRequest request,
+            final ScenarioParentOrderIntent parentOrder,
+            final int routeAttempts
+    ) {
+        return Math.max(1L, request.resetRequest().seed() * 1_000_000L
+                + parentOrder.atTick() * 1_000L
+                + routeAttempts + 1L);
     }
 
     private ScenarioChildFill[] fillsFromChildren(final ChildOrder[] children, final int routeAttempt) {

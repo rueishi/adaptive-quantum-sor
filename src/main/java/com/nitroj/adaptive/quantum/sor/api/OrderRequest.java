@@ -30,7 +30,7 @@ public record OrderRequest(int instrumentId, int side, long quantity, int urgenc
         }
         return new OrderRequest(
                 intValue(body, "instrumentId"),
-                intValue(body, "side"),
+                sideValue(body, "side"),
                 longValue(body, "quantity"),
                 intValue(body, "urgencyId")
         );
@@ -42,6 +42,37 @@ public record OrderRequest(int instrumentId, int side, long quantity, int urgenc
 
     private static int intValue(final String body, final String key) {
         return Math.toIntExact(longValue(body, key));
+    }
+
+    private static int sideValue(final String body, final String key) {
+        final String quoted = "\"" + key + "\"";
+        final int keyIndex = body.indexOf(quoted);
+        if (keyIndex < 0) {
+            throw new IllegalArgumentException("missing field: " + key);
+        }
+        final int colon = body.indexOf(':', keyIndex + quoted.length());
+        if (colon < 0) {
+            throw new IllegalArgumentException("missing value for: " + key);
+        }
+        int start = colon + 1;
+        while (start < body.length() && Character.isWhitespace(body.charAt(start))) {
+            start++;
+        }
+        if (start < body.length() && body.charAt(start) == '"') {
+            final int end = body.indexOf('"', start + 1);
+            if (end < 0) {
+                throw new IllegalArgumentException("unterminated side value");
+            }
+            return Side.parse(body.substring(start + 1, end));
+        }
+        int end = start;
+        while (end < body.length() && (body.charAt(end) == '-' || Character.isDigit(body.charAt(end)))) {
+            end++;
+        }
+        if (end == start) {
+            throw new IllegalArgumentException("side must be BUY or SELL");
+        }
+        return Side.parse(body.substring(start, end));
     }
 
     private static long longValue(final String body, final String key) {

@@ -110,9 +110,10 @@ public final class DefaultPolicyCompiler implements PolicyCompiler {
 
     private static FullPolicyMatrix fullMatrix(final MutablePolicyCandidate candidate, final TacticalPolicyResult tactical) {
         final int length = candidate.instrumentCount * candidate.venueCount * candidate.regimeCount * candidate.urgencyCount;
+        final int[] normalizedWeights = normalizeFullMatrixWeights(candidate);
         final int[] rankScore = new int[length];
         for (int i = 0; i < length; i++) {
-            rankScore[i] = tactical.venueWeightBps[i] + tactical.fillProbabilityBps[i]
+            rankScore[i] = normalizedWeights[i] + tactical.fillProbabilityBps[i]
                     - tactical.toxicityPenaltyBps[i] - tactical.rejectPenaltyBps[i];
         }
         return new FullPolicyMatrix(
@@ -122,7 +123,7 @@ public final class DefaultPolicyCompiler implements PolicyCompiler {
                 candidate.urgencyCount,
                 candidate.venueEligible.clone(),
                 rankScore,
-                candidate.venueWeightBps.clone(),
+                normalizedWeights,
                 candidate.latencyPenaltyNanos.clone(),
                 candidate.toxicityPenaltyBps.clone(),
                 candidate.fillProbabilityBps.clone(),
@@ -185,6 +186,8 @@ public final class DefaultPolicyCompiler implements PolicyCompiler {
                         participation[write] = candidate.maxParticipationBps[idx];
                         write++;
                     }
+                    normalizeSelectedRouteWeights(candidate, instrumentId, regimeId, urgencyId,
+                            venues, offsets[routeKey], write, weights);
                 }
             }
         }
@@ -236,15 +239,18 @@ public final class DefaultPolicyCompiler implements PolicyCompiler {
 
     private static byte[] canonicalBytes(final MutablePolicyCandidate candidate, final HotRouteBook book) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        out.write(candidate.instrumentCount);
-        out.write(candidate.venueCount);
-        out.write(candidate.regimeCount);
-        out.write(candidate.urgencyCount);
+        writeInt(out, candidate.instrumentCount);
+        writeInt(out, candidate.venueCount);
+        writeInt(out, candidate.regimeCount);
+        writeInt(out, candidate.urgencyCount);
+        for (int offset : book.routeListOffset) {
+            writeInt(out, offset);
+        }
         for (short venueId : book.routeVenueId) {
-            out.write(venueId);
+            writeInt(out, venueId);
         }
         for (int weight : book.weightBps) {
-            out.write(weight);
+            writeInt(out, weight);
         }
         return out.toByteArray();
     }
@@ -253,12 +259,202 @@ public final class DefaultPolicyCompiler implements PolicyCompiler {
         final PolicyDiff diff = new PolicyDiff();
         diff.previousPolicyVersion = previous == null ? 0L : previous.policyVersion;
         diff.newPolicyVersion = current.policyVersion;
-        diff.changedRouteListCount = current.hotRouteBook.routeListOffset.length - 1;
-        diff.changedWeightCount = current.hotRouteBook.weightBps.length;
-        diff.changedPenaltyCount = current.hotRouteBook.toxicityPenaltyBps.length + current.hotRouteBook.rejectPenaltyBps.length;
-        diff.addedVenueCount = current.hotRouteBook.routeVenueId.length;
-        diff.maxWeightChangeBps = max(current.hotRouteBook.weightBps);
+        if (previous == null) {
+            diff.changedRouteListCount = current.hotRouteBook.routeListOffset.length - 1;
+            diff.changedWeightCount = current.hotRouteBook.weightBps.length;
+            diff.changedPenaltyCount = current.hotRouteBook.toxicityPenaltyBps.length + current.hotRouteBook.rejectPenaltyBps.length;
+            diff.addedVenueCount = current.hotRouteBook.routeVenueId.length;
+            diff.maxWeightChangeBps = max(current.hotRouteBook.weightBps);
+            return diff;
+        }
+        final HotRouteBook previousBook = previous.hotRouteBook;
+        final HotRouteBook currentBook = current.hotRouteBook;
+        final int routeCount = Math.max(previousBook.routeListOffset.length, currentBook.routeListOffset.length) - 1;
+        for (int routeKey = 0; routeKey < routeCount; routeKey++) {
+            final int previousStart = routeKey < previousBook.routeListOffset.length - 1 ? previousBook.routeListOffset[routeKey] : 0;
+            final int previousEnd = routeKey < previousBook.routeListOffset.length - 1 ? previousBook.routeListOffset[routeKey + 1] : 0;
+            final int currentStart = routeKey < currentBook.routeListOffset.length - 1 ? currentBook.routeListOffset[routeKey] : 0;
+            final int currentEnd = routeKey < currentBook.routeListOffset.length - 1 ? currentBook.routeListOffset[routeKey + 1] : 0;
+            if (routeListChanged(previousBook, previousStart, previousEnd, currentBook, currentStart, currentEnd)) {
+                diff.changedRouteListCount++;
+            }
+            for (int currentIndex = currentStart; currentIndex < currentEnd; currentIndex++) {
+                final int venueId = currentBook.routeVenueId[currentIndex];
+                if (!containsVenue(previousBook, previousStart, previousEnd, venueId)) {
+                    diff.addedVenueCount++;
+                }
+                final int previousWeight = weightForVenue(previousBook, previousStart, previousEnd, venueId);
+                final int weightChange = Math.abs(currentBook.weightBps[currentIndex] - previousWeight);
+                if (weightChange > 0) {
+                    diff.changedWeightCount++;
+                    diff.maxWeightChangeBps = Math.max(diff.maxWeightChangeBps, weightChange);
+                }
+                final int penaltyChange = penaltyChange(previousBook, previousStart, previousEnd, currentBook, currentIndex, venueId);
+                if (penaltyChange > 0) {
+                    diff.changedPenaltyCount++;
+                }
+            }
+            for (int previousIndex = previousStart; previousIndex < previousEnd; previousIndex++) {
+                final int venueId = previousBook.routeVenueId[previousIndex];
+                if (!containsVenue(currentBook, currentStart, currentEnd, venueId)) {
+                    diff.removedVenueCount++;
+                    diff.changedWeightCount++;
+                    diff.maxWeightChangeBps = Math.max(diff.maxWeightChangeBps, previousBook.weightBps[previousIndex]);
+                    diff.changedPenaltyCount++;
+                }
+            }
+        }
         return diff;
+    }
+
+    private static int[] normalizeFullMatrixWeights(final MutablePolicyCandidate candidate) {
+        final int length = candidate.instrumentCount * candidate.venueCount * candidate.regimeCount * candidate.urgencyCount;
+        final int[] normalized = new int[length];
+        for (int instrumentId = 0; instrumentId < candidate.instrumentCount; instrumentId++) {
+            for (int regimeId = 0; regimeId < candidate.regimeCount; regimeId++) {
+                for (int urgencyId = 0; urgencyId < candidate.urgencyCount; urgencyId++) {
+                    normalizeRouteWeights(candidate, instrumentId, regimeId, urgencyId, normalized);
+                }
+            }
+        }
+        return normalized;
+    }
+
+    private static void normalizeRouteWeights(
+            final MutablePolicyCandidate candidate,
+            final int instrumentId,
+            final int regimeId,
+            final int urgencyId,
+            final int[] normalized
+    ) {
+        int selectedCount = 0;
+        long rawTotal = 0L;
+        for (int venueId = 0; venueId < candidate.venueCount; venueId++) {
+            final int idx = candidate.idxIVRU(instrumentId, venueId, regimeId, urgencyId);
+            if (candidate.venueEligible[idx]) {
+                selectedCount++;
+                rawTotal += Math.max(0, candidate.venueWeightBps[idx]);
+            }
+        }
+        if (selectedCount == 0) {
+            return;
+        }
+        int assigned = 0;
+        for (int venueId = 0; venueId < candidate.venueCount; venueId++) {
+            final int idx = candidate.idxIVRU(instrumentId, venueId, regimeId, urgencyId);
+            if (!candidate.venueEligible[idx]) {
+                continue;
+            }
+            final int weight = rawTotal == 0L
+                    ? 10_000 / selectedCount
+                    : (int) ((Math.max(0, candidate.venueWeightBps[idx]) * 10_000L) / rawTotal);
+            normalized[idx] = weight;
+            assigned += weight;
+        }
+        int remainder = 10_000 - assigned;
+        for (int venueId = 0; venueId < candidate.venueCount && remainder > 0; venueId++) {
+            final int idx = candidate.idxIVRU(instrumentId, venueId, regimeId, urgencyId);
+            if (candidate.venueEligible[idx]) {
+                normalized[idx]++;
+                remainder--;
+            }
+        }
+    }
+
+    private static void normalizeSelectedRouteWeights(
+            final MutablePolicyCandidate candidate,
+            final int instrumentId,
+            final int regimeId,
+            final int urgencyId,
+            final short[] venues,
+            final int start,
+            final int end,
+            final int[] weights
+    ) {
+        final int selectedCount = end - start;
+        if (selectedCount <= 0) {
+            return;
+        }
+        long rawTotal = 0L;
+        for (int i = start; i < end; i++) {
+            final int idx = candidate.idxIVRU(instrumentId, venues[i], regimeId, urgencyId);
+            rawTotal += Math.max(0, candidate.venueWeightBps[idx]);
+        }
+        int assigned = 0;
+        for (int i = start; i < end; i++) {
+            final int idx = candidate.idxIVRU(instrumentId, venues[i], regimeId, urgencyId);
+            final int weight = rawTotal == 0L
+                    ? 10_000 / selectedCount
+                    : (int) ((Math.max(0, candidate.venueWeightBps[idx]) * 10_000L) / rawTotal);
+            weights[i] = weight;
+            assigned += weight;
+        }
+        int remainder = 10_000 - assigned;
+        for (int i = start; i < end && remainder > 0; i++) {
+            weights[i]++;
+            remainder--;
+        }
+    }
+
+    private static void writeInt(final ByteArrayOutputStream out, final int value) {
+        out.write((value >>> 24) & 0xff);
+        out.write((value >>> 16) & 0xff);
+        out.write((value >>> 8) & 0xff);
+        out.write(value & 0xff);
+    }
+
+    private static boolean routeListChanged(
+            final HotRouteBook previous,
+            final int previousStart,
+            final int previousEnd,
+            final HotRouteBook current,
+            final int currentStart,
+            final int currentEnd
+    ) {
+        if (previousEnd - previousStart != currentEnd - currentStart) {
+            return true;
+        }
+        for (int i = 0; i < currentEnd - currentStart; i++) {
+            if (previous.routeVenueId[previousStart + i] != current.routeVenueId[currentStart + i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsVenue(final HotRouteBook book, final int start, final int end, final int venueId) {
+        for (int i = start; i < end; i++) {
+            if (book.routeVenueId[i] == venueId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int weightForVenue(final HotRouteBook book, final int start, final int end, final int venueId) {
+        for (int i = start; i < end; i++) {
+            if (book.routeVenueId[i] == venueId) {
+                return book.weightBps[i];
+            }
+        }
+        return 0;
+    }
+
+    private static int penaltyChange(
+            final HotRouteBook previous,
+            final int previousStart,
+            final int previousEnd,
+            final HotRouteBook current,
+            final int currentIndex,
+            final int venueId
+    ) {
+        for (int i = previousStart; i < previousEnd; i++) {
+            if (previous.routeVenueId[i] == venueId) {
+                return Math.abs(current.toxicityPenaltyBps[currentIndex] - previous.toxicityPenaltyBps[i])
+                        + Math.abs(current.rejectPenaltyBps[currentIndex] - previous.rejectPenaltyBps[i]);
+            }
+        }
+        return current.toxicityPenaltyBps[currentIndex] + current.rejectPenaltyBps[currentIndex];
     }
 
     private static PolicyChangeLedgerEntry ledger(

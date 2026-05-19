@@ -24,7 +24,7 @@ class SorNotebookClient:
         missing = [column for column in ORDER_COLUMNS if column not in order]
         if missing:
             raise ValueError("order missing fields: " + ",".join(missing))
-        payload = json.dumps({column: int(order[column]) for column in ORDER_COLUMNS}).encode("utf-8")
+        payload = json.dumps({column: self._order_value(column, order[column]) for column in ORDER_COLUMNS}).encode("utf-8")
         req = request.Request(
             self._url("/orders"),
             data=payload,
@@ -98,9 +98,12 @@ class SorNotebookClient:
         parent_orders: list[Mapping[str, object]] | None = None,
         max_route_attempts: int = 16,
         route_timeout_millis: int = 1000,
+        simulator_generated_orders: bool | None = None,
     ) -> dict:
         """Run a live scenario through `/scenario/run`, optionally with parent orders."""
 
+        orders = parent_orders or []
+        simulator_generated = len(orders) == 0 if simulator_generated_orders is None else bool(simulator_generated_orders)
         payload = json.dumps({
             "scenarioId": scenario_id,
             "seed": int(seed),
@@ -108,10 +111,8 @@ class SorNotebookClient:
             "resetMode": reset_mode,
             "maxRouteAttempts": int(max_route_attempts),
             "routeTimeoutMillis": int(route_timeout_millis),
-            "parentOrders": [
-                {column: int(order[column]) for column in ORDER_COLUMNS}
-                for order in (parent_orders or [])
-            ],
+            "simulatorGeneratedOrders": simulator_generated,
+            "parentOrders": [self._scenario_parent_order_payload(order) for order in orders],
         }).encode("utf-8")
         req = request.Request(
             self._url("/scenario/run"),
@@ -120,6 +121,26 @@ class SorNotebookClient:
             method="POST",
         )
         return self._json(req)
+
+    @staticmethod
+    def _scenario_parent_order_payload(order: Mapping[str, object]) -> dict:
+        missing = [column for column in ORDER_COLUMNS if column not in order]
+        if missing:
+            raise ValueError("parent order missing fields: " + ",".join(missing))
+        payload = {column: SorNotebookClient._order_value(column, order[column]) for column in ORDER_COLUMNS}
+        payload["atTick"] = int(order.get("atTick", 0))
+        payload["submitMode"] = str(order.get("submitMode", "SIMULATED"))
+        payload["clientOrderRef"] = str(order.get("clientOrderRef", ""))
+        return payload
+
+    @staticmethod
+    def _order_value(column: str, value: object) -> object:
+        if column == "side" and isinstance(value, str):
+            side = value.upper()
+            if side not in {"BUY", "SELL"}:
+                raise ValueError("side must be BUY, SELL, 1, or 2")
+            return side
+        return int(value)
 
     def scenario_summary_dataframe(self):
         """Fetch `/scenario/summary` and return a one-row pandas DataFrame."""

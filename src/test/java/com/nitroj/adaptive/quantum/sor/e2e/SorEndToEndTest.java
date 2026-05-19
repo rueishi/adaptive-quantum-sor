@@ -336,7 +336,8 @@ final class SorEndToEndTest {
             final String base = "http://127.0.0.1:" + server.port();
             final HttpResponse<String> response = client.send(HttpRequest.newBuilder(URI.create(base + "/scenario/run"))
                     .POST(HttpRequest.BodyPublishers.ofString(
-                            "{\"scenarioId\":\"live-purge\",\"seed\":5,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\""))
+                            "{\"scenarioId\":\"live-purge\",\"seed\":5,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\","
+                                    + "\"simulatorGeneratedOrders\":true}"))
                     .build(), HttpResponse.BodyHandlers.ofString());
 
             assertEquals(200, response.statusCode());

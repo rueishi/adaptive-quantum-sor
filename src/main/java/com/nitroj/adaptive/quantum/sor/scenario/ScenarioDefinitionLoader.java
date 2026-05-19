@@ -44,7 +44,10 @@ public final class ScenarioDefinitionLoader {
      *
      * <p>Supported keys are top-level scalar keys {@code scenarioId},
      * {@code description}, {@code seed}, {@code ticks},
-     * {@code venueProfilesEnabled}, and a {@code windows} list whose items
+     * {@code venueProfilesEnabled}, a {@code parentOrders} list whose items
+     * contain {@code instrumentId}, {@code side}, {@code quantity},
+     * {@code urgencyId}, optional {@code atTick}, optional {@code submitMode},
+     * and optional {@code clientOrderRef}, and a {@code windows} list whose items
      * contain {@code name}, {@code startTick}, {@code endTick}, and
      * {@code regime}. Additional sections such as {@code expected} are allowed
      * for user documentation and ignored by the runtime loader.</p>
@@ -60,7 +63,9 @@ public final class ScenarioDefinitionLoader {
         boolean venueProfilesEnabled = true;
         String section = "";
         final List<WindowBuilder> windows = new ArrayList<>();
+        final List<ParentOrderBuilder> parentOrders = new ArrayList<>();
         WindowBuilder currentWindow = null;
+        ParentOrderBuilder currentParentOrder = null;
 
         for (String rawLine : content.split("\\R")) {
             final String lineWithoutComment = stripComment(rawLine);
@@ -71,16 +76,24 @@ public final class ScenarioDefinitionLoader {
             if (!Character.isWhitespace(lineWithoutComment.charAt(0)) && trimmed.endsWith(":")) {
                 section = trimmed.substring(0, trimmed.length() - 1);
                 currentWindow = null;
+                currentParentOrder = null;
                 continue;
             }
             if (!Character.isWhitespace(lineWithoutComment.charAt(0))) {
                 section = "";
                 currentWindow = null;
+                currentParentOrder = null;
             }
             if ("windows".equals(section) && trimmed.startsWith("- ")) {
                 currentWindow = new WindowBuilder();
                 windows.add(currentWindow);
                 parseWindowProperty(currentWindow, trimmed.substring(2).trim());
+                continue;
+            }
+            if ("parentOrders".equals(section) && trimmed.startsWith("- ")) {
+                currentParentOrder = new ParentOrderBuilder();
+                parentOrders.add(currentParentOrder);
+                parseParentOrderProperty(currentParentOrder, trimmed.substring(2).trim());
                 continue;
             }
             final int split = trimmed.indexOf(':');
@@ -89,6 +102,10 @@ public final class ScenarioDefinitionLoader {
             }
             if ("windows".equals(section) && currentWindow != null) {
                 parseWindowProperty(currentWindow, trimmed);
+                continue;
+            }
+            if ("parentOrders".equals(section) && currentParentOrder != null) {
+                parseParentOrderProperty(currentParentOrder, trimmed);
                 continue;
             }
             if (!section.isEmpty()) {
@@ -110,7 +127,11 @@ public final class ScenarioDefinitionLoader {
         final ScenarioWindow[] scenarioWindows = windows.stream()
                 .map(WindowBuilder::build)
                 .toArray(ScenarioWindow[]::new);
-        return new ScenarioDefinition(scenarioId, description, seed, ticks, venueProfilesEnabled, scenarioWindows);
+        final ScenarioParentOrderIntent[] scenarioParentOrders = parentOrders.stream()
+                .map(ParentOrderBuilder::build)
+                .toArray(ScenarioParentOrderIntent[]::new);
+        return new ScenarioDefinition(scenarioId, description, seed, ticks, venueProfilesEnabled,
+                scenarioWindows, scenarioParentOrders);
     }
 
     private static void parseWindowProperty(final WindowBuilder builder, final String property) {
@@ -128,6 +149,44 @@ public final class ScenarioDefinitionLoader {
             default -> {
             }
         }
+    }
+
+    private static void parseParentOrderProperty(final ParentOrderBuilder builder, final String property) {
+        final int split = property.indexOf(':');
+        if (split < 1) {
+            return;
+        }
+        final String key = property.substring(0, split).trim();
+        final String value = unquote(property.substring(split + 1).trim());
+        switch (key) {
+            case "instrumentId" -> builder.instrumentId = Math.toIntExact(parseLong("instrumentId", value));
+            case "side" -> builder.side = sideId(value);
+            case "quantity" -> builder.quantity = parseLong("quantity", value);
+            case "urgencyId" -> builder.urgencyId = Math.toIntExact(parseLong("urgencyId", value));
+            case "urgency" -> builder.urgencyId = urgencyId(value);
+            case "atTick" -> builder.atTick = Math.toIntExact(parseLong("atTick", value));
+            case "submitMode", "submitVia" -> builder.submitMode = ScenarioParentOrderSubmitMode.parse(value);
+            case "clientOrderRef" -> builder.clientOrderRef = value;
+            default -> {
+            }
+        }
+    }
+
+    private static int sideId(final String value) {
+        return com.nitroj.adaptive.quantum.sor.model.Side.parse(value);
+    }
+
+    private static int urgencyId(final String value) {
+        if ("LOW".equalsIgnoreCase(value) || "0".equals(value)) {
+            return 0;
+        }
+        if ("NORMAL".equalsIgnoreCase(value) || "1".equals(value)) {
+            return 1;
+        }
+        if ("HIGH".equalsIgnoreCase(value) || "2".equals(value)) {
+            return 2;
+        }
+        throw new IllegalArgumentException("urgency must be LOW, NORMAL, or HIGH");
     }
 
     private static int regimeId(final String value) {
@@ -184,6 +243,20 @@ public final class ScenarioDefinitionLoader {
                 throw new IllegalArgumentException("window name must not be blank");
             }
             return new ScenarioWindow(startTick, endTick, regimeId);
+        }
+    }
+
+    private static final class ParentOrderBuilder {
+        int instrumentId = -1;
+        int side = -1;
+        long quantity = -1L;
+        int urgencyId = 0;
+        int atTick;
+        ScenarioParentOrderSubmitMode submitMode = ScenarioParentOrderSubmitMode.SIMULATED;
+        String clientOrderRef = "";
+
+        ScenarioParentOrderIntent build() {
+            return new ScenarioParentOrderIntent(instrumentId, side, quantity, urgencyId, atTick, submitMode, clientOrderRef);
         }
     }
 }

@@ -31,6 +31,10 @@ final class OrderIntentTest {
         assertEquals(100, intent.quantity);
         assertEquals(3, intent.urgencyId);
         assertEquals(4, intent.createdAtNanos);
+        assertEquals(Side.BUY, Side.parse("BUY"));
+        assertEquals(Side.SELL, Side.parse("SELL"));
+        assertEquals(Side.BUY, Side.parse("1"));
+        assertEquals(Side.SELL, Side.parse("2"));
     }
 
     @Test
@@ -40,5 +44,6 @@ final class OrderIntentTest {
         assertTrue(assertThrows(IllegalArgumentException.class, () -> new OrderIntent(1, 0, 99, 1, 0, 0)).getMessage().contains("side"));
         assertTrue(assertThrows(IllegalArgumentException.class, () -> new OrderIntent(1, 0, Side.BUY, 0, 0, 0)).getMessage().contains("quantity"));
         assertTrue(assertThrows(IllegalArgumentException.class, () -> new OrderIntent(1, 0, Side.BUY, 1, -1, 0)).getMessage().contains("urgencyId"));
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> Side.parse("SHORT")).getMessage().contains("side"));
     }
 }

@@ -42,6 +42,10 @@ final class JupyterNotebookArtifactTest {
         assertTrue(stats.contains("SorNotebookClient"));
         assertTrue(scenario.contains("reset_scenario"));
         assertTrue(scenario.contains("run_scenario"));
+        assertTrue(scenario.contains("parent_order"));
+        assertTrue(scenario.contains("atTick"));
+        assertTrue(scenario.contains("submitMode"));
+        assertTrue(scenario.contains("clientOrderRef"));
         assertTrue(scenario.contains("scenario_summary_dataframe"));
         assertTrue(scenario.contains("scenario_events_dataframe"));
         assertTrue(notebookReadme.contains("# Jupyter Notebook User Guide"));

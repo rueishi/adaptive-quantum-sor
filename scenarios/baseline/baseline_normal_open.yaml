@@ -11,6 +11,15 @@ seed: 101
 ticks: 12
 venueProfilesEnabled: true
 
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 4000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: baseline-normal-buy
+
 windows:
   - name: normal-open-baseline
     startTick: 0

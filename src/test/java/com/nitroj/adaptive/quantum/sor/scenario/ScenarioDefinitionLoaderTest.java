@@ -1,6 +1,7 @@
 package com.nitroj.adaptive.quantum.sor.scenario;
 
 import com.nitroj.adaptive.quantum.sor.config.SorConfig;
+import com.nitroj.adaptive.quantum.sor.model.Side;
 import com.nitroj.adaptive.quantum.sor.stats.RegimeState;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,45 @@ final class ScenarioDefinitionLoaderTest {
         assertEquals(RegimeState.NORMAL, spec.regimeAt(0));
         assertEquals(RegimeState.VOLATILE, spec.regimeAt(10));
         assertEquals(RegimeState.THIN_BOOK, spec.regimeAt(20));
+    }
+
+    @Test
+    void parsesOptionalScenarioParentOrders() {
+        final ScenarioDefinition definition = new ScenarioDefinitionLoader().loadString("""
+                scenarioId: parent-order-defaults
+                description: Scenario with editable parent order defaults.
+                seed: 7
+                ticks: 5
+                venueProfilesEnabled: true
+                parentOrders:
+                  - instrumentId: 0
+                    side: BUY
+                    quantity: 4000
+                    urgency: NORMAL
+                    atTick: 1
+                    submitMode: SIMULATED
+                    clientOrderRef: baseline-buy
+                  - instrumentId: 1
+                    side: SELL
+                    quantity: 2500
+                    urgencyId: 0
+                    submitVia: API
+                    clientOrderRef: api-sell
+                windows:
+                  - name: normal
+                    startTick: 0
+                    endTick: 4
+                    regime: NORMAL
+                """);
+
+        assertEquals(2, definition.parentOrders().length);
+        assertEquals(Side.BUY, definition.parentOrders()[0].side());
+        assertEquals(1, definition.parentOrders()[0].urgencyId());
+        assertEquals(1, definition.parentOrders()[0].atTick());
+        assertEquals(ScenarioParentOrderSubmitMode.SIMULATED, definition.parentOrders()[0].submitMode());
+        assertEquals("baseline-buy", definition.parentOrders()[0].clientOrderRef());
+        assertEquals(Side.SELL, definition.parentOrders()[1].side());
+        assertEquals(ScenarioParentOrderSubmitMode.API, definition.parentOrders()[1].submitMode());
     }
 
     @Test

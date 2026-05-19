@@ -9,7 +9,9 @@ integration tests, and benchmark smoke tests behind repeatable local scripts.
 scripts/run_tests.sh all
 ```
 
-Runs Gradle `check`, including JUnit and native CTest.
+Runs Gradle `check`, including JUnit and native CTest. The checked-in
+`./gradlew` is a lightweight launcher that delegates to a developer-installed
+Gradle binary rather than a bundled wrapper JAR.
 
 ## Unit Profile
 

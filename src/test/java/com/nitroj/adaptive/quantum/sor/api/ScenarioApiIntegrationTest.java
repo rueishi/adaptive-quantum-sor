@@ -52,13 +52,72 @@ final class ScenarioApiIntegrationTest {
         final ServerFixture fixture = startServer();
         try {
             final HttpResponse<String> response = post(fixture, "/scenario/run",
-                    "{\"scenarioId\":\"api-run\",\"seed\":2,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\"}");
+                    "{\"scenarioId\":\"api-run\",\"seed\":2,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\","
+                            + "\"simulatorGeneratedOrders\":true}");
             final HttpResponse<String> summary = get(fixture, "/scenario/summary");
 
             assertEquals(200, response.statusCode());
             assertTrue(response.body().contains("\"success\":true"));
             assertTrue(response.body().contains("\"summary\""));
             assertTrue(summary.body().contains("\"scenarioId\":\"api-run\""));
+        } finally {
+            fixture.server.stop();
+        }
+    }
+
+    @Test
+    void postScenarioRunWithoutParentOrdersFailsClearlyForLiveMode() throws Exception {
+        final ServerFixture fixture = startServer();
+        try {
+            final HttpResponse<String> response = post(fixture, "/scenario/run",
+                    "{\"scenarioId\":\"api-run\",\"seed\":2,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\"}");
+
+            assertEquals(400, response.statusCode());
+            assertTrue(response.body().contains("parentOrders must not be empty"));
+        } finally {
+            fixture.server.stop();
+        }
+    }
+
+    @Test
+    void postScenarioRunWithParentOrdersReturnsRouteEvidence() throws Exception {
+        final ServerFixture fixture = startExecutableServer();
+        try {
+            final HttpResponse<String> response = post(fixture, "/scenario/run", """
+                    {"scenarioId":"api-parent-order","seed":42,"ticks":3,"resetMode":"PURGE_AND_REPOPULATE",
+                     "parentOrders":[{"instrumentId":0,"side":1,"quantity":1500,"urgencyId":0,
+                       "atTick":1,"submitMode":"SIMULATED","clientOrderRef":"tc-008-buy"}],
+                     "maxRouteAttempts":8,"routeTimeoutMillis":1000}
+                    """);
+
+            assertEquals(200, response.statusCode());
+            assertTrue(response.body().contains("\"parentOrderResults\""));
+            assertTrue(response.body().contains("\"scenarioId\":\"api-parent-order\""));
+            assertTrue(response.body().contains("\"atTick\":1"));
+            assertTrue(response.body().contains("\"submitMode\":\"SIMULATED\""));
+            assertTrue(response.body().contains("\"clientOrderRef\":\"tc-008-buy\""));
+            assertTrue(response.body().contains("\"venueName\":\"VENUE"));
+            assertTrue(response.body().contains("\"instrumentSymbol\":\"INST0\""));
+            assertTrue(fixture.lifecycle.snapshot().stream().anyMatch(event -> event.message.contains("tc-008-buy")));
+        } finally {
+            fixture.server.stop();
+        }
+    }
+
+    @Test
+    void postScenarioRunAcceptsStringSideValues() throws Exception {
+        final ServerFixture fixture = startExecutableServer();
+        try {
+            final HttpResponse<String> response = post(fixture, "/scenario/run", """
+                    {"scenarioId":"api-parent-order-string-side","seed":42,"ticks":3,"resetMode":"PURGE_AND_REPOPULATE",
+                     "parentOrders":[{"instrumentId":0,"side":"BUY","quantity":500,"urgencyId":0,
+                       "atTick":1,"submitMode":"SIMULATED","clientOrderRef":"string-side-buy"}],
+                     "maxRouteAttempts":4,"routeTimeoutMillis":1000}
+                    """);
+
+            assertEquals(200, response.statusCode());
+            assertTrue(response.body().contains("\"sideName\":\"BUY\""));
+            assertTrue(response.body().contains("\"clientOrderRef\":\"string-side-buy\""));
         } finally {
             fixture.server.stop();
         }
@@ -100,6 +159,14 @@ final class ScenarioApiIntegrationTest {
                 new SorConfig(2, 5, 3, 2, SorConfig.RuntimeMode.DEMO, true));
         server.start();
         return new ServerFixture(server, publisher, lifecycle);
+    }
+
+    private static ServerFixture startExecutableServer() throws Exception {
+        final com.nitroj.adaptive.quantum.sor.SorEngineRuntime runtime =
+                com.nitroj.adaptive.quantum.sor.SorEngineRuntime.create(
+                        new SorConfig(2, 5, 3, 2, SorConfig.RuntimeMode.DEMO, true), 0);
+        runtime.start();
+        return new ServerFixture(runtime.apiServer(), runtime.publisher(), runtime.lifecycleStore());
     }
 
     private static HttpResponse<String> post(final ServerFixture fixture, final String path, final String body) throws Exception {

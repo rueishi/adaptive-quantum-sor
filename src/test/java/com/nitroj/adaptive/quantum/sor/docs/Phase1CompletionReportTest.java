@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Responsibility: verify the Phase 1 completion report artifact.
  *
  * <p>Role in system: P1-TC-028 is documentation-owned and requires a report
- * containing implemented ACs, failed ACs, limitations, benchmark results,
+ * containing implemented ACs, incomplete ACs, limitations, benchmark results,
  * narrative logs, Jupyter interaction, and static/adaptive comparison output.</p>
  *
  * <p>Relationships: reads {@code docs/PHASE_1_COMPLETION_REPORT.md} as a
@@ -33,7 +33,7 @@ final class Phase1CompletionReportTest {
 
         assertContains(markdown, "# Phase 1 Completion Report");
         assertContains(markdown, "## Implemented Acceptance Criteria");
-        assertContains(markdown, "## Failed Acceptance Criteria");
+        assertContains(markdown, "## Incomplete Acceptance Criteria");
         assertContains(markdown, "## Known Limitations");
         assertContains(markdown, "## Benchmark Results");
         assertContains(markdown, "## Sample Narrative Log");

@@ -39,6 +39,10 @@ final class ScenarioCatalogScriptTest {
         assertEquals(0, suggest.exitCode, suggest.stderr);
         assertTrue(suggest.stdout.contains("Suggested parent order submissions"));
         assertTrue(suggest.stdout.contains("quantity=12000"));
+        final Result baselineSuggest = run("suggest", "baseline-normal-open");
+        assertEquals(0, baselineSuggest.exitCode, baselineSuggest.stderr);
+        assertTrue(baselineSuggest.stdout.contains("baseline-normal-buy"));
+        assertTrue(baselineSuggest.stdout.contains("submitMode=SIMULATED"));
         assertEquals(0, library.exitCode, library.stderr);
         assertTrue(library.stdout.contains("library-ok"));
     }

@@ -26,6 +26,7 @@ public final class ScenarioDefinition {
     private final int ticks;
     private final boolean venueProfilesEnabled;
     private final ScenarioWindow[] windows;
+    private final ScenarioParentOrderIntent[] parentOrders;
 
     public ScenarioDefinition(
             final String scenarioId,
@@ -33,7 +34,8 @@ public final class ScenarioDefinition {
             final long seed,
             final int ticks,
             final boolean venueProfilesEnabled,
-            final ScenarioWindow[] windows
+            final ScenarioWindow[] windows,
+            final ScenarioParentOrderIntent[] parentOrders
     ) {
         if (scenarioId == null || scenarioId.isBlank()) {
             throw new IllegalArgumentException("scenarioId must not be blank");
@@ -53,6 +55,18 @@ public final class ScenarioDefinition {
         this.ticks = ticks;
         this.venueProfilesEnabled = venueProfilesEnabled;
         this.windows = windows.clone();
+        this.parentOrders = parentOrders == null ? new ScenarioParentOrderIntent[0] : parentOrders.clone();
+    }
+
+    public ScenarioDefinition(
+            final String scenarioId,
+            final String description,
+            final long seed,
+            final int ticks,
+            final boolean venueProfilesEnabled,
+            final ScenarioWindow[] windows
+    ) {
+        this(scenarioId, description, seed, ticks, venueProfilesEnabled, windows, new ScenarioParentOrderIntent[0]);
     }
 
     public String scenarioId() {
@@ -77,6 +91,10 @@ public final class ScenarioDefinition {
 
     public ScenarioWindow[] windows() {
         return windows.clone();
+    }
+
+    public ScenarioParentOrderIntent[] parentOrders() {
+        return parentOrders.clone();
     }
 
     /**

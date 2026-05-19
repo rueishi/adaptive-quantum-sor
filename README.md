@@ -55,7 +55,9 @@ scripts/            Local test, benchmark, and Jupyter launch helpers
 ## Prerequisites
 
 - Java 21
-- Gradle available to the lightweight `./gradlew` launcher
+- Gradle available to the lightweight `./gradlew` launcher. The repository does
+  not currently bundle a full Gradle wrapper JAR; `./gradlew` delegates to the
+  Gradle installation in the developer environment.
 - CMake and a C++ toolchain for native build and CTest validation
 - Python 3 with `venv` support for notebook workflows
 

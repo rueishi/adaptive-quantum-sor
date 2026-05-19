@@ -34,6 +34,41 @@ final class ScenarioControlServiceTest {
     }
 
     @Test
+    void scenarioRunRequestRequiresParentOrdersUnlessSimulatorGeneratedOrdersIsExplicit() {
+        assertThrows(IllegalArgumentException.class, () -> ScenarioRunRequest.parse(
+                "{\"scenarioId\":\"s\",\"seed\":1,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\"}"));
+
+        final ScenarioRunRequest replayOnly = ScenarioRunRequest.parse(
+                "{\"scenarioId\":\"s\",\"seed\":1,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\","
+                        + "\"simulatorGeneratedOrders\":true}");
+        assertTrue(replayOnly.simulatorGeneratedOrders());
+        assertEquals(0, replayOnly.parentOrders().length);
+
+        final ScenarioRunRequest withParentOrder = ScenarioRunRequest.parse(
+                "{\"scenarioId\":\"s\",\"seed\":1,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\","
+                        + "\"parentOrders\":[{\"instrumentId\":0,\"side\":\"BUY\",\"quantity\":100,\"urgencyId\":0,"
+                        + "\"atTick\":1,\"submitMode\":\"API\",\"clientOrderRef\":\"notebook-1\"}]}");
+        assertFalse(withParentOrder.simulatorGeneratedOrders());
+        assertEquals(1, withParentOrder.parentOrders().length);
+        assertEquals(Side.BUY, withParentOrder.parentOrders()[0].side());
+        assertEquals(1, withParentOrder.parentOrders()[0].atTick());
+        assertEquals(ScenarioParentOrderSubmitMode.API, withParentOrder.parentOrders()[0].submitMode());
+        assertEquals("notebook-1", withParentOrder.parentOrders()[0].clientOrderRef());
+    }
+
+    @Test
+    void parentOrderIntentRejectsInvalidSchedulingAndSubmitModeValues() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScenarioParentOrderIntent(0, Side.BUY, 100L, 0, -1,
+                        ScenarioParentOrderSubmitMode.SIMULATED, ""));
+        assertThrows(IllegalArgumentException.class, () -> ScenarioParentOrderSubmitMode.parse("DIRECT"));
+        assertThrows(IllegalArgumentException.class, () -> ScenarioRunRequest.parse(
+                "{\"scenarioId\":\"s\",\"seed\":1,\"ticks\":2,\"resetMode\":\"PURGE_AND_REPOPULATE\","
+                        + "\"parentOrders\":[{\"instrumentId\":0,\"side\":1,\"quantity\":100,\"urgencyId\":0,"
+                        + "\"atTick\":2}]}"));
+    }
+
+    @Test
     void resetSummaryRecordsClearedKeptRepopulatedStateCategories() {
         final ScenarioResetSummary summary = new ScenarioResetSummary("s", ScenarioResetMode.PURGE_AND_REPOPULATE,
                 true, new String[]{"orders"}, new String[]{"activePolicy"}, new String[]{"market"});

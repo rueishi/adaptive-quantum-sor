@@ -81,3 +81,17 @@ testing:
 PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog suggest zero-liquidity-safe-route
 PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog suggest high-urgency-sweep
 ```
+
+Scenario files may include optional `parentOrders` defaults. Notebook users can
+override these at run time:
+
+```yaml
+parentOrders:
+  - instrumentId: 0
+    side: BUY
+    quantity: 4000
+    urgency: NORMAL
+    atTick: 1
+    submitMode: SIMULATED
+    clientOrderRef: baseline-normal-buy
+```

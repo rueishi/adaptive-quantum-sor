@@ -89,6 +89,8 @@ final class SorHttpApiServerTest {
     @Test
     void requestViewsAndEventStreamContractsAreCovered() {
         final OrderRequest request = new OrderRequest(0, Side.BUY, 10, 0);
+        final OrderRequest stringSideRequest = OrderRequest.parse(
+                "{\"instrumentId\":0,\"side\":\"BUY\",\"quantity\":10,\"urgencyId\":0}");
         final OrderStatusView status = new OrderStatusView();
         status.parentOrderId = 1L;
         status.remainingQty = 10L;
@@ -99,6 +101,7 @@ final class SorHttpApiServerTest {
         store.append(new LifecycleEvent(1, 1, 1, LifecycleEventType.SOR_DECISION, 1, "hello"));
 
         assertEquals(10L, request.toIntent(1, 1).quantity);
+        assertEquals(Side.BUY, stringSideRequest.side());
         assertTrue(status.toJson().contains("parentOrderId"));
         assertTrue(stats.toJson().contains("venueCount"));
         assertTrue(new EventStreamHandler(store).render().contains("hello"));

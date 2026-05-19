@@ -1,6 +1,7 @@
 package com.nitroj.adaptive.quantum.sor.policy.compile;
 
 import com.nitroj.adaptive.quantum.sor.TestPolicyFixtures;
+import com.nitroj.adaptive.quantum.sor.governance.PolicyDiff;
 import com.nitroj.adaptive.quantum.sor.policy.SorPolicy;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLintIssue;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLintReport;
@@ -69,6 +70,77 @@ final class DefaultPolicyCompilerTest {
             assertTrue(policy.hotRouteBook.routeListOffset[i] >= policy.hotRouteBook.routeListOffset[i - 1]);
             assertTrue(policy.hotRouteBook.routeListOffset[i] - policy.hotRouteBook.routeListOffset[i - 1] <= 1);
         }
+    }
+
+    @Test
+    void routeWeightsAreNormalizedToFullBpsBudget() {
+        final TestPolicyFixtures.CandidateBundle bundle = TestPolicyFixtures.candidateBundle();
+        final SorPolicy policy = new DefaultPolicyCompiler(new CompiledScoreConfig(2, 1, 1))
+                .compile(bundle.candidate(), bundle.strategic(), bundle.tactical(), bundle.lint());
+
+        for (int routeKey = 0; routeKey < policy.hotRouteBook.routeListOffset.length - 1; routeKey++) {
+            int sum = 0;
+            for (int i = policy.hotRouteBook.routeListOffset[routeKey]; i < policy.hotRouteBook.routeListOffset[routeKey + 1]; i++) {
+                sum += policy.hotRouteBook.weightBps[i];
+            }
+            assertEquals(10_000, sum);
+        }
+        for (int instrumentId = 0; instrumentId < policy.fullPolicyMatrix.instrumentCount; instrumentId++) {
+            for (int regimeId = 0; regimeId < policy.fullPolicyMatrix.regimeCount; regimeId++) {
+                for (int urgencyId = 0; urgencyId < policy.fullPolicyMatrix.urgencyCount; urgencyId++) {
+                    int sum = 0;
+                    for (int venueId = 0; venueId < policy.fullPolicyMatrix.venueCount; venueId++) {
+                        final int idx = policy.fullPolicyMatrix.idxIVRU(instrumentId, venueId, regimeId, urgencyId);
+                        if (policy.fullPolicyMatrix.venueEligible[idx]) {
+                            sum += policy.fullPolicyMatrix.venueWeightBps[idx];
+                        }
+                    }
+                    assertEquals(10_000, sum);
+                }
+            }
+        }
+    }
+
+    @Test
+    void diffComparesAgainstPreviousPolicyInsteadOfCountingTotals() {
+        final TestPolicyFixtures.CandidateBundle firstBundle = TestPolicyFixtures.candidateBundle();
+        final DefaultPolicyCompiler firstCompiler = new DefaultPolicyCompiler(new CompiledScoreConfig(2, 1, 1));
+        final SorPolicy first = firstCompiler.compile(
+                firstBundle.candidate(), firstBundle.strategic(), firstBundle.tactical(), firstBundle.lint());
+        final TestPolicyFixtures.CandidateBundle secondBundle = TestPolicyFixtures.candidateBundle();
+        for (int regimeId = 0; regimeId < TestPolicyFixtures.REGIMES; regimeId++) {
+            for (int urgencyId = 0; urgencyId < TestPolicyFixtures.URGENCIES; urgencyId++) {
+                secondBundle.candidate().venueWeightBps[secondBundle.candidate().idxIVRU(0, 0, regimeId, urgencyId)] = 9_000;
+                secondBundle.candidate().venueWeightBps[secondBundle.candidate().idxIVRU(0, 1, regimeId, urgencyId)] = 1_000;
+            }
+        }
+
+        final DefaultPolicyCompiler secondCompiler = new DefaultPolicyCompiler(new CompiledScoreConfig(2, 1, 1), first);
+        secondCompiler.compile(secondBundle.candidate(), secondBundle.strategic(), secondBundle.tactical(), secondBundle.lint());
+        final PolicyDiff diff = secondCompiler.lastDiff();
+
+        assertEquals(0, diff.addedVenueCount);
+        assertEquals(0, diff.removedVenueCount);
+        assertEquals(0, diff.changedRouteListCount);
+        assertTrue(diff.changedWeightCount > 0);
+        assertTrue(diff.maxWeightChangeBps > 0);
+    }
+
+    @Test
+    void policyHashChangesWhenLargeWeightsDifferBeyondLowByte() {
+        final TestPolicyFixtures.CandidateBundle smallWeightBundle = TestPolicyFixtures.candidateBundle();
+        final TestPolicyFixtures.CandidateBundle largeWeightBundle = TestPolicyFixtures.candidateBundle();
+        smallWeightBundle.candidate().venueWeightBps[smallWeightBundle.candidate().idxIVRU(0, 0, 0, 0)] = 16;
+        smallWeightBundle.candidate().venueWeightBps[smallWeightBundle.candidate().idxIVRU(0, 1, 0, 0)] = 1;
+        largeWeightBundle.candidate().venueWeightBps[largeWeightBundle.candidate().idxIVRU(0, 0, 0, 0)] = 10_000;
+        largeWeightBundle.candidate().venueWeightBps[largeWeightBundle.candidate().idxIVRU(0, 1, 0, 0)] = 1;
+
+        final SorPolicy smallWeight = new DefaultPolicyCompiler(new CompiledScoreConfig(2, 1, 1))
+                .compile(smallWeightBundle.candidate(), smallWeightBundle.strategic(), smallWeightBundle.tactical(), smallWeightBundle.lint());
+        final SorPolicy largeWeight = new DefaultPolicyCompiler(new CompiledScoreConfig(2, 1, 1))
+                .compile(largeWeightBundle.candidate(), largeWeightBundle.strategic(), largeWeightBundle.tactical(), largeWeightBundle.lint());
+
+        assertNotEquals(smallWeight.policyHash64, largeWeight.policyHash64);
     }
 
     @Test
