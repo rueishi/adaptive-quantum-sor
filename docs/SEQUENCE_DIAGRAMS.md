@@ -15,6 +15,7 @@ Rendered PNGs:
 docs/sequence_parent_order_routing.png
 docs/sequence_policy_optimization_cycle.png
 docs/sequence_cross_parent_batch_allocation.png
+docs/sequence_robust_policy_selection.png
 docs/sequence_policy_publication.png
 docs/sequence_jupyter_order_submission.png
 docs/sequence_live_jupyter_scenario_parent_orders.png
@@ -90,6 +91,43 @@ sequenceDiagram
         Problem->>Store: approve(BatchVenueAllocationPlan)
         Store->>Input: attach latest applicable plan by inputSnapshotId
         Store->>Report: render objective, constraints, fallback, quantities
+    end
+```
+
+## Robust Policy Selection
+
+![Robust policy selection](sequence_robust_policy_selection.png)
+
+```mermaid
+sequenceDiagram
+    participant Coordinator as PolicyOptimizerCoordinator
+    participant Candidates as PolicyCandidateSet
+    participant Gate as RobustPublicationGate
+    participant Evaluator as ScenarioSweepEvaluator
+    participant Runner as ScenarioRunner
+    participant Store as ScoreMatrixArtifactStore
+    participant Objective as RobustObjective
+    participant Publisher as PolicyPublisher
+    participant Ledger as PolicyChangeLedger
+
+    Coordinator->>Candidates: build candidate policies from optimizer results
+    Candidates->>Gate: submit candidate set, scenario descriptor, objective config
+    alt robust selection disabled
+        Gate->>Publisher: publish single compiled candidate through existing gate
+    else scenario set inadequate and strict mode
+        Gate-->>Coordinator: rejected PublicationGateResult with adequacy evidence
+    else robust selection enabled
+        Gate->>Gate: validate scenario-set adequacy
+        Gate->>Evaluator: evaluate candidates x scenarios
+        Evaluator->>Runner: replay declared scenario set
+        Runner-->>Evaluator: ScenarioSummary values
+        Evaluator-->>Gate: deterministic ScoreMatrix
+        Gate->>Store: persist score matrix artifact
+        Gate->>Objective: select winner from score matrix
+        Objective-->>Gate: RobustSelection
+        Gate->>Publisher: publish selected SorPolicy
+        Publisher->>Ledger: annotate robust selection provenance
+        Publisher-->>Coordinator: accepted PublicationGateResult
     end
 ```
 

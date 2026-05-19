@@ -142,9 +142,12 @@ Phase 3 — real CUDA-Q / Ising strategic optimizer
 Phase 4 — automated ML/RL model pipeline
 Phase 5 — stateful stochastic/regime simulation upgrade
 Phase 6 — cross-parent batch venue allocation
+Phase 7 — robust policy selection
 ```
 
 CUDA/CUDA-Q/Ising are represented by clean interfaces and realistic stubs first.
+The standalone Phase 7 implementation-ready specification is maintained in
+`adaptive_quantum_sor_spec_phase7.md` until it is merged into this main spec.
 
 ---
 
@@ -158,7 +161,7 @@ CUDA/CUDA-Q/Ising are represented by clean interfaces and realistic stubs first.
 | L3.5 | Cross-Parent Batch Allocation | warm path / event-driven | Joint parent x venue allocation under shared capacity and quadratic coupling |
 | L3 | CUDA / cuOpt Tactical Optimizer | 1–5 min | Weights, penalties, child sizes, participation |
 | L2 | Streaming Feature Aggregation | 1–60 sec | Rolling venue stats from live simulated data |
-| L1 | Policy Compiler / Publisher | on candidate | Validate, compile, version, publish policy |
+| L1 | Policy Compiler / Robust Publication Gate / Publisher | on candidate | Validate candidate sets, robust-select when enabled, compile, version, publish policy |
 | L0 | CPU SOR Execution Layer | per order | Deterministic routing using active policy |
 
 ### 3.2 L6 — Historical / Synthetic Simulation Layer
@@ -611,6 +614,8 @@ on candidate policy
 ```text
 policy validation
 policy stability gating
+robust candidate selection
+scenario-set adequacy gating
 policy diff generation
 policy versioning
 policy hashing
@@ -624,6 +629,9 @@ rollback support
 StrategicVenueSubsetResult
 TacticalPolicyResult
 MutablePolicyCandidate
+PolicyCandidateSet
+RobustSelectionConfig
+ScenarioScorecardV1
 PolicyValidationReport
 Current SorPolicy
 SorModelConfig
@@ -3144,6 +3152,7 @@ Rendered PNGs:
 docs/sequence_parent_order_routing.png
 docs/sequence_policy_optimization_cycle.png
 docs/sequence_cross_parent_batch_allocation.png
+docs/sequence_robust_policy_selection.png
 docs/sequence_policy_publication.png
 docs/sequence_jupyter_order_submission.png
 docs/sequence_live_jupyter_scenario_parent_orders.png
@@ -3219,6 +3228,43 @@ sequenceDiagram
         Problem->>Store: approve(BatchVenueAllocationPlan)
         Store->>Input: attach latest applicable plan by inputSnapshotId
         Store->>Report: render objective, constraints, fallback, quantities
+    end
+```
+
+##### Robust Policy Selection
+
+![Robust policy selection](docs/sequence_robust_policy_selection.png)
+
+```mermaid
+sequenceDiagram
+    participant Coordinator as PolicyOptimizerCoordinator
+    participant Candidates as PolicyCandidateSet
+    participant Gate as RobustPublicationGate
+    participant Evaluator as ScenarioSweepEvaluator
+    participant Runner as ScenarioRunner
+    participant Store as ScoreMatrixArtifactStore
+    participant Objective as RobustObjective
+    participant Publisher as PolicyPublisher
+    participant Ledger as PolicyChangeLedger
+
+    Coordinator->>Candidates: build candidate policies from optimizer results
+    Candidates->>Gate: submit candidate set, scenario descriptor, objective config
+    alt robust selection disabled
+        Gate->>Publisher: publish single compiled candidate through existing gate
+    else scenario set inadequate and strict mode
+        Gate-->>Coordinator: rejected PublicationGateResult with adequacy evidence
+    else robust selection enabled
+        Gate->>Gate: validate scenario-set adequacy
+        Gate->>Evaluator: evaluate candidates x scenarios
+        Evaluator->>Runner: replay declared scenario set
+        Runner-->>Evaluator: ScenarioSummary values
+        Evaluator-->>Gate: deterministic ScoreMatrix
+        Gate->>Store: persist score matrix artifact
+        Gate->>Objective: select winner from score matrix
+        Objective-->>Gate: RobustSelection
+        Gate->>Publisher: publish selected SorPolicy
+        Publisher->>Ledger: annotate robust selection provenance
+        Publisher-->>Coordinator: accepted PublicationGateResult
     end
 ```
 

@@ -6,6 +6,7 @@ import com.nitroj.adaptive.quantum.sor.governance.PolicySnapshotStore;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLintReport;
 import com.nitroj.adaptive.quantum.sor.policy.publication.PublicationGate;
 import com.nitroj.adaptive.quantum.sor.policy.publication.PublicationGateResult;
+import com.nitroj.adaptive.quantum.sor.policy.robust.RobustSelectionProvenance;
 import com.nitroj.adaptive.quantum.sor.policy.validation.PolicyValidationReport;
 
 import java.util.ArrayList;
@@ -93,6 +94,25 @@ public final class PolicyPublisher {
 
     public List<PolicyChangeLedgerEntry> ledger() {
         return List.copyOf(ledger);
+    }
+
+    public void annotateLatestLedger(final RobustSelectionProvenance provenance) {
+        if (provenance == null) {
+            throw new IllegalArgumentException("provenance must not be null");
+        }
+        if (ledger.isEmpty()) {
+            throw new IllegalStateException("no ledger entry to annotate");
+        }
+        final PolicyChangeLedgerEntry entry = ledger.get(ledger.size() - 1);
+        entry.robustObjective = provenance.robustObjective();
+        entry.robustObjectiveParameters = provenance.robustObjectiveParameters();
+        entry.scenarioSetId = provenance.scenarioSetId();
+        entry.scenarioSetVersion = provenance.scenarioSetVersion();
+        entry.scenarioCount = provenance.scenarioCount();
+        entry.candidateCount = provenance.candidateCount();
+        entry.scoreMatrixHandle = provenance.scoreMatrixHandle();
+        entry.adequacyStatus = provenance.adequacyStatus();
+        entry.adequacyMissingCategories = provenance.adequacyMissingCategories().toArray(String[]::new);
     }
 
     private static PolicyChangeLedgerEntry ledgerEntry(

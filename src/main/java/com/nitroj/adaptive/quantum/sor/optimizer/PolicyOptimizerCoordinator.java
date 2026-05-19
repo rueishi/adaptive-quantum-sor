@@ -7,8 +7,14 @@ import com.nitroj.adaptive.quantum.sor.policy.SorPolicy;
 import com.nitroj.adaptive.quantum.sor.policy.compile.DefaultPolicyCompiler;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLint;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLintReport;
+import com.nitroj.adaptive.quantum.sor.policy.robust.PolicyCandidate;
+import com.nitroj.adaptive.quantum.sor.policy.robust.PolicyCandidateSet;
+import com.nitroj.adaptive.quantum.sor.policy.robust.RobustSelectionConfig;
 import com.nitroj.adaptive.quantum.sor.policy.validation.PolicyValidationReport;
 import com.nitroj.adaptive.quantum.sor.policy.validation.PolicyValidator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsibility: orchestrate one warm-path policy optimization cycle.
@@ -95,6 +101,51 @@ public final class PolicyOptimizerCoordinator {
         }
     }
 
+    /**
+     * Builds the Phase 7 candidate set without publishing it.
+     *
+     * <p>The existing {@link #runCycle(PolicyOptimizationInput, long)} method is
+     * intentionally left as the single-candidate Phase 1-6 path.</p>
+     */
+    public PolicyCandidateSet buildCandidateSet(
+            final PolicyOptimizationInput input,
+            final RobustSelectionConfig robustConfig
+    ) {
+        if (input == null) {
+            throw new IllegalArgumentException("input must not be null");
+        }
+        final RobustSelectionConfig config = robustConfig == null ? RobustSelectionConfig.defaults() : robustConfig;
+        final StrategicVenueSubsetResult strategic = strategicOptimizer.optimize(input);
+        final TacticalPolicyResult tactical = tacticalOptimizer.optimize(strategic, input);
+        final List<PolicyCandidate> candidates = new ArrayList<>();
+        int ordinal = 0;
+        for (int riskScale : config.candidateGrid().riskScaleBps()) {
+            for (int concentrationScale : config.candidateGrid().concentrationPenaltyScaleBps()) {
+                if (ordinal >= config.candidateGrid().maxCandidateCount()) {
+                    return new PolicyCandidateSet(candidates);
+                }
+                final MutablePolicyCandidate candidate = baseCandidate(input, strategic, tactical);
+                perturbCandidate(candidate, ordinal, riskScale, concentrationScale);
+                final PolicyLintReport lintReport = lint.lint(candidate, input, strategic);
+                if (lintReport.hasErrors()) {
+                    continue;
+                }
+                final SorPolicy policy = compiler.compile(candidate, strategic, tactical, lintReport);
+                if (containsHash(candidates, policy.policyHash64)) {
+                    continue;
+                }
+                candidates.add(new PolicyCandidate(
+                        candidates.size(),
+                        "riskScaleBps=" + riskScale + ",concentrationPenaltyScaleBps=" + concentrationScale,
+                        candidate,
+                        policy
+                ));
+                ordinal++;
+            }
+        }
+        return new PolicyCandidateSet(candidates);
+    }
+
     private static OptimizerRunMetadata metadata(final PolicyOptimizationInput input, final long nowNanos) {
         final OptimizerRunMetadata metadata = new OptimizerRunMetadata();
         metadata.optimizerRunId = input.inputSnapshotId;
@@ -106,5 +157,52 @@ public final class PolicyOptimizerCoordinator {
         metadata.modelSignalVersion = input.modelSignalVersion;
         metadata.currentPolicyVersion = input.currentPolicyVersion;
         return metadata;
+    }
+
+    private MutablePolicyCandidate baseCandidate(
+            final PolicyOptimizationInput input,
+            final StrategicVenueSubsetResult strategic,
+            final TacticalPolicyResult tactical
+    ) {
+        final MutablePolicyCandidate candidate = new MutablePolicyCandidate(
+                input.instrumentCount,
+                input.venueCount,
+                input.regimeCount,
+                input.urgencyCount
+        );
+        tacticalOptimizer.applyToCandidate(candidate, strategic, input, tactical);
+        return candidate;
+    }
+
+    private static void perturbCandidate(
+            final MutablePolicyCandidate candidate,
+            final int ordinal,
+            final int riskScaleBps,
+            final int concentrationPenaltyScaleBps
+    ) {
+        final int riskDelta = riskScaleBps - 10_000;
+        final int concentrationDelta = concentrationPenaltyScaleBps - 10_000;
+        for (int i = 0; i < candidate.venueEligible.length; i++) {
+            if (!candidate.venueEligible[i]) {
+                continue;
+            }
+            final int venueId = (i / candidate.urgencyCount / candidate.regimeCount) % candidate.venueCount;
+            final int directionalTilt = (ordinal + 1) * (venueId + 1) * 25;
+            candidate.venueWeightBps[i] = clampBps(candidate.venueWeightBps[i] + directionalTilt + riskDelta / 20);
+            candidate.toxicityPenaltyBps[i] = clampBps(candidate.toxicityPenaltyBps[i] + Math.max(0, concentrationDelta / 40));
+        }
+    }
+
+    private static boolean containsHash(final List<PolicyCandidate> candidates, final long hash64) {
+        for (PolicyCandidate candidate : candidates) {
+            if (candidate.canonicalPolicyHash64() == hash64) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int clampBps(final int value) {
+        return Math.max(0, Math.min(10_000, value));
     }
 }

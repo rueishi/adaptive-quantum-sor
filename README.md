@@ -32,6 +32,12 @@ shared capacity, participation, self-impact, and correlated information-leakage
 constraints. It is intentionally separate from the existing per-parent
 execution hot path.
 
+Phase 7 adds opt-in robust policy selection at the publication gate. It evaluates
+candidate policies across a declared scenario set, persists a score matrix, and
+records the objective and scenario provenance used to choose the published
+policy. The repository default keeps `robustSelection.enabled=false` so Phase
+1-6 behavior remains unchanged unless explicitly enabled.
+
 The launchable application class is:
 
 ```text

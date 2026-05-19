@@ -21,6 +21,10 @@ public final class PublicationGateResult {
     public int expectedImprovementBps;
     public int maxVenueChanges;
     public int maxWeightChangeBps;
+    public String adequacyStatus;
+    public String[] adequacyMissingCategories;
+    public String robustObjective;
+    public int selectedCandidateId = -1;
 
     public static PublicationGateResult allowed(final int expectedImprovementBps, final int maxVenueChanges, final int maxWeightChangeBps) {
         final PublicationGateResult result = new PublicationGateResult();
@@ -29,6 +33,9 @@ public final class PublicationGateResult {
         result.expectedImprovementBps = expectedImprovementBps;
         result.maxVenueChanges = maxVenueChanges;
         result.maxWeightChangeBps = maxWeightChangeBps;
+        result.adequacyStatus = "";
+        result.adequacyMissingCategories = new String[0];
+        result.robustObjective = "";
         return result;
     }
 
@@ -37,6 +44,9 @@ public final class PublicationGateResult {
         result.publishAllowed = false;
         result.failedGateCount = 1;
         result.failedGates = new String[]{gate};
+        result.adequacyStatus = "";
+        result.adequacyMissingCategories = new String[0];
+        result.robustObjective = "";
         return result;
     }
 }

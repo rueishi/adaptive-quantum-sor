@@ -8,6 +8,8 @@ import com.nitroj.adaptive.quantum.sor.policy.compile.DefaultPolicyCompiler;
 import com.nitroj.adaptive.quantum.sor.policy.lint.DefaultPolicyLint;
 import com.nitroj.adaptive.quantum.sor.policy.lint.PolicyLintConfig;
 import com.nitroj.adaptive.quantum.sor.policy.publication.PublicationGate;
+import com.nitroj.adaptive.quantum.sor.policy.robust.PolicyCandidateSet;
+import com.nitroj.adaptive.quantum.sor.policy.robust.RobustSelectionConfig;
 import com.nitroj.adaptive.quantum.sor.policy.validation.DefaultPolicyValidator;
 import org.junit.jupiter.api.Test;
 
@@ -68,6 +70,28 @@ final class PolicyOptimizerCoordinatorTest {
 
         assertTrue(result.published);
         assertNotNull(publisher.activePolicy());
+    }
+
+    @Test
+    void phase7CandidateSetPathBuildsDistinctOrdinalCandidatesWithoutPublishing() {
+        final PolicyPublisher publisher = publisher();
+        final PolicyOptimizerCoordinator coordinator = coordinator(publisher, new IsingCudaQStrategicOptimizerStub(2));
+
+        final PolicyCandidateSet candidates = coordinator.buildCandidateSet(
+                TestPolicyFixtures.input(),
+                RobustSelectionConfig.defaults()
+        );
+
+        assertTrue(candidates.robustSelectionReady());
+        assertTrue(candidates.size() >= 2);
+        assertNull(publisher.activePolicy(), "candidate-set construction must not publish");
+        for (int i = 0; i < candidates.candidates().size(); i++) {
+            assertEquals(i, candidates.candidates().get(i).candidateId());
+        }
+        assertNotEquals(
+                candidates.candidates().get(0).canonicalPolicyHash64(),
+                candidates.candidates().get(1).canonicalPolicyHash64()
+        );
     }
 
     @Test

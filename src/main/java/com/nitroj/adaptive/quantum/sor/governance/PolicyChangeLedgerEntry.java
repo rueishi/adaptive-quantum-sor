@@ -26,4 +26,13 @@ public final class PolicyChangeLedgerEntry {
     public boolean published;
     public String reason;
     public PolicyDiff diff;
+    public String robustObjective;
+    public String robustObjectiveParameters;
+    public String scenarioSetId;
+    public long scenarioSetVersion;
+    public int scenarioCount;
+    public int candidateCount;
+    public String scoreMatrixHandle;
+    public String adequacyStatus;
+    public String[] adequacyMissingCategories;
 }

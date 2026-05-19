@@ -14,7 +14,7 @@ ML signal and optimizer input state
 strategic optimizer
 cross-parent batch allocator
 tactical optimizer
-policy lint, compile, validate, publish
+policy lint, compile, robust select, validate, publish
 CPU SOR execution
 audit, metrics, and reports
 ```
@@ -119,6 +119,21 @@ cuOpt, QUBO/Ising, CUDA-Q, or native backends behind `BatchAllocationBackend`.
 The batch allocator is not part of L0. If a backend is unavailable, times out,
 or returns an invalid plan, `BatchAllocationPlanStore` keeps the latest approved
 plan and execution continues with the existing route-level policy.
+
+## Robust Policy Selection
+
+Phase 7 adds an opt-in publication-gate wrapper for robust policy selection.
+`PolicyCandidateSet` carries deterministic candidate policies from the optimizer
+coordinator to L1. `ScenarioSweepEvaluator` runs the declared scenario set and
+records a `ScoreMatrix`; pure objectives such as `CVAR_K`, `MIN_MAX`,
+`EXPECTED`, and `MIN_REGRET` select one candidate. `RobustPublicationGate` then
+delegates the winner to the existing `PolicyPublisher.publish(...)` path.
+
+The default configuration keeps robust selection disabled, preserving the Phase
+1-6 single-candidate publication flow. When enabled, the score matrix handle,
+scenario-set provenance, objective, adequacy status, and candidate count are
+stamped into the policy ledger. L0 continues to read exactly one immutable
+published `SorPolicy`.
 
 ## Python And Jupyter
 
