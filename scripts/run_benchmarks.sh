@@ -13,6 +13,13 @@ case "$PROFILE" in
   manual)
     "$ROOT_DIR/gradlew" test --tests 'com.nitroj.adaptive.quantum.sor.benchmark.BenchmarkHarnessTest'
     ;;
+  jmh)
+    "$ROOT_DIR/gradlew" jmh \
+      -PjmhInclude="${ADAPTIVE_QUANTUM_SOR_JMH_INCLUDE:-PolicyDrivenSorJmhBenchmark.strictRouteInto}" \
+      -PjmhWarmupIterations="${ADAPTIVE_QUANTUM_SOR_JMH_WARMUP_ITERATIONS:-3}" \
+      -PjmhMeasurementIterations="${ADAPTIVE_QUANTUM_SOR_JMH_MEASUREMENT_ITERATIONS:-5}" \
+      -PjmhForks="${ADAPTIVE_QUANTUM_SOR_JMH_FORKS:-1}"
+    ;;
   comparison)
     "$ROOT_DIR/gradlew" test --tests 'com.nitroj.adaptive.quantum.sor.metrics.ComparisonRunnerTest'
     PYTHONPATH="$ROOT_DIR/python${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT_DIR/python/compare_sor_dataset.py" \
@@ -21,7 +28,7 @@ case "$PROFILE" in
     ;;
   *)
     echo "unknown benchmark profile: $PROFILE" >&2
-    echo "usage: scripts/run_benchmarks.sh [manual|comparison]" >&2
+    echo "usage: scripts/run_benchmarks.sh [manual|jmh|comparison]" >&2
     exit 2
     ;;
 esac

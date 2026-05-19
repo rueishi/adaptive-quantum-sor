@@ -116,13 +116,16 @@ Runs the CMake/CTest native tests.
 
 ```bash
 scripts/run_benchmarks.sh manual
+scripts/run_benchmarks.sh jmh
 scripts/run_benchmarks.sh comparison
 ```
 
-The manual profile runs the benchmark harness smoke test. The comparison
-profile runs adaptive/static comparison reporting tests, runs static SOR and
-adaptive SOR selection over the same realistic feature dataset, compares actual
-selected-row labels, and writes:
+The manual profile runs the benchmark harness smoke test. The JMH profile runs
+`PolicyDrivenSorJmhBenchmark.strictRouteInto` with the GC profiler to verify the
+strict caller-owned L0 route path allocation rate. The comparison profile runs
+adaptive/static comparison reporting tests, runs static SOR and adaptive SOR
+selection over the same realistic feature dataset, compares actual selected-row
+labels, and writes:
 
 ```text
 build/reports/benchmarks/sor-comparison-report.md
@@ -136,5 +139,4 @@ ADAPTIVE_QUANTUM_SOR_COMPARISON_REPORT=build/reports/benchmarks/custom-report.md
 scripts/run_benchmarks.sh comparison
 ```
 
-These profiles are repeatable evidence for `P1-BENCH-003` without requiring an
-external JMH setup.
+These profiles are repeatable evidence for `P1-BENCH-001` and `P1-BENCH-003`.

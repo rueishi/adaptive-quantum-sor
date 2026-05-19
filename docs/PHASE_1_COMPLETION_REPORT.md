@@ -37,7 +37,7 @@ P1-RESLICE-001 P1-RESLICE-002 P1-RESLICE-003 P1-RESLICE-004
 P1-AUDIT-001 P1-AUDIT-002 P1-AUDIT-003 P1-AUDIT-004 P1-AUDIT-005
 P1-JUPYTER-001 P1-JUPYTER-002 P1-JUPYTER-003 P1-JUPYTER-004 P1-JUPYTER-005 P1-JUPYTER-006
 P1-COMPARE-001 P1-COMPARE-002 P1-COMPARE-003 P1-COMPARE-004
-P1-BENCH-002 P1-BENCH-003
+P1-BENCH-001 P1-BENCH-002 P1-BENCH-003
 X-AUDIT-001 X-API-001 X-DOC-001 X-FAILSAFE-001 X-FAILSAFE-002 X-OBS-001 X-RECOVERY-001 X-ROLLBACK-001 X-SECURITY-001
 X-CONFIG-001 X-DET-001 X-E2E-001
 AC-COMPARE-001 AC-COMPARE-002
@@ -50,16 +50,7 @@ AC-SNAPSHOT-001
 
 ## Incomplete Acceptance Criteria
 
-```text
-P1-BENCH-001
-```
-
-`P1-BENCH-001` requires a JMH allocation benchmark proving 0 B/op for the L0
-route execution path after warmup under strict mode. The current benchmark
-harness is dependency-free and reports latency plus an allocation-like JVM heap
-delta; it does not provide JMH allocation-profiler evidence. The adaptive
-benchmark now exercises `PolicyDrivenSorExecutioner` through a published policy,
-but the strict 0 B/op acceptance criterion remains open.
+None known for Phase 1.
 
 ## Test Evidence
 
@@ -129,9 +120,28 @@ PolicyDrivenSorBenchmark:
 
 The benchmark harness reports latency, allocation-like memory delta, and a
 threshold regression flag. `PolicyDrivenSorBenchmark` exercises the adaptive
-policy-driven execution path rather than delegating to the static router. The
-current harness is intentionally dependency-free; external JMH plugin wiring and
-strict 0 B/op allocation proof remain Phase 1 limitations.
+policy-driven execution path rather than delegating to the static router.
+
+Strict hot-path allocation evidence:
+
+```text
+Command:
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew jmh \
+  -PjmhInclude=PolicyDrivenSorJmhBenchmark.strictRouteInto \
+  -PjmhWarmupIterations=3 \
+  -PjmhMeasurementIterations=5 \
+  -PjmhForks=1
+
+PolicyDrivenSorJmhBenchmark.strictRouteInto:
+  average=71.821 ns/op
+  gc.alloc.rate.norm=approximately 10^-4 B/op
+  gc.count=approximately 0 counts
+```
+
+The JMH benchmark targets `PolicyDrivenSorExecutioner.routeInto`, the strict
+caller-owned result/audit variant. The existing `route()` method remains a
+convenience wrapper for API and test flows and still allocates immutable result
+objects by design.
 
 ## Sample Narrative Log
 
@@ -208,10 +218,9 @@ The HTTP server is a local Adaptive Quantum SOR control interface. It validates 
 requests and isolates API failure from engine state, but it is not a production
 web tier.
 
-The benchmark harness is dependency-free and CI-friendly. It records Phase 1
-latency and heap-delta benchmark signals for static and adaptive routing, but it
-is not wired to the external JMH Gradle plugin and does not yet prove strict
-0 B/op L0 execution.
+The benchmark harness keeps dependency-free smoke coverage for static and
+adaptive routing, and the `jmh` Gradle task provides strict allocation evidence
+for the caller-owned L0 execution path.
 
 ## Phase 2 Gate
 

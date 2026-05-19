@@ -53,18 +53,54 @@ public final class PolicyDrivenSorExecutioner implements SorExecutioner {
     /** Routes using regime 0 and the order's urgency for Phase 1. */
     @Override
     public RouteDecisionResult route(final OrderIntent intent, final ChildOrderBuffer output) {
-        return route(intent, output, 0);
+        final RouteAuditEvent audit = new RouteAuditEvent();
+        final MutableRouteDecisionResult result = new MutableRouteDecisionResult();
+        routeInto(intent, output, result, audit, 0);
+        return result.snapshot();
     }
 
     /** Routes using an explicit regime ID for reslicing tests. */
     public RouteDecisionResult route(final OrderIntent intent, final ChildOrderBuffer output, final int regimeId) {
-        if (intent == null || output == null) {
-            throw new IllegalArgumentException("intent and output must not be null");
+        final RouteAuditEvent audit = new RouteAuditEvent();
+        final MutableRouteDecisionResult result = new MutableRouteDecisionResult();
+        routeInto(intent, output, result, audit, regimeId);
+        return result.snapshot();
+    }
+
+    /**
+     * Routes into caller-owned result and audit objects.
+     *
+     * <p>This is the strict allocation-sensitive API. The existing
+     * {@link #route(OrderIntent, ChildOrderBuffer)} method remains convenient for
+     * API/tests and intentionally wraps this method in immutable objects.</p>
+     */
+    public MutableRouteDecisionResult routeInto(
+            final OrderIntent intent,
+            final ChildOrderBuffer output,
+            final MutableRouteDecisionResult result,
+            final RouteAuditEvent audit
+    ) {
+        return routeInto(intent, output, result, audit, 0);
+    }
+
+    /**
+     * Routes into caller-owned result and audit objects using an explicit regime
+     * ID.
+     */
+    public MutableRouteDecisionResult routeInto(
+            final OrderIntent intent,
+            final ChildOrderBuffer output,
+            final MutableRouteDecisionResult result,
+            final RouteAuditEvent audit,
+            final int regimeId
+    ) {
+        if (intent == null || output == null || result == null || audit == null) {
+            throw new IllegalArgumentException("intent, output, result, and audit must not be null");
         }
         output.reset();
         final SorPolicy policy = publisher.activePolicy();
         if (policy == null) {
-            return result(intent, 0L, 0L, output.size(), 0L, intent.quantity, OrderStatus.NO_ACTIVE_POLICY);
+            return result(result, audit, intent, 0L, 0L, output.size(), 0L, intent.quantity, OrderStatus.NO_ACTIVE_POLICY);
         }
         long remaining = intent.quantity;
         final int start = policy.hotRouteBook.routeStart(intent.instrumentId, regimeId, intent.urgencyId);
@@ -88,10 +124,12 @@ public final class PolicyDrivenSorExecutioner implements SorExecutioner {
         }
         final long routed = intent.quantity - remaining;
         final int status = output.size() == 0 ? OrderStatus.NO_LIQUIDITY : OrderStatus.ACKED;
-        return result(intent, policy.policyVersion, policy.policyHash64, output.size(), routed, remaining, status);
+        return result(result, audit, intent, policy.policyVersion, policy.policyHash64, output.size(), routed, remaining, status);
     }
 
-    private RouteDecisionResult result(
+    private MutableRouteDecisionResult result(
+            final MutableRouteDecisionResult result,
+            final RouteAuditEvent audit,
             final OrderIntent intent,
             final long policyVersion,
             final long policyHash64,
@@ -100,9 +138,9 @@ public final class PolicyDrivenSorExecutioner implements SorExecutioner {
             final long residual,
             final int status
     ) {
-        final RouteAuditEvent audit = new RouteAuditEvent();
         audit.set(nextAuditEventId++, Math.max(1L, System.nanoTime()), intent.parentOrderId, policyVersion,
                 policyHash64, childCount, residual, status);
-        return new RouteDecisionResult(intent.parentOrderId, policyVersion, policyHash64, childCount, routed, residual, status, audit);
+        result.set(intent.parentOrderId, policyVersion, policyHash64, childCount, routed, residual, status, audit);
+        return result;
     }
 }

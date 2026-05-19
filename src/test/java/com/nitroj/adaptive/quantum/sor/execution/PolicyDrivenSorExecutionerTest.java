@@ -1,11 +1,15 @@
 package com.nitroj.adaptive.quantum.sor.execution;
 
+import com.nitroj.adaptive.quantum.sor.audit.RouteAuditEvent;
 import com.nitroj.adaptive.quantum.sor.model.ChildOrderBuffer;
+import com.nitroj.adaptive.quantum.sor.model.OrderIntent;
 import com.nitroj.adaptive.quantum.sor.model.OrderStatus;
 import com.nitroj.adaptive.quantum.sor.model.VenueStatus;
 import com.nitroj.adaptive.quantum.sor.policy.PolicyPublisher;
 import com.nitroj.adaptive.quantum.sor.policy.publication.PublicationGate;
 import org.junit.jupiter.api.Test;
+
+import java.lang.management.ManagementFactory;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -80,7 +84,42 @@ final class PolicyDrivenSorExecutionerTest {
         assertTrue(result.residualQty >= 0);
     }
 
+    @Test
+    void strictRouteIntoReusesCallerOwnedResultAndAuditWithoutAllocation() {
+        final com.sun.management.ThreadMXBean allocationBean = allocationBean();
+        final ExecutionFixtures.Fixture fixture = ExecutionFixtures.fixture();
+        final PolicyDrivenSorExecutioner executioner = executioner(fixture);
+        final ChildOrderBuffer output = new ChildOrderBuffer(4);
+        final MutableRouteDecisionResult result = new MutableRouteDecisionResult();
+        final RouteAuditEvent audit = new RouteAuditEvent();
+        final OrderIntent order = ExecutionFixtures.buy(600);
+        final int iterations = 20_000;
+        for (int i = 0; i < 5_000; i++) {
+            executioner.routeInto(order, output, result, audit);
+        }
+
+        final long before = allocationBean.getCurrentThreadAllocatedBytes();
+        for (int i = 0; i < iterations; i++) {
+            executioner.routeInto(order, output, result, audit);
+        }
+        final long allocated = allocationBean.getCurrentThreadAllocatedBytes() - before;
+
+        assertEquals(0L, allocated / iterations);
+        assertEquals(1, result.childOrderCount);
+        assertSame(audit, result.auditEvent);
+        assertEquals(fixture.policy().policyVersion, result.policyVersion);
+    }
+
     private static PolicyDrivenSorExecutioner executioner(final ExecutionFixtures.Fixture fixture) {
         return new PolicyDrivenSorExecutioner(fixture.publisher(), fixture.market(), fixture.sessions(), fixture.risk());
+    }
+
+    private static com.sun.management.ThreadMXBean allocationBean() {
+        final java.lang.management.ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        assertTrue(bean instanceof com.sun.management.ThreadMXBean);
+        final com.sun.management.ThreadMXBean allocationBean = (com.sun.management.ThreadMXBean) bean;
+        assertTrue(allocationBean.isThreadAllocatedMemorySupported());
+        allocationBean.setThreadAllocatedMemoryEnabled(true);
+        return allocationBean;
     }
 }

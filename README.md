@@ -194,6 +194,12 @@ Run static-vs-adaptive comparison reporting:
 scripts/run_benchmarks.sh comparison
 ```
 
+Run the strict hot-path JMH allocation benchmark:
+
+```bash
+scripts/run_benchmarks.sh jmh
+```
+
 See `python/README.md` for datasets, artifact contracts, and helper APIs.
 
 ## Native Optimizers
