@@ -1,0 +1,32 @@
+# False liquidity fade scenario.
+
+scenarioId: false-liquidity-fade
+description: Displayed liquidity appears available, then fades before full execution can complete.
+category: liquidity
+tags:
+  - liquidity
+  - fade
+  - partial-fill
+seed: 43434
+ticks: 28
+venueProfilesEnabled: true
+
+windows:
+  - name: visible-liquidity
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: fade-during-volatility
+    startTick: 8
+    endTick: 17
+    regime: VOLATILE
+  - name: thin-after-fade
+    startTick: 18
+    endTick: 27
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - fill_quantity_never_exceeds_visible_liquidity
+    - residual_quantity_is_explicit

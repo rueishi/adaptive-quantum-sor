@@ -1,0 +1,28 @@
+# Models deterministic outage-prone venue behavior.
+
+scenarioId: venue-outage-recovery
+description: Outage-prone venue cycles through unavailable and recovered states during replay.
+category: venue-health
+tags:
+  - venue-health
+  - outage
+  - recovery
+seed: 2002
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-outage-cycle
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: volatile-longer-outage-cycle
+    startTick: 12
+    endTick: 23
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - unavailable_venues_are_not_executable
+    - reset_summary_is_visible_for_live_runs

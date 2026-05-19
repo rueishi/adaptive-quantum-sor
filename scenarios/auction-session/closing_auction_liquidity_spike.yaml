@@ -1,0 +1,28 @@
+# Closing auction liquidity spike scenario.
+
+scenarioId: closing-auction-liquidity-spike
+description: Market thins intraday, then displayed liquidity increases into a volatile close.
+category: auction-session
+tags:
+  - auction
+  - closing
+  - liquidity
+seed: 19191
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: intraday-thin-book
+    startTick: 0
+    endTick: 11
+    regime: THIN_BOOK
+  - name: closing-volatility
+    startTick: 12
+    endTick: 29
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - closing_window_has_higher_movement
+    - route_residual_quantity_is_explicit

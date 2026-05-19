@@ -1,0 +1,28 @@
+# Focused volatile market scenario.
+
+scenarioId: volatile-spread-widening
+description: Volatile regime widens spreads, increases price movement, and raises venue latency/slippage.
+category: regime
+tags:
+  - regime
+  - volatility
+  - spread
+seed: 202
+ticks: 18
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-warmup
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: volatility-event
+    startTick: 6
+    endTick: 17
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - volatile_window_moves_more_than_normal
+    - volatile_window_has_higher_latency_or_slippage

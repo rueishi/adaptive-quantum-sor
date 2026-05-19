@@ -1,0 +1,28 @@
+# Toxic venue profile scenario.
+
+scenarioId: toxic-venue-slippage
+description: Toxic venue profile produces higher toxicity and slippage than tight/deep venue behavior.
+category: venue-quality
+tags:
+  - venue-quality
+  - toxicity
+  - slippage
+seed: 505
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-toxic-baseline
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: volatile-toxic-pressure
+    startTick: 8
+    endTick: 23
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - toxic_profile_increases_slippage
+    - generated_outcomes_update_toxicity_stats

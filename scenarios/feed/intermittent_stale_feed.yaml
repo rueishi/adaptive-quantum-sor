@@ -1,0 +1,32 @@
+# Intermittent stale feed scenario.
+
+scenarioId: intermittent-stale-feed
+description: Feed alternates stale and fresh frequently while books remain valid.
+category: feed
+tags:
+  - feed
+  - stale-feed
+  - intermittent
+seed: 56565
+ticks: 42
+venueProfilesEnabled: true
+
+windows:
+  - name: intermittent-normal
+    startTick: 0
+    endTick: 13
+    regime: NORMAL
+  - name: intermittent-volatile
+    startTick: 14
+    endTick: 27
+    regime: VOLATILE
+  - name: intermittent-thin
+    startTick: 28
+    endTick: 41
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - feed_staleness_updates_feed_health_without_invalid_books
+    - stale_feed_recovery_is_deterministic

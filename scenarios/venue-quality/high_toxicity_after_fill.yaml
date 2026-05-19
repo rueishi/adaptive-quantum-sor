@@ -1,0 +1,28 @@
+# High toxicity after fill scenario.
+
+scenarioId: high-toxicity-after-fill
+description: Venue looks acceptable pre-trade but generated post-fill toxicity and slippage are elevated.
+category: venue-quality
+tags:
+  - venue-quality
+  - toxicity
+  - labels
+seed: 44444
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: pre-trade-normal
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: post-fill-toxic-volatility
+    startTick: 8
+    endTick: 23
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - toxic_profile_increases_slippage
+    - generated_outcomes_update_toxicity_stats

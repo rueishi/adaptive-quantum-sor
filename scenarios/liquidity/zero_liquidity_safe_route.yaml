@@ -1,0 +1,28 @@
+# Zero-liquidity safe routing scenario.
+
+scenarioId: zero-liquidity-safe-route
+description: Thin-book liquidity disappears and routing records residual quantity instead of publishing invalid child orders.
+category: liquidity
+tags:
+  - liquidity
+  - no-liquidity
+  - safe-routing
+seed: 17171
+ticks: 18
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-zero-liquidity
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: zero-liquidity-pressure
+    startTick: 6
+    endTick: 17
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - zero_liquidity_produces_no_child_orders
+    - residual_quantity_is_explicit

@@ -1,0 +1,34 @@
+# Live reset mode comparison scenario.
+
+scenarioId: reset-mode-comparison
+description: Same scenario metadata used to compare PURGE_AND_REPOPULATE, KEEP_POLICY_PURGE_STATS, ISOLATED, and APPEND live reset behavior.
+category: live-reset
+tags:
+  - live-reset
+  - api
+  - comparison
+seed: 38383
+ticks: 16
+venueProfilesEnabled: true
+
+windows:
+  - name: reset-normal
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: reset-volatile
+    startTick: 6
+    endTick: 10
+    regime: VOLATILE
+  - name: reset-thin
+    startTick: 11
+    endTick: 15
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: mixed
+  assertions:
+    - purge_and_repopulate_is_audited
+    - keep_policy_preserves_policy_hash
+    - isolated_does_not_mutate_live_context
+    - append_is_not_replay_safe

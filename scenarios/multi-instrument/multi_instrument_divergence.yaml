@@ -1,0 +1,32 @@
+# Multi-instrument divergence scenario.
+
+scenarioId: multi-instrument-divergence
+description: Scenario metadata for per-instrument divergence where one instrument remains normal while another becomes volatile or thin.
+category: multi-instrument
+tags:
+  - multi-instrument
+  - regime
+  - divergence
+seed: 58585
+ticks: 36
+venueProfilesEnabled: true
+
+windows:
+  - name: shared-normal-open
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: instrument-divergence-proxy
+    startTick: 12
+    endTick: 23
+    regime: VOLATILE
+  - name: liquidity-divergence-proxy
+    startTick: 24
+    endTick: 35
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - per_instrument_regime_handling_is_deterministic
+    - venue_quotes_remain_correlated_through_shared_instrument_mid

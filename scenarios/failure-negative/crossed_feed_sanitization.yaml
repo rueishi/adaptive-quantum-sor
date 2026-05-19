@@ -1,0 +1,28 @@
+# Crossed/invalid raw feed sanitization scenario.
+
+scenarioId: crossed-feed-sanitization
+description: Negative scenario metadata for proving invalid raw feed values are sanitized or blocked before publication.
+category: failure-negative
+tags:
+  - negative
+  - feed
+  - sanitization
+seed: 24242
+ticks: 12
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-invalid-feed
+    startTick: 0
+    endTick: 3
+    regime: NORMAL
+  - name: invalid-feed-pressure
+    startTick: 4
+    endTick: 11
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - impossible_raw_outcomes_cannot_publish
+    - invalid_generated_state_cannot_escape

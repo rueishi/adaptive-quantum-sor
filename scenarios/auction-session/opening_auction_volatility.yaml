@@ -1,0 +1,28 @@
+# Opening auction volatility scenario.
+
+scenarioId: opening-auction-volatility
+description: Market opens with volatile spreads and unstable depth before settling into normal trading.
+category: auction-session
+tags:
+  - auction
+  - opening
+  - volatility
+seed: 18181
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: opening-volatility
+    startTick: 0
+    endTick: 7
+    regime: VOLATILE
+  - name: settled-normal-market
+    startTick: 8
+    endTick: 23
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - volatile_open_moves_more_than_settled_market
+    - all_books_remain_valid

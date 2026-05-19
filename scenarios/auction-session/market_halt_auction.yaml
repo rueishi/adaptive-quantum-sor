@@ -1,0 +1,28 @@
+# Halt/auction market-session scenario.
+
+scenarioId: market-halt-auction
+description: Thin-book windows create deterministic halt or auction-like instrument closures.
+category: auction-session
+tags:
+  - auction
+  - halt
+  - market-session
+seed: 707
+ticks: 25
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-session
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: auction-like-thin-book
+    startTick: 10
+    endTick: 24
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - halted_or_auction_instruments_reflected_in_market_session_state
+    - unavailable_instruments_do_not_corrupt_routing

@@ -1,0 +1,32 @@
+# Outage during route scenario.
+
+scenarioId: outage-during-route
+description: Venue appears usable before route decision, then becomes unavailable before venue outcome handling.
+category: venue-health
+tags:
+  - venue-health
+  - outage
+  - routing
+seed: 27272
+ticks: 20
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-outage
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: volatile-outage-window
+    startTick: 8
+    endTick: 15
+    regime: VOLATILE
+  - name: thin-recovery-risk
+    startTick: 16
+    endTick: 19
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - unavailable_venue_rejects_or_skips
+    - no_fill_for_unavailable_venue

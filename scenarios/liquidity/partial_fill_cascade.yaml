@@ -1,0 +1,28 @@
+# Partial fill cascade scenario.
+
+scenarioId: partial-fill-cascade
+description: Liquidity is available but fragmented, producing partial fills and explicit residual quantity.
+category: liquidity
+tags:
+  - partial-fill
+  - residual
+  - liquidity
+seed: 23232
+ticks: 26
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-fragmented-liquidity
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: thin-fragmented-liquidity
+    startTick: 10
+    endTick: 25
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - low_displayed_liquidity_increases_partial_fill
+    - residual_quantity_is_explicit

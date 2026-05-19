@@ -1,0 +1,32 @@
+# Throttle saturation scenario.
+
+scenarioId: throttle-saturation
+description: Venue throttles tighten during volatile order flow and can drop near zero during thin-book stress.
+category: risk-capacity
+tags:
+  - throttle
+  - venue-health
+  - routing-guard
+seed: 36363
+ticks: 26
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-throttle-baseline
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: volatile-throttle-pressure
+    startTick: 8
+    endTick: 17
+    regime: VOLATILE
+  - name: thin-throttle-stress
+    startTick: 18
+    endTick: 25
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - throttled_venue_is_not_executable
+    - append_mode_does_not_hide_throttle_state

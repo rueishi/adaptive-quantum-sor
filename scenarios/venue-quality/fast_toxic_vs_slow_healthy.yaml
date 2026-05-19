@@ -1,0 +1,29 @@
+# Fast toxic versus slow healthy venue scenario.
+
+scenarioId: fast-toxic-vs-slow-healthy
+description: Fast toxic venue competes with slower healthier venue, testing optimizer score tradeoffs.
+category: venue-quality
+tags:
+  - venue-quality
+  - toxicity
+  - latency
+  - optimizer
+seed: 49494
+ticks: 28
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-tradeoff
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: volatile-tradeoff
+    startTick: 12
+    endTick: 27
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - optimizer_balances_latency_and_toxicity
+    - toxic_profile_increases_slippage

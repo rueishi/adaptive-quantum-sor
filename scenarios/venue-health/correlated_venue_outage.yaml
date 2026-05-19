@@ -1,0 +1,32 @@
+# Correlated venue outage scenario.
+
+scenarioId: correlated-venue-outage
+description: Multiple outage-prone venues degrade together during a volatile market event.
+category: venue-health
+tags:
+  - venue-health
+  - outage
+  - systemic-risk
+seed: 39393
+ticks: 28
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-correlated-outage
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: correlated-volatile-outage
+    startTick: 8
+    endTick: 23
+    regime: VOLATILE
+  - name: thin-recovery
+    startTick: 24
+    endTick: 27
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - unavailable_venues_are_not_executable
+    - feature_health_stats_reflect_outage_windows

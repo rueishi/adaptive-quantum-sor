@@ -1,0 +1,24 @@
+#include "cudaq_strategic_optimizer.h"
+
+#include <cassert>
+
+int main() {
+    const std::int32_t linear[] = {-10, -50, -20};
+    SorStrategicQuboInput input{};
+    input.venue_count = 3;
+    input.min_subset_size = 1;
+    input.max_subset_size = 2;
+    input.linear_coefficients = linear;
+    SorStrategicQuboOutput output{};
+
+    assert(sor_cudaq_strategic_optimize(&input, &output) == SOR_STRATEGIC_OK);
+    assert(output.selected_count == 2);
+    assert(output.selected_venue_ids[0] == 1);
+    assert(output.selected_venue_ids[1] == 2);
+    assert(output.objective_energy == -70);
+
+    input.venue_count = 0;
+    assert(sor_cudaq_strategic_optimize(&input, &output) == SOR_STRATEGIC_INVALID_INPUT);
+    assert(sor_cudaq_strategic_optimize(nullptr, &output) == SOR_STRATEGIC_INVALID_INPUT);
+    return 0;
+}

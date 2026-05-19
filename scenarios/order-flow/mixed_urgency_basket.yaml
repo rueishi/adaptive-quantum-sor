@@ -1,0 +1,32 @@
+# Mixed urgency basket scenario.
+
+scenarioId: mixed-urgency-basket
+description: Low, normal, and high urgency parent orders share one scenario replay.
+category: order-flow
+tags:
+  - order-flow
+  - urgency
+  - basket
+seed: 46464
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: low-urgency-normal
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: high-urgency-volatile
+    startTick: 10
+    endTick: 19
+    regime: VOLATILE
+  - name: normal-urgency-thin
+    startTick: 20
+    endTick: 29
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - route_key_covers_multiple_urgencies
+    - parent_order_flow_changes_by_regime

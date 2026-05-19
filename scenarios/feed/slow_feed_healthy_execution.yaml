@@ -1,0 +1,28 @@
+# Slow feed but healthy execution scenario.
+
+scenarioId: slow-feed-healthy-execution
+description: Feed health is degraded while venue outcome quality remains comparatively healthy.
+category: feed
+tags:
+  - feed
+  - execution-quality
+  - separation-of-concerns
+seed: 48484
+ticks: 34
+venueProfilesEnabled: true
+
+windows:
+  - name: slow-feed-normal
+    startTick: 0
+    endTick: 15
+    regime: NORMAL
+  - name: slow-feed-volatile
+    startTick: 16
+    endTick: 33
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - feed_health_and_execution_quality_are_separate
+    - stale_feed_marks_feed_health

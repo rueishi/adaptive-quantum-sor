@@ -1,0 +1,71 @@
+/*
+ * Build configuration for Adaptive Quantum SOR.
+ *
+ * Phase 1 started with only Java and Application plugins. Phase 2 adds a
+ * CMake-driven native build so Gradle remains the single validation entrypoint
+ * for Java, C++, and CUDA-aware native artifacts.
+ */
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.nitroj.adaptive.quantum.sor'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+application {
+    mainClass = 'com.nitroj.adaptive.quantum.sor.AdaptiveQuantumSorApplication'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+def nativeBuildDir = layout.buildDirectory.dir('native')
+
+tasks.named('test') {
+    useJUnitPlatform()
+    dependsOn tasks.named('nativeBuild')
+    systemProperty 'sor.native.lib.dir', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('nativeConfigure', Exec) {
+    description = 'Configures the C++/CUDA native tactical optimizer build with CMake.'
+    group = 'verification'
+    inputs.files(fileTree('cpp') {
+        include '**/*.h'
+        include '**/*.cpp'
+        include '**/*.cu'
+        include 'CMakeLists.txt'
+    })
+    outputs.dir(nativeBuildDir)
+    commandLine 'cmake', '-S', 'cpp', '-B', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('nativeBuild', Exec) {
+    description = 'Builds native C++/CUDA tactical optimizer artifacts.'
+    group = 'verification'
+    dependsOn tasks.named('nativeConfigure')
+    commandLine 'cmake', '--build', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('nativeTest', Exec) {
+    description = 'Runs native C++/CUDA tactical optimizer unit tests through CTest.'
+    group = 'verification'
+    dependsOn tasks.named('nativeBuild')
+    commandLine 'ctest', '--test-dir', nativeBuildDir.get().asFile.absolutePath, '--output-on-failure'
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('nativeTest')
+}

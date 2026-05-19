@@ -1,0 +1,28 @@
+# Optimizer tie-break stability scenario.
+
+scenarioId: optimizer-tie-break-stability
+description: Venues produce near-equal scores so tie-break behavior must remain deterministic.
+category: optimizer-policy
+tags:
+  - optimizer
+  - tie-break
+  - determinism
+seed: 54545
+ticks: 18
+venueProfilesEnabled: false
+
+windows:
+  - name: equal-profile-normal
+    startTick: 0
+    endTick: 8
+    regime: NORMAL
+  - name: equal-profile-volatile
+    startTick: 9
+    endTick: 17
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - optimizer_tie_break_is_stable
+    - same_seed_replays_equal_summary

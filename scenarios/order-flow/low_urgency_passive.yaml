@@ -1,0 +1,28 @@
+# Low urgency passive routing scenario.
+
+scenarioId: low-urgency-passive
+description: Low urgency parent flow should prefer stable healthier behavior over fast toxic liquidity.
+category: order-flow
+tags:
+  - order-flow
+  - urgency
+  - passive
+seed: 32323
+ticks: 25
+venueProfilesEnabled: true
+
+windows:
+  - name: passive-normal
+    startTick: 0
+    endTick: 14
+    regime: NORMAL
+  - name: passive-thin-book
+    startTick: 15
+    endTick: 24
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - low_urgency_prefers_healthier_venues
+    - no_invalid_books_are_published

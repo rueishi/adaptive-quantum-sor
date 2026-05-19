@@ -1,0 +1,32 @@
+# Auction halt then gap reopen scenario.
+
+scenarioId: auction-halt-gap-reopen
+description: Instrument halts in a thin-book window and reopens into volatile gap-like behavior.
+category: auction-session
+tags:
+  - auction
+  - halt
+  - gap-reopen
+seed: 57575
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-halt
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: halt-auction-thin-book
+    startTick: 8
+    endTick: 17
+    regime: THIN_BOOK
+  - name: gap-reopen-volatility
+    startTick: 18
+    endTick: 29
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - halted_or_auction_instruments_reflected_in_market_session_state
+    - volatile_reopen_moves_more_than_normal

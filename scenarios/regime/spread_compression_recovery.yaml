@@ -1,0 +1,28 @@
+# Spread compression recovery scenario.
+
+scenarioId: spread-compression-recovery
+description: Wide volatile spreads compress back to normal after the event window.
+category: regime
+tags:
+  - regime
+  - spread
+  - recovery
+seed: 42424
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: volatile-wide-spread
+    startTick: 0
+    endTick: 11
+    regime: VOLATILE
+  - name: compressed-normal-spread
+    startTick: 12
+    endTick: 23
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - spread_compresses_after_volatility
+    - all_books_remain_valid

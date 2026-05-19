@@ -1,0 +1,32 @@
+# Dark-to-lit liquidity shift scenario.
+
+scenarioId: dark-to-lit-liquidity-shift
+description: Liquidity migrates from one venue profile group to another during regime pressure.
+category: liquidity
+tags:
+  - liquidity
+  - migration
+  - optimizer
+seed: 41414
+ticks: 32
+venueProfilesEnabled: true
+
+windows:
+  - name: initial-hidden-liquidity
+    startTick: 0
+    endTick: 9
+    regime: THIN_BOOK
+  - name: transition-volatility
+    startTick: 10
+    endTick: 19
+    regime: VOLATILE
+  - name: lit-liquidity-recovery
+    startTick: 20
+    endTick: 31
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - route_selection_migrates_with_liquidity
+    - scenario_summary_is_assertion_friendly

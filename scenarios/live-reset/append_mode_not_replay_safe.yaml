@@ -1,0 +1,28 @@
+# Live append-mode scenario.
+
+scenarioId: append-mode-not-replay-safe
+description: Live API APPEND mode preserves state and is explicitly marked not replay-safe.
+category: live-reset
+tags:
+  - live-reset
+  - append
+  - not-replay-safe
+seed: 11111
+ticks: 12
+venueProfilesEnabled: true
+
+windows:
+  - name: append-normal
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: append-volatile
+    startTick: 6
+    endTick: 11
+    regime: VOLATILE
+
+expected:
+  replaySafe: false
+  assertions:
+    - append_mode_preserves_state
+    - append_mode_marks_run_not_replay_safe

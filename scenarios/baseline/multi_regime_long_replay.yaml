@@ -1,0 +1,40 @@
+# Longer multi-regime replay scenario.
+
+scenarioId: multi-regime-long-replay
+description: Longer deterministic replay cycling through normal, volatile, thin, recovery, and volatility windows.
+category: baseline
+tags:
+  - long-run
+  - multi-regime
+  - determinism
+seed: 16161
+ticks: 50
+venueProfilesEnabled: true
+
+windows:
+  - name: opening-normal
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: first-volatility
+    startTick: 10
+    endTick: 19
+    regime: VOLATILE
+  - name: midday-thin-book
+    startTick: 20
+    endTick: 29
+    regime: THIN_BOOK
+  - name: recovery-normal
+    startTick: 30
+    endTick: 39
+    regime: NORMAL
+  - name: closing-volatility
+    startTick: 40
+    endTick: 49
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - same_seed_replays_equal_summary
+    - scenario_summary_is_assertion_friendly

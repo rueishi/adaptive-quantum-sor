@@ -1,0 +1,32 @@
+# Feature and ML-signal scenario.
+
+scenarioId: feature-ml-signal-shift
+description: Generated regimes drive feature aggregation and ML signal changes across normal, volatile, and thin windows.
+category: ml-dataset
+tags:
+  - ml
+  - features
+  - signals
+seed: 15151
+ticks: 21
+venueProfilesEnabled: true
+
+windows:
+  - name: feature-normal
+    startTick: 0
+    endTick: 6
+    regime: NORMAL
+  - name: feature-volatile
+    startTick: 7
+    endTick: 13
+    regime: VOLATILE
+  - name: feature-thin
+    startTick: 14
+    endTick: 20
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - generated_regimes_drive_feature_stats
+    - generated_features_are_dataset_ready

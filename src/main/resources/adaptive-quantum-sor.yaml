@@ -1,0 +1,16 @@
+# Default runtime configuration for Phase 1 Java-only Adaptive Quantum SOR.
+#
+# The scaffold keeps this file small: it defines dimensions, execution mode,
+# and startup validation behavior. Later task cards may extend it with simulator
+# cadence, model toggles, venue profiles, and risk/metadata generation settings.
+adaptiveQuantumSor:
+  instruments: 20
+  venues: 100
+  regimes: 5
+  urgencies: 4
+
+runtime:
+  mode: demo
+
+config:
+  strictUnknownKeys: true

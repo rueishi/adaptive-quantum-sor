@@ -1,0 +1,28 @@
+# Live purge-and-repopulate reset scenario.
+
+scenarioId: purge-and-repopulate-live
+description: Live reset clears mutable demo state and rebuilds baseline market/session/throttle/stat state.
+category: live-reset
+tags:
+  - live-reset
+  - purge
+  - repopulate
+seed: 13131
+ticks: 16
+venueProfilesEnabled: true
+
+windows:
+  - name: purge-normal
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: purge-volatile
+    startTick: 8
+    endTick: 15
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - purge_and_repopulate_clears_stats_orders_outcomes
+    - reset_summary_lists_repopulated_state

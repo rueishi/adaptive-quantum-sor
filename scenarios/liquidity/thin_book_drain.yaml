@@ -1,0 +1,28 @@
+# Focused thin-book scenario.
+
+scenarioId: thin-book-drain
+description: Displayed liquidity drains after a normal warmup and leaves explicit residual quantity.
+category: liquidity
+tags:
+  - liquidity
+  - thin-book
+  - residual
+seed: 303
+ticks: 18
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-depth
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: thin-book-drain
+    startTick: 6
+    endTick: 17
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - thin_book_has_lower_displayed_qty
+    - route_residual_quantity_is_explicit

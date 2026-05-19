@@ -1,0 +1,28 @@
+# Toxic liquidity trap scenario.
+
+scenarioId: toxic-liquidity-trap
+description: Best displayed liquidity is associated with toxic venue behavior, testing quality-aware routing.
+category: venue-quality
+tags:
+  - venue-quality
+  - toxicity
+  - liquidity
+seed: 30303
+ticks: 28
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-toxic-liquidity
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: volatile-toxic-liquidity
+    startTick: 10
+    endTick: 27
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - toxic_profile_increases_slippage
+    - optimizer_avoids_toxic_liquidity_when_possible

@@ -1,0 +1,32 @@
+# Minimum-dimension scenario smoke.
+
+scenarioId: minimum-config-smoke
+description: Smallest practical scenario shape for constrained dimensions and CI smoke replay.
+category: baseline
+tags:
+  - baseline
+  - minimum-config
+  - ci-smoke
+seed: 808
+ticks: 6
+venueProfilesEnabled: false
+
+windows:
+  - name: compact-normal
+    startTick: 0
+    endTick: 1
+    regime: NORMAL
+  - name: compact-volatile
+    startTick: 2
+    endTick: 3
+    regime: VOLATILE
+  - name: compact-thin
+    startTick: 4
+    endTick: 5
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - minimum_dimensions_create_valid_fallback_profiles
+    - same_seed_replays_equal_summary

@@ -1,0 +1,28 @@
+# Stale feed profile recovery scenario.
+
+scenarioId: stale-feed-recovery
+description: Stale-feed venues preserve prior quotes during stale ticks and recover deterministically.
+category: feed
+tags:
+  - feed
+  - stale-feed
+  - recovery
+seed: 404
+ticks: 32
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-feed
+    startTick: 0
+    endTick: 15
+    regime: NORMAL
+  - name: volatile-feed-pressure
+    startTick: 16
+    endTick: 31
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - stale_feed_marks_feed_health
+    - no_invalid_books_are_published

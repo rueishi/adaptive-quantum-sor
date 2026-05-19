@@ -1,0 +1,32 @@
+# Post-outage health memory scenario.
+
+scenarioId: post-outage-health-memory
+description: Venue recovers from outage but rolling health stats remain degraded for a deterministic period.
+category: venue-health
+tags:
+  - venue-health
+  - outage
+  - recovery
+seed: 28282
+ticks: 34
+venueProfilesEnabled: true
+
+windows:
+  - name: pre-outage-normal
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: outage-pressure
+    startTick: 8
+    endTick: 19
+    regime: VOLATILE
+  - name: recovered-but-degraded
+    startTick: 20
+    endTick: 33
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - recovery_after_outage_keeps_health_memory
+    - feature_health_stats_reflect_outage_windows

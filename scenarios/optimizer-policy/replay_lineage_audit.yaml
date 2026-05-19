@@ -1,0 +1,32 @@
+# Optimizer and dataset lineage scenario.
+
+scenarioId: replay-lineage-audit
+description: Compact replay used to verify optimizer input and feature dataset lineage metadata.
+category: optimizer-policy
+tags:
+  - optimizer
+  - lineage
+  - audit
+seed: 909
+ticks: 15
+venueProfilesEnabled: true
+
+windows:
+  - name: lineage-normal
+    startTick: 0
+    endTick: 4
+    regime: NORMAL
+  - name: lineage-volatile
+    startTick: 5
+    endTick: 9
+    regime: VOLATILE
+  - name: lineage-thin
+    startTick: 10
+    endTick: 14
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - optimizer_input_references_scenario_lineage
+    - feature_dataset_export_references_scenario_lineage

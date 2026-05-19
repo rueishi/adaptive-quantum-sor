@@ -1,0 +1,32 @@
+# Seed replay across reset modes scenario.
+
+scenarioId: seed-replay-across-reset-modes
+description: Same scenario file is run through purge, keep-policy, isolated, and append live reset modes.
+category: live-reset
+tags:
+  - live-reset
+  - replay
+  - api
+seed: 51515
+ticks: 18
+venueProfilesEnabled: true
+
+windows:
+  - name: reset-mode-normal
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: reset-mode-volatile
+    startTick: 6
+    endTick: 11
+    regime: VOLATILE
+  - name: reset-mode-thin
+    startTick: 12
+    endTick: 17
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: mixed
+  assertions:
+    - isolated_and_purge_replay_same_seed
+    - append_mode_marks_run_not_replay_safe

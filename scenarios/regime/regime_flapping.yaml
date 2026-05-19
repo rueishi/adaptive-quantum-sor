@@ -1,0 +1,44 @@
+# Rapid regime flapping scenario.
+
+scenarioId: regime-flapping
+description: Rapid NORMAL/VOLATILE/THIN_BOOK transitions test replay determinism and policy stability.
+category: regime
+tags:
+  - regime
+  - flapping
+  - determinism
+seed: 33333
+ticks: 18
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-0
+    startTick: 0
+    endTick: 2
+    regime: NORMAL
+  - name: volatile-1
+    startTick: 3
+    endTick: 5
+    regime: VOLATILE
+  - name: thin-2
+    startTick: 6
+    endTick: 8
+    regime: THIN_BOOK
+  - name: volatile-3
+    startTick: 9
+    endTick: 11
+    regime: VOLATILE
+  - name: normal-4
+    startTick: 12
+    endTick: 14
+    regime: NORMAL
+  - name: thin-5
+    startTick: 15
+    endTick: 17
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - same_seed_replays_equal_summary
+    - policy_stability_under_regime_flapping

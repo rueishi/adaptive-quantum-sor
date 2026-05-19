@@ -1,0 +1,32 @@
+# Regime detector boundary scenario.
+
+scenarioId: regime-detector-boundary
+description: Spread and displayed quantity sit near regime-detection thresholds for deterministic edge testing.
+category: regime
+tags:
+  - regime
+  - boundary
+  - determinism
+seed: 50505
+ticks: 21
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-near-boundary
+    startTick: 0
+    endTick: 6
+    regime: NORMAL
+  - name: volatile-near-boundary
+    startTick: 7
+    endTick: 13
+    regime: VOLATILE
+  - name: thin-near-boundary
+    startTick: 14
+    endTick: 20
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - regime_detector_boundary_is_deterministic
+    - generated_regimes_drive_feature_stats

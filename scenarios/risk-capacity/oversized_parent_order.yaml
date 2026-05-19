@@ -1,0 +1,28 @@
+# Oversized parent order scenario.
+
+scenarioId: oversized-parent-order
+description: Parent quantity exceeds available market liquidity and risk capacity, forcing residual reporting.
+category: risk-capacity
+tags:
+  - risk
+  - large-order
+  - residual
+seed: 45454
+ticks: 20
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-large-order
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: thin-large-order-pressure
+    startTick: 6
+    endTick: 19
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - parent_order_too_large_records_residual
+    - risk_limits_prevent_unsafe_concentration

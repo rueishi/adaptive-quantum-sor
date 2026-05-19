@@ -1,0 +1,35 @@
+# Human-readable scenario metadata.
+# Runtime code loads this file into ScenarioSpec before running ScenarioRunner.
+
+scenarioId: normal-volatile-thin
+description: Normal market, then spread/latency volatility, then thin displayed liquidity.
+category: regime
+tags:
+  - regime
+  - normal
+  - volatile
+  - thin-book
+seed: 42
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-open
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: volatile-spread-widening
+    startTick: 10
+    endTick: 19
+    regime: VOLATILE
+  - name: thin-book-liquidity-drop
+    startTick: 20
+    endTick: 29
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - same_seed_replays_equal_summary
+    - volatile_window_moves_more_than_normal
+    - thin_book_has_lower_displayed_qty

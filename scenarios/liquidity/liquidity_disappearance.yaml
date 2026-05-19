@@ -1,0 +1,28 @@
+# Models a user-visible liquidity disappearance scenario.
+
+scenarioId: liquidity-disappearance
+description: Liquidity starts normal, then displayed quantity disappears in a thin-book window.
+category: liquidity
+tags:
+  - liquidity
+  - thin-book
+  - residual
+seed: 1001
+ticks: 20
+venueProfilesEnabled: true
+
+windows:
+  - name: stable-liquidity
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: liquidity-shock
+    startTick: 8
+    endTick: 19
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - route_residual_quantity_is_explicit
+    - no_invalid_books_are_published

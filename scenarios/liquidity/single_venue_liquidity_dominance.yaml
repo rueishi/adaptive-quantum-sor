@@ -1,0 +1,28 @@
+# Single venue liquidity dominance scenario.
+
+scenarioId: single-venue-liquidity-dominance
+description: One venue dominates available displayed depth while others are shallow, slow, toxic, or outage-prone.
+category: liquidity
+tags:
+  - liquidity
+  - concentration
+  - risk
+seed: 26262
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-dominant-venue
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: volatile-concentration-risk
+    startTick: 12
+    endTick: 23
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - venue_profiles_are_explainable
+    - risk_limits_prevent_unsafe_concentration

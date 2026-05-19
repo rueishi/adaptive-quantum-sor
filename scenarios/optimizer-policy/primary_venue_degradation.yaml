@@ -1,0 +1,32 @@
+# Primary venue degradation scenario.
+
+scenarioId: primary-venue-degradation
+description: A historically preferred venue becomes slow, toxic, and thin during the replay.
+category: optimizer-policy
+tags:
+  - optimizer
+  - venue-health
+  - degradation
+seed: 40404
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: preferred-venue-normal
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: preferred-venue-degrades
+    startTick: 10
+    endTick: 21
+    regime: VOLATILE
+  - name: degraded-thin-book
+    startTick: 22
+    endTick: 29
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - optimizer_adapts_to_venue_degradation
+    - active_policy_remains_safe

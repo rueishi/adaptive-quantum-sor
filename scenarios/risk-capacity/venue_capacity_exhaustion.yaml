@@ -1,0 +1,32 @@
+# Venue capacity exhaustion scenario.
+
+scenarioId: venue-capacity-exhaustion
+description: Venue has visible liquidity but risk or throttle capacity prevents routing.
+category: risk-capacity
+tags:
+  - capacity
+  - throttle
+  - risk
+seed: 55555
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: capacity-normal
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: capacity-volatile
+    startTick: 8
+    endTick: 15
+    regime: VOLATILE
+  - name: capacity-thin
+    startTick: 16
+    endTick: 23
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - venue_capacity_exhaustion_blocks_route
+    - residual_quantity_is_explicit

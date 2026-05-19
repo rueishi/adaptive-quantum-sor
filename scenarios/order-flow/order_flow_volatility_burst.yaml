@@ -1,0 +1,32 @@
+# Order-flow cadence scenario.
+
+scenarioId: order-flow-volatility-burst
+description: Parent order cadence and urgency rise during volatility, then slow when the book thins.
+category: order-flow
+tags:
+  - order-flow
+  - urgency
+  - volatility
+seed: 606
+ticks: 27
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-order-flow
+    startTick: 0
+    endTick: 8
+    regime: NORMAL
+  - name: volatile-order-burst
+    startTick: 9
+    endTick: 17
+    regime: VOLATILE
+  - name: thin-book-slowdown
+    startTick: 18
+    endTick: 26
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - parent_order_flow_changes_by_regime
+    - simulated_clock_timestamps_only

@@ -1,0 +1,24 @@
+# Baseline sanity scenario for normal open-market behavior.
+
+scenarioId: baseline-normal-open
+description: Normal open market with stable quotes, normal order flow, and replay-safe deterministic behavior.
+category: baseline
+tags:
+  - baseline
+  - normal
+  - replay
+seed: 101
+ticks: 12
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-open-baseline
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - all_books_remain_valid
+    - same_seed_replays_equal_summary

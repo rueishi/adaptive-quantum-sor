@@ -1,0 +1,28 @@
+# Failure isolation evidence scenario.
+
+scenarioId: simulator-failure-isolation
+description: Scenario metadata used with injected simulator failure tests to prove partial state is not publishable.
+category: failure-negative
+tags:
+  - failure
+  - simulator
+  - isolation
+seed: 10010
+ticks: 10
+venueProfilesEnabled: true
+
+windows:
+  - name: safe-before-failure
+    startTick: 0
+    endTick: 4
+    regime: NORMAL
+  - name: failure-pressure-window
+    startTick: 5
+    endTick: 9
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - simulator_failure_prevents_optimizer_publication
+    - active_policy_remains_safe

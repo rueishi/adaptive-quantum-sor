@@ -1,0 +1,36 @@
+# Long soak replay scenario.
+
+scenarioId: long-soak-replay
+description: Longer deterministic soak replay for manual or extended CI confidence.
+category: baseline
+tags:
+  - long-run
+  - soak
+  - determinism
+seed: 34343
+ticks: 120
+venueProfilesEnabled: true
+
+windows:
+  - name: soak-normal-1
+    startTick: 0
+    endTick: 29
+    regime: NORMAL
+  - name: soak-volatile-1
+    startTick: 30
+    endTick: 59
+    regime: VOLATILE
+  - name: soak-thin-1
+    startTick: 60
+    endTick: 89
+    regime: THIN_BOOK
+  - name: soak-normal-2
+    startTick: 90
+    endTick: 119
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - long_replay_remains_deterministic
+    - no_invalid_books_are_published

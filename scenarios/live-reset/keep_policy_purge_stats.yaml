@@ -1,0 +1,28 @@
+# Live keep-policy reset scenario.
+
+scenarioId: keep-policy-purge-stats
+description: Live reset purges stats/orders/outcomes while preserving the active policy and snapshot store.
+category: live-reset
+tags:
+  - live-reset
+  - keep-policy
+  - purge-stats
+seed: 12121
+ticks: 14
+venueProfilesEnabled: true
+
+windows:
+  - name: keep-policy-normal
+    startTick: 0
+    endTick: 6
+    regime: NORMAL
+  - name: keep-policy-thin
+    startTick: 7
+    endTick: 13
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - keep_policy_purge_stats_preserves_policy_hash
+    - reset_summary_lists_kept_policy_state

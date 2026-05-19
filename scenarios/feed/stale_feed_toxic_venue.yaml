@@ -1,0 +1,33 @@
+# Models stale market data and toxic venue outcome behavior.
+
+scenarioId: stale-feed-toxic-venue
+description: Stale feed profile and toxic venue profile increase risk while replay remains deterministic.
+category: feed
+tags:
+  - feed
+  - stale-feed
+  - toxicity
+seed: 3003
+ticks: 40
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-baseline
+    startTick: 0
+    endTick: 15
+    regime: NORMAL
+  - name: volatile-toxic-response
+    startTick: 16
+    endTick: 31
+    regime: VOLATILE
+  - name: thin-book-cleanup
+    startTick: 32
+    endTick: 39
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - stale_feed_marks_feed_health
+    - toxic_profile_increases_slippage
+    - same_seed_replays_equal_summary

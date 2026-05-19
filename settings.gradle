@@ -1,0 +1,23 @@
+/*
+ * Gradle settings for Adaptive Quantum SOR.
+ *
+ * The project is intentionally a single Java application in Phase 1 because
+ * the specification calls for a single-process Adaptive Quantum SOR. Later task cards may add
+ * native or Python-adjacent tooling, but this root project remains the launch
+ * point for the Java SOR engine scaffold.
+ */
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = "adaptive-quantum-sor"

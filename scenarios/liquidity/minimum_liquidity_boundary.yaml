@@ -1,0 +1,28 @@
+# Minimum liquidity boundary scenario.
+
+scenarioId: minimum-liquidity-boundary
+description: Liquidity approaches exact order-size boundaries, then dips below to test residual edge behavior.
+category: liquidity
+tags:
+  - boundary
+  - liquidity
+  - residual
+seed: 35353
+ticks: 20
+venueProfilesEnabled: true
+
+windows:
+  - name: exact-liquidity-boundary
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: below-boundary-thin-book
+    startTick: 10
+    endTick: 19
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - fill_quantity_never_exceeds_visible_liquidity
+    - residual_quantity_is_explicit

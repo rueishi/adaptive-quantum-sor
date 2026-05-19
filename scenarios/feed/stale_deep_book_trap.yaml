@@ -1,0 +1,28 @@
+# Stale deep book trap scenario.
+
+scenarioId: stale-deep-book-trap
+description: Book appears deep but stale-feed state should prevent treating visible liquidity as fully reliable.
+category: feed
+tags:
+  - feed
+  - stale-feed
+  - liquidity-trap
+seed: 29292
+ticks: 36
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-deep-book
+    startTick: 0
+    endTick: 11
+    regime: NORMAL
+  - name: stale-deep-book-pressure
+    startTick: 12
+    endTick: 35
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - stale_feed_marks_feed_health
+    - stale_feed_with_good_liquidity_is_guarded

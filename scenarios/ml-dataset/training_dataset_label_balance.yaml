@@ -1,0 +1,32 @@
+# Training dataset label balance scenario.
+
+scenarioId: training-dataset-label-balance
+description: Generates a balanced mix of fills, rejects, slippage, toxicity, and regime labels for ML pipeline checks.
+category: ml-dataset
+tags:
+  - ml
+  - dataset
+  - labels
+seed: 53535
+ticks: 45
+venueProfilesEnabled: true
+
+windows:
+  - name: label-normal
+    startTick: 0
+    endTick: 14
+    regime: NORMAL
+  - name: label-volatile
+    startTick: 15
+    endTick: 29
+    regime: VOLATILE
+  - name: label-thin
+    startTick: 30
+    endTick: 44
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - feature_dataset_export_references_scenario_lineage
+    - labels_cover_fill_reject_slippage_toxicity

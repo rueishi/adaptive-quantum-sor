@@ -1,0 +1,32 @@
+# Venue latency spike scenario.
+
+scenarioId: venue-latency-spike
+description: A normally usable venue becomes slow during a volatile window and should degrade venue stats.
+category: venue-health
+tags:
+  - venue-health
+  - latency
+  - volatility
+seed: 21212
+ticks: 28
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-latency-baseline
+    startTick: 0
+    endTick: 9
+    regime: NORMAL
+  - name: latency-spike
+    startTick: 10
+    endTick: 21
+    regime: VOLATILE
+  - name: normal-recovery
+    startTick: 22
+    endTick: 27
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - volatile_window_has_higher_latency_or_slippage
+    - venue_health_stats_reflect_degradation

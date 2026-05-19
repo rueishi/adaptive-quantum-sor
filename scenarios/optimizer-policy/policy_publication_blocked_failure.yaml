@@ -1,0 +1,28 @@
+# Policy publication blocked by simulator failure scenario.
+
+scenarioId: policy-publication-blocked-failure
+description: Injected simulator failure before optimizer publication must preserve prior active policy.
+category: optimizer-policy
+tags:
+  - policy
+  - failure
+  - fail-safe
+seed: 37373
+ticks: 14
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-publication
+    startTick: 0
+    endTick: 6
+    regime: NORMAL
+  - name: failure-before-publication
+    startTick: 7
+    endTick: 13
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - simulator_failure_prevents_optimizer_publication
+    - active_policy_remains_safe

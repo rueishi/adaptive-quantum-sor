@@ -1,0 +1,28 @@
+# High urgency sweep scenario.
+
+scenarioId: high-urgency-sweep
+description: Large urgent parent order sweeps multiple venues during volatile and thin-book pressure.
+category: order-flow
+tags:
+  - order-flow
+  - urgency
+  - sweep
+seed: 31313
+ticks: 25
+venueProfilesEnabled: true
+
+windows:
+  - name: volatile-sweep
+    startTick: 0
+    endTick: 12
+    regime: VOLATILE
+  - name: thin-book-residual
+    startTick: 13
+    endTick: 24
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - high_urgency_routes_across_multiple_venues
+    - residual_quantity_is_explicit

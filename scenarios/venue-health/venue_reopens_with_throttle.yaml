@@ -1,0 +1,32 @@
+# Venue reopens with throttle scenario.
+
+scenarioId: venue-reopens-with-throttle
+description: Venue recovers from outage but remains throttled, separating availability from capacity.
+category: venue-health
+tags:
+  - venue-health
+  - outage
+  - throttle
+seed: 47474
+ticks: 30
+venueProfilesEnabled: true
+
+windows:
+  - name: outage-volatility
+    startTick: 0
+    endTick: 11
+    regime: VOLATILE
+  - name: reopened-throttled-thin-book
+    startTick: 12
+    endTick: 21
+    regime: THIN_BOOK
+  - name: normal-recovery
+    startTick: 22
+    endTick: 29
+    regime: NORMAL
+
+expected:
+  replaySafe: true
+  assertions:
+    - venue_reopens_but_throttle_limits_routing
+    - throttled_venue_is_not_executable

@@ -1,0 +1,28 @@
+# Policy rollback after bad scenario scenario.
+
+scenarioId: policy-rollback-after-bad-scenario
+description: Bad generated candidate must not replace the active policy during scenario-driven optimization.
+category: optimizer-policy
+tags:
+  - policy
+  - governance
+  - fail-safe
+seed: 52525
+ticks: 16
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-before-bad-policy
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: bad-policy-pressure
+    startTick: 6
+    endTick: 15
+    regime: VOLATILE
+
+expected:
+  replaySafe: true
+  assertions:
+    - policy_rollback_preserves_active_policy
+    - simulator_failure_prevents_optimizer_publication

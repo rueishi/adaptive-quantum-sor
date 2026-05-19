@@ -1,0 +1,32 @@
+# Venue fee shock scenario.
+
+scenarioId: venue-fee-shock
+description: Scenario metadata for testing policy and optimizer behavior when venue economics change mid-run.
+category: optimizer-policy
+tags:
+  - optimizer
+  - fees
+  - policy
+seed: 20202
+ticks: 24
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-fee-baseline
+    startTick: 0
+    endTick: 7
+    regime: NORMAL
+  - name: volatile-fee-pressure
+    startTick: 8
+    endTick: 15
+    regime: VOLATILE
+  - name: thin-fee-cleanup
+    startTick: 16
+    endTick: 23
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - optimizer_input_references_scenario_lineage
+    - policy_selection_can_explain_fee_change

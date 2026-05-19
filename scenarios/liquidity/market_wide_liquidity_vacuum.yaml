@@ -1,0 +1,28 @@
+# Market-wide liquidity vacuum scenario.
+
+scenarioId: market-wide-liquidity-vacuum
+description: All venues enter thin-book pressure together, testing no-liquidity and residual behavior.
+category: liquidity
+tags:
+  - liquidity
+  - no-liquidity
+  - stress
+seed: 25252
+ticks: 22
+venueProfilesEnabled: true
+
+windows:
+  - name: normal-depth-before-vacuum
+    startTick: 0
+    endTick: 5
+    regime: NORMAL
+  - name: market-wide-vacuum
+    startTick: 6
+    endTick: 21
+    regime: THIN_BOOK
+
+expected:
+  replaySafe: true
+  assertions:
+    - zero_liquidity_produces_no_child_orders
+    - residual_quantity_is_explicit
