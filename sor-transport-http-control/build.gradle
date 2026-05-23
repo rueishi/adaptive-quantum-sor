@@ -1,0 +1,4 @@
+dependencies {
+    implementation project(':sor-api')
+    implementation project(':sor-observability')
+}

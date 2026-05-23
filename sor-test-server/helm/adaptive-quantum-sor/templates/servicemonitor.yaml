@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: adaptive-quantum-sor
+spec:
+  selector:
+    matchLabels:
+      app: adaptive-quantum-sor
+  endpoints:
+    - port: http-control
+      path: /metrics

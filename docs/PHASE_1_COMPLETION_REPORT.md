@@ -57,10 +57,10 @@ None known for Phase 1.
 Primary coverage is in the Gradle JUnit suite:
 
 ```text
-AdaptiveQuantumSorApplicationIntegrationTest
-SimulationFeatureMlIntegrationTest
+SorServerApplication tests
+ScenarioOptimizerLineageIntegrationTest
 ConfigLoaderTest / SorConfigTest
-SimulatorTest
+SimulatedMarketDataSourceTest
 StatsAndFeatureAggregationTest
 MlSignalModelStubTest
 OptimizerStubTest / PolicyOptimizerCoordinatorTest
@@ -89,7 +89,7 @@ AC-HOTPATH-001..003 -> PolicyDrivenSorExecutionerTest and execution data-structu
 AC-POLICY-001..004 -> PolicyDataStructuresTest, DefaultPolicyValidatorTest, DefaultPolicyCompilerTest, PolicyPublisherTest
 AC-LINT-001..005 -> DefaultPolicyLintTest
 AC-COMPARE-001..002 -> StaticSorExecutionerTest and ComparisonRunnerTest
-AC-SNAPSHOT-001 -> PolicyOptimizerCoordinatorTest and SimulationFeatureMlIntegrationTest
+AC-SNAPSHOT-001 -> PolicyOptimizerCoordinatorTest and ScenarioOptimizerLineageIntegrationTest
 X-CONFIG-001 -> ConfigLoaderTest and SorConfigTest
 X-DET-001 -> deterministic indexing, simulator, optimizer, compiler, and execution tests
 X-E2E-001 -> SorEndToEndTest

@@ -1,0 +1,35 @@
+sourceSets {
+    jmh {
+        java.srcDir 'src/jmh/java'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    jmhImplementation.extendsFrom implementation
+    jmhRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    jmhImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+}
+
+tasks.named('compileJmhJava') {
+    options.annotationProcessorPath = configurations.jmhAnnotationProcessor
+}
+
+tasks.register('jmh', JavaExec) {
+    description = 'Runs Panama optimizer latency parity benchmarks.'
+    group = 'verification'
+    dependsOn tasks.named('jmhClasses')
+    mainClass = 'org.openjdk.jmh.Main'
+    classpath = sourceSets.jmh.runtimeClasspath
+    args = [
+            project.findProperty('jmhInclude') ?: '.*',
+            '-wi', project.findProperty('jmhWarmupIterations') ?: '1',
+            '-i', project.findProperty('jmhMeasurementIterations') ?: '1',
+            '-f', project.findProperty('jmhForks') ?: '1'
+    ]
+}

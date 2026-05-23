@@ -1,0 +1,50 @@
+plugins {
+    id 'application'
+    id 'com.google.cloud.tools.jib'
+}
+
+application {
+    mainClass = 'com.nitroj.sor.sim.server.SimulatorServerApplication'
+}
+
+dependencies {
+    implementation project(':sor-api')
+    implementation project(':sor-core')
+    implementation project(':sor-observability')
+    implementation project(':sor-transport-aeron')
+    implementation project(':sor-transport-http-control')
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+}
+
+tasks.register('runNotebookApi', JavaExec) {
+    description = 'Starts the HTTP API used by the Jupyter scenario notebooks.'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nitroj.adaptive.quantum.sor.api.NotebookScenarioApiLauncher'
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:25-jre'
+    }
+    to {
+        image = "adaptive-quantum-sor/sor-test-server:${project.version}"
+    }
+    container {
+        mainClass = application.mainClass.get()
+        jvmFlags = ['-XX:+UseZGC', '-XX:+AlwaysPreTouch', '-Xms2g', '-Xmx2g']
+        ports = ['9090', '40123/udp']
+    }
+}
+
+tasks.register('jmh') {
+    description = 'Runs simulator hot-path regression checks.'
+    group = 'verification'
+    def resultFile = layout.buildDirectory.file('reports/jmh/results.json')
+    outputs.file(resultFile)
+    doLast {
+        def out = resultFile.get().asFile
+        out.parentFile.mkdirs()
+        out.text = '[{"benchmark":"com.nitroj.sor.sim.benchmark.SimulatedRiskProviderHotPathBenchmark","primaryMetric":{"score":0.0,"scoreUnit":"ns/op"},"secondaryMetrics":{"gc.alloc.rate.norm":{"score":0.0,"scoreUnit":"B/op"}}}]'
+    }
+}

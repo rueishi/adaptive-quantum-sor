@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: adaptive-quantum-sor-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: adaptive-quantum-sor
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.omsNamespace }}
+      ports:
+        - port: {{ .Values.httpControlPort }}
+        - port: {{ .Values.aeronPort }}
+          protocol: UDP

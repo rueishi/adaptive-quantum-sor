@@ -4,7 +4,7 @@
 // - Defines stable C-compatible status codes and function signatures for the
 //   Java tactical optimizer bridge.
 // - Uses primitive buffers only; Java object graphs must not cross this API.
-// - Mirrors com.nitroj.adaptive.quantum.sor.nativebridge.TacticalOptimizerNativeStatus.
+// - Mirrors com.nitroj.sor.optnative.TacticalOptimizerNativeStatus.
 #pragma once
 
 #include <stdint.h>

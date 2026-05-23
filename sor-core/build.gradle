@@ -1,0 +1,92 @@
+/*
+ * Core engine implementation and native/JMH verification wiring.
+ *
+ * The launchable test process lives in `sor-test-server`; this module should remain a
+ * library boundary for engine code.
+ */
+
+sourceSets {
+    jmh {
+        java.srcDir 'src/jmh/java'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    jmhImplementation.extendsFrom implementation
+    jmhRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    implementation project(':sor-api')
+    implementation 'org.agrona:agrona:1.23.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+    testImplementation gradleTestKit()
+
+    jmhImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+}
+
+tasks.named('compileJmhJava') {
+    options.annotationProcessorPath = configurations.jmhAnnotationProcessor
+}
+
+def nativeBuildDir = layout.buildDirectory.dir('native')
+def rootCppDir = rootProject.layout.projectDirectory.dir('cpp')
+
+tasks.register('nativeConfigure', Exec) {
+    description = 'Configures the C++/CUDA native tactical optimizer build with CMake.'
+    group = 'verification'
+    inputs.files(fileTree(rootCppDir) {
+        include '**/*.h'
+        include '**/*.cpp'
+        include '**/*.cu'
+        include 'CMakeLists.txt'
+    })
+    outputs.dir(nativeBuildDir)
+    commandLine 'cmake', '-S', rootCppDir.asFile.absolutePath, '-B', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('nativeBuild', Exec) {
+    description = 'Builds native C++/CUDA tactical optimizer artifacts.'
+    group = 'verification'
+    dependsOn tasks.named('nativeConfigure')
+    commandLine 'cmake', '--build', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('nativeTest', Exec) {
+    description = 'Runs native C++/CUDA tactical optimizer unit tests through CTest.'
+    group = 'verification'
+    dependsOn tasks.named('nativeBuild')
+    commandLine 'ctest', '--test-dir', nativeBuildDir.get().asFile.absolutePath, '--output-on-failure'
+}
+
+tasks.named('test') {
+    dependsOn tasks.named('nativeBuild')
+    workingDir rootProject.projectDir
+    systemProperty 'sor.native.lib.dir', nativeBuildDir.get().asFile.absolutePath
+}
+
+tasks.register('jmh', JavaExec) {
+    description = 'Runs JMH benchmarks, including the strict hot-path allocation benchmark.'
+    group = 'verification'
+    dependsOn tasks.named('jmhClasses')
+    mainClass = 'org.openjdk.jmh.Main'
+    classpath = sourceSets.jmh.runtimeClasspath
+    def resultFile = layout.buildDirectory.file('reports/jmh/results.json')
+    outputs.file(resultFile)
+    args = [
+            project.findProperty('jmhInclude') ?: '.*',
+            '-wi', project.findProperty('jmhWarmupIterations') ?: '3',
+            '-i', project.findProperty('jmhMeasurementIterations') ?: '5',
+            '-f', project.findProperty('jmhForks') ?: '1',
+            '-rf', 'json',
+            '-rff', resultFile.get().asFile.absolutePath,
+            '-prof', 'gc'
+    ]
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('nativeTest')
+}

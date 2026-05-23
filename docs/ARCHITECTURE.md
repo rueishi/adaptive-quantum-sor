@@ -1,8 +1,32 @@
 # Architecture
 
 Adaptive Quantum SOR is a Java-first implementation of a policy-driven smart
-order router. The system is organized as a single-process Java runtime with explicit
-control-plane, research, and native-optimizer boundaries.
+order router. The system is organized around a zero-dependency public API,
+an embedded engine implementation, simulator components that satisfy the public
+SPI, explicit transports, and a standalone server assembly.
+
+The current source tree keeps the clean embedded-engine package in
+`com.nitroj.sor.core`. Legacy-style scenario replay and notebook scenario API
+compatibility now live in `sor-test-server` under
+`com.nitroj.adaptive.quantum.sor.*`, outside the reusable core boundary.
+
+## Module Boundaries
+
+```text
+sor-api                    Public engine contract, DTOs, events, and SPI.
+sor-core                   Embedded engine, policy, execution, and core abstractions.
+sor-test-server             SPI-facing simulator adapters, scenario fixtures, and sample server.
+sor-transport-aeron        Low-latency remote transport over SBE/Aeron.
+sor-transport-http-control Research and ops HTTP control plane.
+sor-optimizers-native      Panama native optimizer linkers; no project deps.
+sor-client-java            Java remote client surface.
+sor-client-python          Python/Jupyter control and research helpers.
+```
+
+These boundaries are executable, not only descriptive. Gradle dependency edges
+are checked by `ModuleDependencyGraphTest`, public API leakage is checked by
+`SorApiZeroDependencyTest`, and package-level architecture rules are checked by
+ArchUnit tests in `sor-core` and `sor-test-server`.
 
 ## Runtime Layers
 
@@ -21,8 +45,9 @@ audit, metrics, and reports
 
 The HTTP and Jupyter pieces are control-plane only. They are useful for demos,
 research, and observability, but they are not part of the execution hot path.
-The Java engine owns runtime state; Python and Jupyter communicate with that
-engine through localhost HTTP endpoints exposed by `SorHttpApiServer`.
+The Java engine owns runtime state. The simulator-backed sample server starts
+through `SimulatorServerApplication` and the `sor-transport-http-control` server;
+legacy notebook/scenario compatibility endpoints are owned by `sor-test-server`.
 
 ## Simulation Layer
 
@@ -40,10 +65,12 @@ generation.
 Low-level simulator classes live under:
 
 ```text
-com.nitroj.adaptive.quantum.sor.sim
+com.nitroj.sor.sim.adapters
+com.nitroj.sor.sim.scenario
+com.nitroj.sor.sim.scenario.venues
 ```
 
-Scenario orchestration classes live under:
+Scenario orchestration classes live in `sor-test-server` under:
 
 ```text
 com.nitroj.adaptive.quantum.sor.scenario
@@ -124,9 +151,10 @@ plan and execution continues with the existing route-level policy.
 
 Phase 7 adds an opt-in publication-gate wrapper for robust policy selection.
 `PolicyCandidateSet` carries deterministic candidate policies from the optimizer
-coordinator to L1. `ScenarioSweepEvaluator` runs the declared scenario set and
-records a `ScoreMatrix`; pure objectives such as `CVAR_K`, `MIN_MAX`,
-`EXPECTED`, and `MIN_REGRET` select one candidate. `RobustPublicationGate` then
+coordinator to L1. Core owns the `ScenarioSweepEvaluator` interface and
+primitive `ScenarioSetDescriptor`; `sor-test-server` supplies the concrete
+scenario runner evaluator that records a `ScoreMatrix`. Pure objectives such as
+`CVAR_K`, `MIN_MAX`, `EXPECTED`, and `MIN_REGRET` select one candidate. `RobustPublicationGate` then
 delegates the winner to the existing `PolicyPublisher.publish(...)` path.
 
 The default configuration keeps robust selection disabled, preserving the Phase
@@ -137,8 +165,11 @@ published `SorPolicy`.
 
 ## Python And Jupyter
 
-The `python/adaptive_quantum_sor` package supports notebook research and
-control-plane calls to the running Java engine:
+Repository-local Python support is split so production clients stay clean:
+`tools/notebook-helpers/adaptive_quantum_sor_notebooks` owns notebook widgets,
+report templates, and control-plane calls to the running Java engine, while
+`tools/python-research/adaptive_quantum_sor_research` owns research schemas,
+dataset helpers, and scenario catalog access:
 
 ```text
 read_feature_dataframe
@@ -151,9 +182,9 @@ SorNotebookClient
 `SorNotebookClient` sends REST-style requests to `http://127.0.0.1:<port>`.
 It does not start a separate engine and does not own Java runtime state.
 
-Jupyter users can load `python/examples/sor_notebook_features_large.csv` as a
+Jupyter users can load `tools/python-research/examples/sor_notebook_features_large.csv` as a
 DataFrame, perform venue/regime analysis, train models through
-`python/train_models.py`, and write Java-importable prediction artifacts. The
+`tools/python-research/scripts/train_models.py`, and write Java-importable prediction artifacts. The
 artifact contract is:
 
 ```text

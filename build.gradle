@@ -1,105 +1,106 @@
 /*
- * Build configuration for Adaptive Quantum SOR.
+ * Root build conventions for the Phase 8 Adaptive Quantum SOR multi-project
+ * layout.
  *
- * Phase 1 started with only Java and Application plugins. Phase 2 adds a
- * CMake-driven native build so Gradle remains the single validation entrypoint
- * for Java, C++, and CUDA-aware native artifacts.
+ * The framework is split into explicit API, core, simulator, transport,
+ * adapter, observability, native-optimizer, server, and client modules. Shared
+ * Java/JUnit/JDK 25 conventions live here; module-specific dependencies,
+ * application startup, native wiring, and benchmarks stay in each subproject.
  */
+import groovy.json.JsonSlurper
+
 plugins {
-    id 'java'
-    id 'application'
+    id 'base'
+    id 'com.google.cloud.tools.jib' version '3.4.4' apply false
 }
 
-group = 'com.nitroj.adaptive.quantum.sor'
-version = '0.1.0-SNAPSHOT'
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+allprojects {
+    group = 'com.nitroj.sor'
+    version = '0.8.0-SNAPSHOT'
 }
 
-application {
-    mainClass = 'com.nitroj.adaptive.quantum.sor.AdaptiveQuantumSorApplication'
-}
+subprojects {
+    apply plugin: 'java-library'
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
+    }
 
-sourceSets {
-    jmh {
-        java.srcDir 'src/jmh/java'
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += output + compileClasspath
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        workingDir rootProject.projectDir
+        jvmArgs '-XX:+UseZGC',
+                '-XX:+AlwaysPreTouch',
+                '-Xms2g',
+                '-Xmx2g'
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 }
 
-configurations {
-    jmhImplementation.extendsFrom implementation
-    jmhRuntimeOnly.extendsFrom runtimeOnly
-}
-
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    jmhImplementation 'org.openjdk.jmh:jmh-core:1.37'
-    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
-}
-
-tasks.named('compileJmhJava') {
-    options.annotationProcessorPath = configurations.jmhAnnotationProcessor
-}
-
-def nativeBuildDir = layout.buildDirectory.dir('native')
-
-tasks.named('test') {
-    useJUnitPlatform()
-    dependsOn tasks.named('nativeBuild')
-    systemProperty 'sor.native.lib.dir', nativeBuildDir.get().asFile.absolutePath
-}
-
-tasks.register('nativeConfigure', Exec) {
-    description = 'Configures the C++/CUDA native tactical optimizer build with CMake.'
+tasks.register('jmhRegressionCheck') {
+    description = 'Fails when the JMH result JSON regresses more than 10% from the Phase 8 baseline.'
     group = 'verification'
-    inputs.files(fileTree('cpp') {
-        include '**/*.h'
-        include '**/*.cpp'
-        include '**/*.cu'
-        include 'CMakeLists.txt'
-    })
-    outputs.dir(nativeBuildDir)
-    commandLine 'cmake', '-S', 'cpp', '-B', nativeBuildDir.get().asFile.absolutePath
-}
 
-tasks.register('nativeBuild', Exec) {
-    description = 'Builds native C++/CUDA tactical optimizer artifacts.'
-    group = 'verification'
-    dependsOn tasks.named('nativeConfigure')
-    commandLine 'cmake', '--build', nativeBuildDir.get().asFile.absolutePath
-}
+    def baselineFile = providers.gradleProperty('jmhBaselineFile')
+            .map { file(it) }
+            .orElse(layout.projectDirectory.file('docs/PHASE_8_JMH_BASELINE.md'))
+    def resultFile = providers.gradleProperty('jmhResultFile')
+            .map { file(it) }
+            .orElse(layout.projectDirectory.file('sor-core/build/reports/jmh/results.json'))
 
-tasks.register('nativeTest', Exec) {
-    description = 'Runs native C++/CUDA tactical optimizer unit tests through CTest.'
-    group = 'verification'
-    dependsOn tasks.named('nativeBuild')
-    commandLine 'ctest', '--test-dir', nativeBuildDir.get().asFile.absolutePath, '--output-on-failure'
-}
+    inputs.file(baselineFile)
 
-tasks.register('jmh', JavaExec) {
-    description = 'Runs JMH benchmarks, including the strict hot-path allocation benchmark.'
-    group = 'verification'
-    dependsOn tasks.named('jmhClasses')
-    mainClass = 'org.openjdk.jmh.Main'
-    classpath = sourceSets.jmh.runtimeClasspath
-    args = [
-            project.findProperty('jmhInclude') ?: '.*',
-            '-wi', project.findProperty('jmhWarmupIterations') ?: '3',
-            '-i', project.findProperty('jmhMeasurementIterations') ?: '5',
-            '-f', project.findProperty('jmhForks') ?: '1',
-            '-prof', 'gc'
-    ]
+    doLast {
+        File baseline = baselineFile.get().asFile
+        File results = resultFile.get().asFile
+        if (!baseline.isFile()) {
+            throw new GradleException("JMH baseline file not found: ${baseline}")
+        }
+        if (!results.isFile()) {
+            logger.lifecycle("No JMH result file found at ${results}; skipping regression comparison for this check run.")
+            return
+        }
+
+        Map<String, BigDecimal> baselineNanos = [:]
+        baseline.eachLine { line ->
+            def matcher = line =~ /^\|\s*([^|]+?)\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|\s*$/
+            if (matcher.matches()) {
+                baselineNanos[matcher.group(1).trim()] = new BigDecimal(matcher.group(2))
+            }
+        }
+        if (baselineNanos.isEmpty()) {
+            throw new GradleException("No benchmark baseline rows found in ${baseline}")
+        }
+
+        def parsed = new JsonSlurper().parse(results)
+        parsed.each { entry ->
+            String benchmarkName = entry.benchmark as String
+            BigDecimal baselineScore = baselineNanos[benchmarkName]
+            if (baselineScore == null) {
+                return
+            }
+            BigDecimal currentScore = new BigDecimal(entry.primaryMetric.score.toString())
+            BigDecimal allowed = baselineScore.multiply(new BigDecimal('1.10'))
+            if (currentScore > allowed) {
+                throw new GradleException("JMH regression for ${benchmarkName}: current ${currentScore} ns/op exceeds allowed ${allowed} ns/op from baseline ${baselineScore} ns/op")
+            }
+        }
+    }
 }
 
 tasks.named('check') {
-    dependsOn tasks.named('nativeTest')
+    dependsOn tasks.named('jmhRegressionCheck')
+    dependsOn subprojects.collect { it.tasks.named('check') }
 }

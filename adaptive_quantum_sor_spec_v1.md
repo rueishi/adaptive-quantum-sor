@@ -3071,7 +3071,7 @@ the Adaptive Quantum SOR. JNI, shared memory, embedded Python, direct Java objec
 Python, and a separate notebook-only demo engine are out of scope for this
 control plane.
 
-The Python notebook helper library shall live under `python/adaptive_quantum_sor` and expose
+The Python notebook helper library shall live under `tools/python-research/adaptive_quantum_sor_research` and expose
 pandas-friendly helpers for:
 
 ```text
@@ -3502,7 +3502,7 @@ detection, feature aggregation, optimizer inputs, and routing.
 Recommended first slice:
 
 ```text
-human-readable scenario metadata files under scenarios/<category>/*.yaml
+human-readable scenario metadata files under sor-test-server/src/main/resources/scenarios/<category>/*.yaml
 ScenarioDefinitionLoader to convert user files into ScenarioSpec
 ScenarioSpec / scenario config defaults
 ScenarioWindow for fixed tick ranges
@@ -3525,7 +3525,7 @@ This slice must keep existing `generateTick(MarketBookState)` and
 
 Scenarios are driven by readable metadata files, not Java constructors. The
 runtime representation is `ScenarioSpec`, but users normally edit files under
-`scenarios/<category>/`.
+`sor-test-server/src/main/resources/scenarios/<category>/`.
 
 Example:
 
@@ -3639,20 +3639,20 @@ simulator-generated orders.
 ##### Scenario Catalog
 
 The repository maintains at least 62 user-readable scenario files under
-`scenarios/<category>/`. The catalog covers baseline replay, regime
+`sor-test-server/src/main/resources/scenarios/<category>/`. The catalog covers baseline replay, regime
 transitions, liquidity disappearance, stale feed, venue outage, toxic venue
 behavior, session halt/auction behavior, optimizer lineage, simulator failure
 isolation, live reset modes, feature/ML signal shifts,
 risk/throttle/capacity boundaries, multi-instrument divergence, and safe
 zero-liquidity routing.
 
-Every `scenarios/<category>/*.yaml` file is loaded and replayed by
+Every `sor-test-server/src/main/resources/scenarios/<category>/*.yaml` file is loaded and replayed by
 `ScenarioDefinitionLoaderTest.allScenarioFilesLoadAndReplayDeterministically`.
 
 Scenario discovery is available through the Python library:
 
 ```text
-python/adaptive_quantum_sor/scenario_catalog.py
+tools/python-research/adaptive_quantum_sor_research/scenario_catalog.py
   load_scenarios()
   search_scenarios(...)
   find_scenario(...)
@@ -3662,15 +3662,15 @@ python/adaptive_quantum_sor/scenario_catalog.py
 Notebook users import the library when working inside Python:
 
 ```python
-from adaptive_quantum_sor import load_scenarios, search_scenarios, parent_order_suggestions
+from adaptive_quantum_sor_research import load_scenarios, search_scenarios, parent_order_suggestions
 ```
 
 Shell users use the module command:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog list
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog search --tag liquidity
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog suggest zero-liquidity-safe-route
+PYTHONPATH=tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog list
+PYTHONPATH=tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog search --tag liquidity
+PYTHONPATH=tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog suggest zero-liquidity-safe-route
 ```
 
 ##### Test Family Separation
@@ -7149,12 +7149,12 @@ input validation
 ```text
 SorEngineRuntime.java
 AdaptiveQuantumSorApplication.java
-api/SorHttpApiServer.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/api/SorHttpApiServer.java
 api/OrderRequest.java
 api/OrderStatusView.java
-api/StatsSnapshotView.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/api/StatsSnapshotView.java
 api/PolicySnapshotView.java
-api/EventStreamHandler.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/api/EventStreamHandler.java
 ```
 
 **Inputs:**
@@ -7247,11 +7247,11 @@ notebooks/live_stats_monitor.ipynb
 notebooks/scenario_runner.ipynb
 notebooks/README.md
 scripts/start-jupyter-lab.sh
-python/adaptive_quantum_sor/client.py
-python/adaptive_quantum_sor/dataframe.py
-python/adaptive_quantum_sor/scenario_catalog.py
-python/adaptive_quantum_sor/schema.py
-python/adaptive_quantum_sor/__init__.py
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py
+tools/python-research/adaptive_quantum_sor_research/dataframe.py
+tools/python-research/adaptive_quantum_sor_research/scenario_catalog.py
+tools/python-research/adaptive_quantum_sor_research/schema.py
+tools/python-research/adaptive_quantum_sor_research/__init__.py
 ```
 
 **Inputs:**
@@ -8634,13 +8634,13 @@ notebook-safe feature record validation
 **Primary files:**
 
 ```text
-ml/FeatureDatasetExporter.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/ml/FeatureDatasetExporter.java
 ml/FeatureSchema.java
 ml/TrainingLabelBuilder.java
-python/README.md
-python/adaptive_quantum_sor/schema.py
-python/adaptive_quantum_sor/dataframe.py
-python/adaptive_quantum_sor/__init__.py
+tools/python-research/README.md
+tools/python-research/adaptive_quantum_sor_research/schema.py
+tools/python-research/adaptive_quantum_sor_research/dataframe.py
+tools/python-research/adaptive_quantum_sor_research/__init__.py
 ```
 
 **Inputs:**
@@ -8714,13 +8714,13 @@ Python package dependencies for notebook/training path
 **Primary files:**
 
 ```text
-python/train_models.py
-python/models/fill_probability.py
-python/models/toxicity.py
-python/models/slippage.py
-python/models/regime.py
-python/requirements.txt
-python/adaptive_quantum_sor/schema.py
+tools/python-research/scripts/train_models.py
+tools/python-research/models/fill_probability.py
+tools/python-research/models/toxicity.py
+tools/python-research/models/slippage.py
+tools/python-research/models/regime.py
+tools/python-research/requirements.txt
+tools/python-research/adaptive_quantum_sor_research/schema.py
 ```
 
 **Inputs:**
@@ -8794,8 +8794,8 @@ notebook helper for writing Java-importable prediction artifacts
 ml/ModelArtifactImporter.java
 ml/ModelArtifactMetadata.java
 ml/ModelSignalValidator.java
-python/adaptive_quantum_sor/dataframe.py
-python/adaptive_quantum_sor/schema.py
+tools/python-research/adaptive_quantum_sor_research/dataframe.py
+tools/python-research/adaptive_quantum_sor_research/schema.py
 ```
 
 **Inputs:**
@@ -8943,7 +8943,7 @@ Phase 4 completion report
 ml/ModelArtifactImporter.java
 ml/ModelSignalValidator.java
 ml/ModelArtifactMetadata.java
-python/train_models.py
+tools/python-research/scripts/train_models.py
 docs/PHASE_4_COMPLETION_REPORT.md
 src/test/java/com/nitroj/adaptive/quantum/sor/docs/Phase4CompletionReportTest.java
 ```
@@ -9000,7 +9000,7 @@ all stateful stochastic/regime simulators.
 
 ```text
 simulator seed and scenario id
-human-readable scenario metadata files under scenarios/<category>/*.yaml
+human-readable scenario metadata files under sor-test-server/src/main/resources/scenarios/<category>/*.yaml
 scenario catalog with at least 62 readable scenario files
 ScenarioDefinitionLoader file-to-runtime-spec bridge
 regime schedule or regime source contract
@@ -9049,7 +9049,7 @@ instrument/venue/regime dimensions
 ```text
 validated simulator config
 scenario metadata object
-validated ScenarioDefinition loaded from scenarios/*.yaml
+validated ScenarioDefinition loaded from sor-test-server/src/main/resources/scenarios/*.yaml
 venue profile assignment
 regime schedule or regime-source object
 validated ScenarioSpec
@@ -9063,7 +9063,7 @@ Keep defaults backward compatible with demo mode.
 Reject negative volatility, spread, quantity, probability, and cadence values.
 Represent probabilities as bounded bps or integer thresholds.
 Do not require external historical data or GPU libraries.
-Users should edit/read scenario files under scenarios/<category>/*.yaml; ScenarioSpec is the runtime representation loaded from those files.
+Users should edit/read scenario files under sor-test-server/src/main/resources/scenarios/<category>/*.yaml; ScenarioSpec is the runtime representation loaded from those files.
 ScenarioDefinitionLoader must fail invalid scenario metadata before state mutation.
 ScenarioSpec must be immutable after construction.
 ScenarioWindow must reject overlapping or out-of-range tick windows.
@@ -9081,7 +9081,7 @@ Unit: minimum dimensions create valid fallback profiles and regimes
 Unit: venue profile assignment is deterministic by seed/config
 Unit: ScenarioSpec rejects blank scenarioId, negative seed only if disallowed by contract, negative ticks, and overlapping windows
 Unit: ScenarioDefinitionLoader loads user-readable scenario files into ScenarioSpec
-Unit: all checked-in scenarios/*.yaml files replay deterministically with fixed seed
+Unit: all checked-in sor-test-server/src/main/resources/scenarios/*.yaml files replay deterministically with fixed seed
 Unit: scenario catalog contains at least 62 user-readable scenario files
 Unit: invalid scenario metadata file fails before runtime state is created
 Unit: ScenarioWindow returns the expected regime for boundary ticks
@@ -9423,7 +9423,7 @@ enough lineage for optimizer input snapshots and dataset generation.
 
 ```text
 multi-tick scenario orchestration
-scenario file loading from scenarios/<category>/*.yaml
+scenario file loading from sor-test-server/src/main/resources/scenarios/<category>/*.yaml
 scenario id and seed handling
 regime schedule execution
 venue profile assignment publication
@@ -9448,7 +9448,7 @@ scenario/ScenarioAssertions.java
 sim/SyntheticScenarioGenerator.java
 policy/PolicyOptimizationInput.java
 optimizer/OptimizerRunMetadata.java
-ml/FeatureDatasetExporter.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/ml/FeatureDatasetExporter.java
 lifecycle/* where simulator failures are logged
 metrics/* where scenario comparison is reported
 ```
@@ -9558,7 +9558,7 @@ src/test/java/com/nitroj/adaptive/quantum/sor/e2e/SorEndToEndTest.java
 docs/CI_TEST_PROFILES.md
 docs/ARCHITECTURE.md
 docs/PHASE_5_COMPLETION_REPORT.md
-scenarios/<category>/*.yaml
+sor-test-server/src/main/resources/scenarios/<category>/*.yaml
 adaptive_quantum_sor_spec_v1.md
 scripts/run_tests.sh
 ```
@@ -9577,7 +9577,7 @@ human-readable scenario metadata files
 
 ```text
 passing simulator/unit/integration/E2E tests
-checked-in scenarios/<category>/*.yaml replay evidence
+checked-in sor-test-server/src/main/resources/scenarios/<category>/*.yaml replay evidence
 updated CI profile docs
 updated scripts/run_tests.sh scenario profile
 Phase 5 completion report
@@ -9601,7 +9601,7 @@ The Gradle filter for scenario unit tests must include com.nitroj.adaptive.quant
 ```text
 Unit: doc guard confirms CI simulator and scenario profiles are documented separately
 Unit: Phase 5 completion report lists implemented/failed ACs and commands
-Unit: scenario metadata file loader tests prove all scenarios/<category>/*.yaml files load and replay
+Unit: scenario metadata file loader tests prove all sor-test-server/src/main/resources/scenarios/<category>/*.yaml files load and replay
 Integration: scripts/run_tests.sh simulator includes deterministic simulator-focused tests only
 Integration: scripts/run_tests.sh scenario includes scenario unit, scenario integration, and scenario E2E filters
 E2E: SorEndToEndTest.replayableScenarioProducesEquivalentSummary exists and passes
@@ -9666,14 +9666,14 @@ scenario/ScenarioResetSummary.java
 scenario/ScenarioRunRequest.java
 scenario/ScenarioRunResult.java
 scenario/ScenarioControlService.java
-api/SorHttpApiServer.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/api/SorHttpApiServer.java
 api/ScenarioApiHandler.java if routes are split from SorHttpApiServer
 AdaptiveQuantumSorApplication.java
 SorEngineRuntime.java
-python/adaptive_quantum_sor/client.py
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py
 notebooks/scenario_runner.ipynb
 docs/CI_TEST_PROFILES.md
-python/README.md
+tools/python-research/README.md
 docs/SEQUENCE_DIAGRAMS.md
 ```
 
@@ -9795,17 +9795,17 @@ scenario/ScenarioRunResult.java
 scenario/ScenarioControlService.java
 scenario/ScenarioDefinition.java
 scenario/ScenarioDefinitionLoader.java
-api/SorHttpApiServer.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/api/SorHttpApiServer.java
 execution/PolicyDrivenSorExecutioner.java as the live routing consumer
 model/ParentOrderIntentQueue.java
 model/OrderIntent.java
 model/ChildOrderBuffer.java
 stats/ExecutionOutcomeStore.java
-python/adaptive_quantum_sor/client.py
-python/adaptive_quantum_sor/scenario_catalog.py
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py
+tools/python-research/adaptive_quantum_sor_research/scenario_catalog.py
 notebooks/scenario_runner.ipynb
-scenarios/<category>/*.yaml
-scenarios/README.md
+sor-test-server/src/main/resources/scenarios/<category>/*.yaml
+sor-test-server/src/main/resources/scenarios/README.md
 ```
 
 **Inputs:**
@@ -9861,7 +9861,7 @@ Integration: ScenarioFeatureIntegrationTest.userParentOrdersDriveVenueOutcomesAn
 E2E: SorEndToEndTest.liveScenarioWithUserParentOrderRoutesAndReportsResidual()
 E2E: SorEndToEndTest.liveScenarioParentOrderEvidenceIsAudited()
 Notebook artifact: JupyterNotebookArtifactTest scenario notebook includes parent order intent cell and result table
-Manual evidence: run scripts/start-jupyter-lab.sh, choose a scenario using adaptive_quantum_sor.scenario_catalog or `PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog`, submit suggested parent order, inspect route/outcome result
+Manual evidence: run scripts/start-jupyter-lab.sh, choose a scenario using `adaptive_quantum_sor_research.scenario_catalog` or `PYTHONPATH=tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog`, submit suggested parent order, inspect route/outcome result
 ```
 
 **Acceptance criteria covered:**
@@ -10176,7 +10176,7 @@ Jupyter report surfaces
 **Primary files:**
 
 ```text
-scenarios/optimizer-policy/*
+sor-test-server/src/main/resources/scenarios/optimizer-policy/*
 notebooks/scenario_runner.ipynb
 metrics/*
 docs/PHASE_6_COMPLETION_REPORT.md
@@ -10297,8 +10297,8 @@ Markdown comparison report output
 .github/workflows or local scripts
 scripts/run_tests.sh
 scripts/run_benchmarks.sh
-python/generate_sor_dataset.py
-python/compare_sor_dataset.py
+tools/python-research/scripts/generate_sor_dataset.py
+tools/python-research/scripts/compare_sor_dataset.py
 docs/CI_TEST_PROFILES.md
 ```
 
@@ -11089,7 +11089,7 @@ A stable deterministic description of venue behavior used by the simulator.
 Profiles such as tight/deep, wide/slow, toxic, stale-feed, and outage-prone
 venues shape generated quotes and execution outcomes.
 
-#### python/adaptive_quantum_sor
+#### tools/python-research/adaptive_quantum_sor_research
 
 The local Python helper package for Jupyter research. It provides DataFrame
 helpers for feature datasets, Java-importable prediction artifact writers, and

@@ -39,7 +39,7 @@ P4-TC-005 ML/RL Failure Handling and Phase 4 Report
 Java implementation:
 
 ```text
-src/main/java/com/nitroj/adaptive/quantum/sor/ml/FeatureDatasetExporter.java
+sor-test-server/src/main/java/com/nitroj/adaptive/quantum/sor/ml/FeatureDatasetExporter.java
 src/main/java/com/nitroj/adaptive/quantum/sor/ml/FeatureSchema.java
 src/main/java/com/nitroj/adaptive/quantum/sor/ml/TrainingLabelBuilder.java
 src/main/java/com/nitroj/adaptive/quantum/sor/ml/ModelArtifactImporter.java
@@ -54,14 +54,14 @@ src/main/java/com/nitroj/adaptive/quantum/sor/optimizer/OptimizerRunMetadata.jav
 Python implementation:
 
 ```text
-python/train_models.py
-python/models/fill_probability.py
-python/models/toxicity.py
-python/models/slippage.py
-python/models/regime.py
-python/adaptive_quantum_sor/schema.py
-python/adaptive_quantum_sor/dataframe.py
-python/requirements.txt
+tools/python-research/scripts/train_models.py
+tools/python-research/models/fill_probability.py
+tools/python-research/models/toxicity.py
+tools/python-research/models/slippage.py
+tools/python-research/models/regime.py
+tools/python-research/adaptive_quantum_sor_research/schema.py
+tools/python-research/adaptive_quantum_sor_research/dataframe.py
+tools/python-research/requirements.txt
 ```
 
 ## Model Artifact Contract
@@ -128,7 +128,7 @@ PythonDatasetGeneratorTest
 PythonNotebookLibraryTest
 PythonTrainingPipelineTest
 ModelArtifactImporterTest
-SimulationFeatureMlIntegrationTest
+ScenarioOptimizerLineageIntegrationTest
 PolicyOptimizerCoordinatorTest
 Phase4CompletionReportTest
 ```
@@ -137,7 +137,7 @@ Representative commands:
 
 ```text
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.adaptive.quantum.sor.ml.*'
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.adaptive.quantum.sor.integration.SimulationFeatureMlIntegrationTest'
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew :sor-test-server:test --tests 'com.nitroj.adaptive.quantum.sor.scenario.ScenarioOptimizerLineageIntegrationTest'
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.adaptive.quantum.sor.docs.Phase4CompletionReportTest'
 ```
 

@@ -2,7 +2,7 @@
 
 This folder contains the notebook workflows for live SOR demos, scenario
 experiments, and research inspection. The notebooks call the local Java engine
-API and use the helper package in `python/adaptive_quantum_sor`.
+API and use the helper package in `tools/notebook-helpers/adaptive_quantum_sor_notebooks`.
 
 The notebooks are for testing, research, and observability. They are not part of
 the production hot path.
@@ -18,11 +18,14 @@ notebooks/scenario_runner.ipynb                 widget-driven scenario execution
 Related files outside this folder:
 
 ```text
-scripts/start-jupyter-lab.sh                    starts the engine API and JupyterLab
-python/adaptive_quantum_sor/client.py           notebook API client
-python/examples/*.csv                           research datasets
-scenarios/**/*.yaml                             readable scenario definitions
-python/adaptive_quantum_sor/scenario_catalog.py scenario catalog library
+scripts/start-jupyter-lab.sh                    starts the notebook API and JupyterLab
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py           notebook API client
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/live_monitor.py     live dashboard widgets and templates
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py  scenario runner widgets and report templates
+tools/python-research/examples/*.csv                           research datasets
+sor-test-server/src/main/resources/scenarios/**/*.yaml
+                                                readable scenario definitions
+tools/python-research/adaptive_quantum_sor_research/scenario_catalog.py   scenario catalog library
 ```
 
 ## Prerequisites
@@ -34,13 +37,13 @@ java -version
 python3 --version
 ```
 
-The launcher creates `.venv-notebook`, installs `python/requirements.txt`
+The launcher creates `.venv-notebook`, installs `tools/python-research/requirements.txt`
 including pandas and ipywidgets, installs JupyterLab there, and sets
-`PYTHONPATH=python` automatically. If you run
+`PYTHONPATH=tools/notebook-helpers:tools/python-research` automatically. If you run
 notebooks or Python manually, set it yourself:
 
 ```bash
-export PYTHONPATH="$PWD/python${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$PWD/tools/notebook-helpers:$PWD/tools/python-research${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
 ## Start JupyterLab
@@ -56,8 +59,8 @@ The launcher:
 1. Creates `.venv-notebook` when needed.
 2. Installs notebook dependencies into that virtual environment.
 3. Builds the Java classes.
-4. Starts the SOR engine API on `http://127.0.0.1:8080`.
-5. Sets `PYTHONPATH=python`.
+4. Starts `NotebookScenarioApiLauncher` on `http://127.0.0.1:8080`.
+5. Sets `PYTHONPATH=tools/notebook-helpers:tools/python-research`.
 6. Opens JupyterLab with the notebook workspace.
 
 Optional ports:
@@ -80,6 +83,8 @@ panel layout after you arrange it once.
 ## Live Order Testing
 
 Use `submit_parent_order.ipynb` when you want to test the live order path.
+The notebook delegates controls, submission, failure handling, and report
+rendering to `tools/notebook-helpers/adaptive_quantum_sor_notebooks/submit_order_report.py`.
 
 Typical flow:
 
@@ -104,6 +109,24 @@ order = {
 Expected result: the API returns a response with `parentOrderId`,
 `remainingQty`, and `status`.
 
+## Live Dashboard Monitoring
+
+Use `live_stats_monitor.ipynb` when you want a periodically refreshing view of
+order flow, fill progress, venue activity, instrument activity, and top
+instrument-venue routes.
+
+Typical flow:
+
+1. Start JupyterLab with `scripts/start-jupyter-lab.sh`.
+2. Open `live_stats_monitor.ipynb`.
+3. Run the dashboard setup cell.
+4. Choose API URL, timeout, refresh interval, and top-row limit.
+5. Click `Start dashboard`.
+6. Click `Stop` to pause refresh or `Reset` to stop and clear the output.
+
+The notebook delegates controls, auto-refresh, chart rendering, and tables to
+`tools/notebook-helpers/adaptive_quantum_sor_notebooks/live_monitor.py`.
+
 ## Scenario Testing
 
 Use `scenario_runner.ipynb` when you want a controlled scenario environment.
@@ -112,6 +135,10 @@ simulation inputs. Parent order intents can be included directly in
 `run_scenario(..., parent_orders=[...])` so the result shows route evidence for
 the order you edited in the notebook. Live scenario runs require either at least
 one explicit parent order or `simulator_generated_orders=True`.
+
+The notebook delegates its widget setup, HTML templates, DataFrame shaping, and
+report rendering to `tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py`. That keeps
+the notebook itself short and focused on choose, preview, run, and inspect.
 
 Typical flow:
 
@@ -152,7 +179,7 @@ see exactly what was cleared and rebuilt before the scenario run.
 From notebook Python:
 
 ```python
-from adaptive_quantum_sor import load_scenarios, search_scenarios, parent_order_suggestions
+from adaptive_quantum_sor_research import load_scenarios, search_scenarios, parent_order_suggestions
 
 scenarios = load_scenarios()
 liquidity = search_scenarios(scenarios, tags=["liquidity"])
@@ -162,31 +189,31 @@ parent_order_suggestions(liquidity[0])
 List all scenarios:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog list
+PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog list
 ```
 
 Search by tag:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog search --tag liquidity
+PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog search --tag liquidity
 ```
 
 Search by category:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog search --category live-reset
+PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog search --category live-reset
 ```
 
 Search descriptions:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog search --text auction
+PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog search --text auction
 ```
 
 Show suggested parent order submissions for a scenario:
 
 ```bash
-PYTHONPATH=python python3 -m adaptive_quantum_sor.scenario_catalog suggest zero-liquidity-safe-route
+PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog suggest zero-liquidity-safe-route
 ```
 
 Use these suggestions as starting points, then adjust instrument, side,
@@ -218,9 +245,9 @@ should make every reset and parent order submission visible to the user.
 In any notebook:
 
 ```python
-from adaptive_quantum_sor import read_feature_dataframe
+from adaptive_quantum_sor_research import read_feature_dataframe
 
-features = read_feature_dataframe("python/examples/sor_notebook_features_large.csv")
+features = read_feature_dataframe("tools/python-research/examples/sor_notebook_features_large.csv")
 features.head()
 ```
 
@@ -255,11 +282,12 @@ and remaining quantity.
 ### `live_stats_monitor.ipynb`
 
 Purpose: inspect current SOR policy, stats, optional cumulative order summary,
-and numeric charts through a widget-driven monitor.
+and routing activity through a widget-driven monitor.
 
-Expected result: a live monitor report with KPI cards, combined stats/policy
-table, raw endpoint tables, optional order-summary tables, and a numeric metric
-chart.
+Expected result: a live dashboard with KPI cards, order-flow and fill-progress
+charts, venue/instrument charts, top instrument-venue route table, and compact
+stats/policy evidence tables. The generic numeric metric chart is intentionally
+not used.
 
 ### `scenario_runner.ipynb`
 
@@ -272,6 +300,10 @@ evidence, and venue-level fill rows with instrument/venue names, filled
 quantity, price, and notional.
 `APPEND` mode is intentionally not replay-safe because it preserves existing
 live state.
+
+Implementation note: report implementation lives in
+`tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py`; the notebook should remain a
+thin workflow over `ScenarioReportApp`.
 
 ## Troubleshooting
 

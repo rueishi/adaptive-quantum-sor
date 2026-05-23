@@ -1,0 +1,83 @@
+plugins {
+    id 'maven-publish'
+    id 'signing'
+}
+
+version = '1.0.0'
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+dependencies {
+    api project(':sor-api')
+    api project(':sor-codec')
+    api project(':sor-transport-aeron')
+    testImplementation project(':sor-core')
+    testImplementation project(':sor-test-server')
+}
+
+jar {
+    from(project(':sor-api').sourceSets.main.output)
+    from(project(':sor-codec').sourceSets.main.output)
+    from(project(':sor-transport-aeron').sourceSets.main.output)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes(
+                'Implementation-Title': 'Adaptive Quantum SOR Java Client',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+javadoc {
+    options.addStringOption('Xdoclint:all', '-quiet')
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'sor-client-java'
+            pom {
+                name = 'Adaptive Quantum SOR Java Client'
+                description = 'Java SDK for connecting to Adaptive Quantum SOR over the Aeron transport.'
+                url = 'https://github.com/nitroj/adaptive-quantum-sor'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'nitroj'
+                        name = 'Nitroj Engineering'
+                        email = 'engineering@nitroj.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/nitroj/adaptive-quantum-sor.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/nitroj/adaptive-quantum-sor.git'
+                    url = 'https://github.com/nitroj/adaptive-quantum-sor'
+                }
+            }
+            pom.withXml {
+                def dependencies = asNode().dependencies
+                if (dependencies != null) {
+                    asNode().remove(dependencies)
+                }
+            }
+        }
+    }
+}
+
+signing {
+    required { false }
+    sign publishing.publications.mavenJava
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
