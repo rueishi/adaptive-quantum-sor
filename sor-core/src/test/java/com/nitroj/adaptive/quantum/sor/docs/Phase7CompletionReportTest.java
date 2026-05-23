@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class Phase7CompletionReportTest {
     @Test
     void phase7CompletionReportListsImplementedAcsLimitsAndCommands() throws IOException {
-        final String report = Files.readString(Path.of("docs/PHASE_7_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
+        final String report = Files.readString(Path.of("docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
 
         for (String expected : new String[]{
                 "P7-ROBUST-001",

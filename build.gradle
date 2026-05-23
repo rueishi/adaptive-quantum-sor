@@ -55,7 +55,7 @@ tasks.register('jmhRegressionCheck') {
 
     def baselineFile = providers.gradleProperty('jmhBaselineFile')
             .map { file(it) }
-            .orElse(layout.projectDirectory.file('docs/PHASE_8_JMH_BASELINE.md'))
+            .orElse(layout.projectDirectory.file('docs/testing/PHASE_8_JMH_BASELINE.md'))
     def resultFile = providers.gradleProperty('jmhResultFile')
             .map { file(it) }
             .orElse(layout.projectDirectory.file('sor-core/build/reports/jmh/results.json'))

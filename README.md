@@ -70,7 +70,7 @@ tools/notebook-helpers/      Notebook-only widgets, reports, and API helper code
 tools/python-research/       Research datasets, scenario catalog, and model scripts.
 sor-test-server/src/main/resources/scenarios/
                              User-readable replayable scenario catalog.
-docs/                        Architecture, sequence diagrams, CI profiles, phase reports.
+docs/                        Categorized architecture, integration, release, testing, and report docs.
 scripts/                     Local test, benchmark, engine, and Jupyter launch helpers.
 ```
 
@@ -113,7 +113,7 @@ scripts/run_tests.sh policy
 scripts/run_tests.sh native
 ```
 
-See `docs/CI_TEST_PROFILES.md` for the exact test coverage behind each profile.
+See `docs/testing/CI_TEST_PROFILES.md` for the exact test coverage behind each profile.
 
 ## Run The Java Adaptive Quantum SOR
 
@@ -272,19 +272,20 @@ Start with:
 ```text
 adaptive_quantum_sor_spec_v1.md
 adaptive_quantum_sor_spec_phase8.md
-docs/ARCHITECTURE.md
-docs/CI_TEST_PROFILES.md
-docs/SEQUENCE_DIAGRAMS.md
-docs/INTEGRATING_AS_EMBEDDED.md
-docs/INTEGRATING_OVER_AERON.md
-docs/PHASE_1_COMPLETION_REPORT.md
-docs/PHASE_2_COMPLETION_REPORT.md
-docs/PHASE_3_COMPLETION_REPORT.md
-docs/PHASE_4_COMPLETION_REPORT.md
-docs/PHASE_5_COMPLETION_REPORT.md
-docs/PHASE_6_COMPLETION_REPORT.md
-docs/PHASE_7_COMPLETION_REPORT.md
-docs/PHASE_8_COMPLETION_REPORT.md
+docs/README.md
+docs/architecture/ARCHITECTURE.md
+docs/testing/CI_TEST_PROFILES.md
+docs/architecture/SEQUENCE_DIAGRAMS.md
+docs/integration/INTEGRATING_AS_EMBEDDED.md
+docs/integration/INTEGRATING_OVER_AERON.md
+docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_2_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_3_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_4_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_5_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_6_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md
+docs/reports/phase-8/PHASE_8_COMPLETION_REPORT.md
 ```
 
 The phase reports are evidence documents: they summarize implemented scope,

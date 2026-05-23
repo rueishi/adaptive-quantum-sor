@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * key benchmark row machine-checkable.</p>
  */
 class JmhBaselineFileFormatTest {
-    private static final Path BASELINE = Path.of("docs/PHASE_8_JMH_BASELINE.md");
+    private static final Path BASELINE = Path.of("docs/testing/PHASE_8_JMH_BASELINE.md");
 
     /**
      * Confirms the baseline document includes all required sections and the

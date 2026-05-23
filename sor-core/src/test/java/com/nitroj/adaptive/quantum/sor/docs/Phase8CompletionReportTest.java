@@ -19,7 +19,7 @@ final class Phase8CompletionReportTest {
 
     @Test
     void phase8CompletionReportListsNonDeferredCards() throws IOException {
-        final String report = read("docs/PHASE_8_COMPLETION_REPORT.md");
+        final String report = read("docs/reports/phase-8/PHASE_8_COMPLETION_REPORT.md");
 
         assertContains(report, "Phase 8 framework extraction is complete");
         assertContains(report, "P8-12 remains deferred");
@@ -36,7 +36,7 @@ final class Phase8CompletionReportTest {
     @Test
     void everyNonDeferredCardHasCompletionEvidence() throws IOException {
         for (final String card : REQUIRED_CARDS) {
-            final Path path = Path.of("docs", "PHASE_8_" + card + "_REPORT.md");
+            final Path path = Path.of("docs", "reports", "phase-8", "PHASE_8_" + card + "_REPORT.md");
             assertTrue(Files.isRegularFile(path), () -> "missing Phase 8 card report: " + path);
             final String report = Files.readString(path, StandardCharsets.UTF_8);
             assertContains(report, "Implemented Scope");

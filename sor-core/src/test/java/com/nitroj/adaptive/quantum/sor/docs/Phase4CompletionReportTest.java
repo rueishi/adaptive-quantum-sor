@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Role in system: covers P4-TC-005 documentation evidence for model
  * artifact validation, optimizer lineage, failure fallback, and test coverage.</p>
  *
- * <p>Relationships: reads {@code docs/PHASE_4_COMPLETION_REPORT.md} as a
+ * <p>Relationships: reads {@code docs/reports/phase-1-7/PHASE_4_COMPLETION_REPORT.md} as a
  * build-time documentation check.</p>
  *
  * <p>Lifecycle: executed by Gradle with the JUnit suite.</p>
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * files and tests instead of relying on manual report inspection.</p>
  */
 final class Phase4CompletionReportTest {
-    private static final Path REPORT = Path.of("docs", "PHASE_4_COMPLETION_REPORT.md");
+    private static final Path REPORT = Path.of("docs", "reports", "phase-1-7", "PHASE_4_COMPLETION_REPORT.md");
 
     @Test
     void reportContainsModelPipelineAndFailureEvidence() throws IOException {

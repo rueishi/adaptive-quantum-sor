@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Role in system: covers P3-TC-005 documentation evidence for strategic
  * optimizer audit lineage and accepted/rejected result reporting.</p>
  *
- * <p>Relationships: reads {@code docs/PHASE_3_COMPLETION_REPORT.md} as a
+ * <p>Relationships: reads {@code docs/reports/phase-1-7/PHASE_3_COMPLETION_REPORT.md} as a
  * build-time documentation check.</p>
  *
  * <p>Lifecycle: executed by Gradle with the JUnit suite.</p>
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * of relying on a manually inspected report.</p>
  */
 final class Phase3CompletionReportTest {
-    private static final Path REPORT = Path.of("docs", "PHASE_3_COMPLETION_REPORT.md");
+    private static final Path REPORT = Path.of("docs", "reports", "phase-1-7", "PHASE_3_COMPLETION_REPORT.md");
 
     @Test
     void reportContainsAuditAndValidationEvidence() throws IOException {

@@ -438,8 +438,8 @@ src/main/java/com/nitroj/adaptive/quantum/sor/config/ConfigLoader.java
 src/main/resources/adaptive-quantum-sor.yaml
 adaptive_quantum_sor_spec_v1.md
 README.md
-docs/ARCHITECTURE.md
-docs/PHASE_7_COMPLETION_REPORT.md
+docs/architecture/ARCHITECTURE.md
+docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md
 ```
 
 ---
@@ -674,7 +674,7 @@ work, known limitations, and reproduction commands.
 **Deliverables:**
 
 ```text
-docs/PHASE_7_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md
 src/test/java/com/nitroj/adaptive/quantum/sor/docs/Phase7CompletionReportTest.java
 ```
 

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * This test forks a tiny JVM to capture the configured toolchain's behavior and
  * always verifies the project launch surfaces keep the flag disabled.</p>
  *
- * <p>Relationships: complements `docs/PHASE_8_JMH_BASELINE.md`, which explains
+ * <p>Relationships: complements `docs/testing/PHASE_8_JMH_BASELINE.md`, which explains
  * the operational reason the production launcher omits compact headers.</p>
  *
  * <p>Lifecycle: runs as an integration-style unit test; it starts and waits for
@@ -59,7 +59,7 @@ class ZgcCompactHeadersIncompatibilityTest {
         }
 
         final String launcher = Files.readString(Path.of("scripts/run_engine.sh"));
-        final String baseline = Files.readString(Path.of("docs/PHASE_8_JMH_BASELINE.md"));
+        final String baseline = Files.readString(Path.of("docs/testing/PHASE_8_JMH_BASELINE.md"));
 
         assertEquals(-1, launcher.indexOf("UseCompactObjectHeaders"),
                 "Phase 8 launcher must not enable Compact Object Headers with ZGC");

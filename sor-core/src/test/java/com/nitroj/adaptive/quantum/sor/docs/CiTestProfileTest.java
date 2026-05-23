@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * concrete Gradle commands.</p>
  *
  * <p>Relationships: reads {@code scripts/run_tests.sh},
- * {@code scripts/run_benchmarks.sh}, and {@code docs/CI_TEST_PROFILES.md}.</p>
+ * {@code scripts/run_benchmarks.sh}, and {@code docs/testing/CI_TEST_PROFILES.md}.</p>
  *
  * <p>Lifecycle: executed by Gradle with the JUnit suite.</p>
  *
@@ -29,7 +29,7 @@ final class CiTestProfileTest {
     void scriptsCoverRequiredProfiles() throws IOException {
         final String runTests = read("scripts/run_tests.sh");
         final String runBenchmarks = read("scripts/run_benchmarks.sh");
-        final String docs = read("docs/CI_TEST_PROFILES.md");
+        final String docs = read("docs/testing/CI_TEST_PROFILES.md");
         final String spec = read("adaptive_quantum_sor_spec_v1.md");
         final String prompt = read(".prompt/RUN_X-TC-003.md");
         final String combined = runTests + runBenchmarks + docs + spec + prompt;
@@ -62,7 +62,7 @@ final class CiTestProfileTest {
     @Test
     void simulatorAndScenarioProfilesAreDocumentedSeparately() throws IOException {
         final String runTests = read("scripts/run_tests.sh");
-        final String docs = read("docs/CI_TEST_PROFILES.md");
+        final String docs = read("docs/testing/CI_TEST_PROFILES.md");
 
         assertTrue(runTests.contains(":sor-test-server:test"));
         assertTrue(runTests.contains("--tests 'com.nitroj.adaptive.quantum.sor.scenario.*'"));

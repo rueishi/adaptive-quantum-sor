@@ -14,7 +14,7 @@ P8-BOOT-001 BuildToolchainVerificationTest
 P8-BOOT-002 GcConfigurationTest
 P8-BOOT-003 ZgcCompactHeadersIncompatibilityTest
 P8-BOOT-004 RunScriptFlagPresenceTest
-P8-BOOT-005 JmhBaselineFileFormatTest, docs/PHASE_8_JMH_BASELINE.md
+P8-BOOT-005 JmhBaselineFileFormatTest, docs/testing/PHASE_8_JMH_BASELINE.md
 P8-BOOT-006 JmhRegressionGateTest, jmhRegressionCheck
 ```
 

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * containing implemented ACs, incomplete ACs, limitations, benchmark results,
  * narrative logs, Jupyter interaction, and static/adaptive comparison output.</p>
  *
- * <p>Relationships: reads {@code docs/PHASE_1_COMPLETION_REPORT.md} as a
+ * <p>Relationships: reads {@code docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md} as a
  * build-time artifact check.</p>
  *
  * <p>Lifecycle: executed by Gradle with the rest of the JUnit suite.</p>
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * removed or stripped of required sections.</p>
  */
 final class Phase1CompletionReportTest {
-    private static final Path REPORT = Path.of("docs", "PHASE_1_COMPLETION_REPORT.md");
+    private static final Path REPORT = Path.of("docs", "reports", "phase-1-7", "PHASE_1_COMPLETION_REPORT.md");
 
     @Test
     void reportContainsRequiredPhaseOneReadinessSections() throws IOException {
