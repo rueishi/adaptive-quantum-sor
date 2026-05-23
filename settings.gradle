@@ -1,10 +1,10 @@
 /*
- * Gradle settings for Adaptive Quantum SOR.
+ * Phase 8 multi-project settings for Adaptive Quantum SOR.
  *
- * The project is intentionally a single Java application in Phase 1 because
- * the specification calls for a single-process Adaptive Quantum SOR. Later task cards may add
- * native or Python-adjacent tooling, but this root project remains the launch
- * point for the Java SOR engine scaffold.
+ * P8-02 keeps existing Java packages unchanged but gives Gradle the module
+ * topology that later cards will fill in. The dependency graph is intentionally
+ * broad now so empty modules can build independently while implementation moves
+ * into them card by card.
  */
 pluginManagement {
     repositories {
@@ -20,4 +20,14 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "adaptive-quantum-sor"
+rootProject.name = 'adaptive-quantum-sor'
+
+include 'sor-api'
+include 'sor-core'
+include 'sor-codec'
+include 'sor-transport-aeron'
+include 'sor-transport-http-control'
+include 'sor-optimizers-native'
+include 'sor-observability'
+include 'sor-test-server'
+include 'sor-client-java'

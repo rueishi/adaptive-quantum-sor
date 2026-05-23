@@ -1,0 +1,54 @@
+/*
+ * Public API module for the Phase 8 framework contract.
+ *
+ * This module intentionally has no production dependencies. Integrators,
+ * embedded engines, and future out-of-process clients all compile against
+ * these types without pulling in sor-core implementation classes.
+ */
+sourceSets {
+    jmh {
+        java.srcDir 'src/jmh/java'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    jmhImplementation.extendsFrom implementation
+    jmhRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+    jmhImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+}
+
+tasks.named('compileJmhJava') {
+    options.annotationProcessorPath = configurations.jmhAnnotationProcessor
+}
+
+tasks.register('jmh', JavaExec) {
+    description = 'Runs sor-api JMH microbenchmarks.'
+    group = 'verification'
+    dependsOn tasks.named('jmhClasses')
+    mainClass = 'org.openjdk.jmh.Main'
+    classpath = sourceSets.jmh.runtimeClasspath
+    args = [
+            project.findProperty('jmhInclude') ?: '.*',
+            '-wi', project.findProperty('jmhWarmupIterations') ?: '3',
+            '-i', project.findProperty('jmhMeasurementIterations') ?: '5',
+            '-f', project.findProperty('jmhForks') ?: '1',
+            '-prof', 'gc'
+    ]
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes(
+                'Implementation-Title': 'Adaptive Quantum SOR API',
+                'Implementation-Version': project.version,
+                'Sealed': 'true'
+        )
+    }
+}

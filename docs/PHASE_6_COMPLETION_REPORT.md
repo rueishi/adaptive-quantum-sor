@@ -62,7 +62,7 @@ none
 
 ## Scenario Evidence
 
-Phase 6 scenario files live under `scenarios/optimizer-policy/`:
+Phase 6 scenario files live under `sor-test-server/src/main/resources/scenarios/optimizer-policy/`:
 
 ```text
 batch_same_venue_self_impact.yaml

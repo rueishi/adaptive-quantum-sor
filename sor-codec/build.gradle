@@ -1,0 +1,24 @@
+def generatedSbeDir = layout.buildDirectory.dir('generated/sbe/com/nitroj/sor/codec/v1')
+
+tasks.register('generateSbe') {
+    description = 'Generates deterministic placeholder SBE codec sources for protocol v1.'
+    group = 'build'
+    inputs.file layout.projectDirectory.file('src/main/resources/sbe/sor-protocol-v1.xml')
+    outputs.dir generatedSbeDir
+    doLast {
+        def dir = generatedSbeDir.get().asFile
+        dir.mkdirs()
+        new File(dir, 'GeneratedProtocolMarker.java').text = '''package com.nitroj.sor.codec.v1;
+
+/** Deterministically generated marker for sor-protocol-v1.xml. */
+public final class GeneratedProtocolMarker {
+    public static final int SCHEMA_VERSION = 1;
+    private GeneratedProtocolMarker() {}
+}
+'''
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('generateSbe')
+}

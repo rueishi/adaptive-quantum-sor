@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adaptive-quantum-sor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adaptive-quantum-sor
+  template:
+    metadata:
+      labels:
+        app: adaptive-quantum-sor
+    spec:
+      containers:
+        - name: sor-test-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args:
+            - "--transport=aeron"
+            - "--http-control-port={{ .Values.httpControlPort }}"
+          ports:
+            - name: http-control
+              containerPort: {{ .Values.httpControlPort }}
+            - name: aeron
+              containerPort: {{ .Values.aeronPort }}
+              protocol: UDP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-control
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http-control
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory }}

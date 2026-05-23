@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adaptive-quantum-sor
+spec:
+  selector:
+    app: adaptive-quantum-sor
+  ports:
+    - name: http-control
+      port: {{ .Values.httpControlPort }}
+      targetPort: http-control
+    - name: aeron
+      port: {{ .Values.aeronPort }}
+      targetPort: aeron
+      protocol: UDP

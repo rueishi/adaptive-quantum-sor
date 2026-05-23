@@ -1,0 +1,8 @@
+dependencies {
+    implementation project(':sor-api')
+}
+
+tasks.register('jmh') {
+    description = 'Runs observability hot-path allocation regression checks.'
+    group = 'verification'
+}

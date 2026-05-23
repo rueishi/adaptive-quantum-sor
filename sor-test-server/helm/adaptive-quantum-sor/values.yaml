@@ -1,0 +1,10 @@
+image:
+  repository: adaptive-quantum-sor/sor-test-server
+  tag: 0.8.0-SNAPSHOT
+resources:
+  requests:
+    cpu: "4"
+    memory: 8Gi
+httpControlPort: 9090
+aeronPort: 40123
+omsNamespace: oms

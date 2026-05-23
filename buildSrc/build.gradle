@@ -1,0 +1,5 @@
+/*
+ * Reserved buildSrc project for Phase 8 build conventions and version catalog
+ * helpers. P8-02 creates the directory so later cards can centralize dependency
+ * coordinates without changing the project graph again.
+ */

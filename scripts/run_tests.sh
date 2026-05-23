@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-25-openjdk-amd64}"
 export JAVA_HOME
 
 PROFILE="${1:-all}"
@@ -15,42 +15,36 @@ run_gradle() {
 
 case "$PROFILE" in
   unit)
-    run_gradle test \
+    run_gradle :sor-core:test \
       --tests 'com.nitroj.adaptive.quantum.sor.model.*' \
       --tests 'com.nitroj.adaptive.quantum.sor.state.*' \
       --tests 'com.nitroj.adaptive.quantum.sor.policy.*' \
       --tests 'com.nitroj.adaptive.quantum.sor.optimizer.*'
     ;;
   integration)
-    run_gradle test \
-      --tests 'com.nitroj.adaptive.quantum.sor.integration.*' \
+    run_gradle :sor-core:test \
+      --tests 'com.nitroj.adaptive.quantum.sor.integration.*'
+    run_gradle :sor-test-server:test \
       --tests 'com.nitroj.adaptive.quantum.sor.e2e.*' \
       --tests 'com.nitroj.adaptive.quantum.sor.api.*'
     ;;
   simulator)
-    run_gradle test \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.SimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.MarketDataSimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.MarketSessionSimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.VenueSessionSimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.VenueThrottleSimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.ParentOrderIntentSimulatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.sim.VenueBehaviorSimulatorTest'
+    run_gradle :sor-test-server:test
     ;;
   scenario)
-    run_gradle test \
+    run_gradle :sor-test-server:test \
       --tests 'com.nitroj.adaptive.quantum.sor.scenario.*' \
       --tests 'com.nitroj.adaptive.quantum.sor.e2e.SorEndToEndTest.replayableScenarioProducesEquivalentSummary' \
       --tests 'com.nitroj.adaptive.quantum.sor.e2e.SorEndToEndTest.scenarioLiquidityDisappearanceRoutesSafely'
     ;;
   policy)
-    run_gradle test \
+    run_gradle :sor-core:test \
       --tests 'com.nitroj.adaptive.quantum.sor.policy.compile.DefaultPolicyCompilerTest' \
       --tests 'com.nitroj.adaptive.quantum.sor.policy.validation.DefaultPolicyValidatorTest' \
       --tests 'com.nitroj.adaptive.quantum.sor.policy.lint.DefaultPolicyLintTest'
     ;;
   native)
-    run_gradle nativeTest
+    run_gradle :sor-core:nativeTest
     ;;
   all)
     run_gradle check

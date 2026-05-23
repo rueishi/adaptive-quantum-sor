@@ -12,7 +12,7 @@ low-level deterministic simulator tests from scenario-driven replay tests.
   scenario-aware APIs while preserving baseline deterministic helpers.
 - `ScenarioRunner.run(ScenarioSpec)` is the canonical Gradle/JUnit scenario
   entry point and returns a stable `ScenarioSummary`.
-- User-readable scenario files under `scenarios/<category>/*.yaml` load through
+- User-readable scenario files under `sor-test-server/src/main/resources/scenarios/<category>/*.yaml` load through
   `ScenarioDefinitionLoader` into `ScenarioSpec`.
 - The checked-in scenario catalog contains at least 62 files covering baseline,
   regime, liquidity, stale feed, outage, toxic venue, lineage, failure, live

@@ -3,6 +3,11 @@
 These Mermaid diagrams document the core Adaptive Quantum SOR flows across routing,
 optimization, publication, notebooks, and venue outcomes.
 
+Phase 8 split the former monolith into `sor-api`, `sor-core`,
+`sor-test-server`, explicit transports, clients, and adapters. These diagrams use
+the Phase 8 names: `SorEngineImpl`, `SorEngineBuilder`, `AeronSorClient`,
+`AeronSorServer`, `HttpControlPlaneServer`, and simulator SPI adapters.
+
 The editable professional diagram source is:
 
 ```text
@@ -28,20 +33,24 @@ docs/sequence_venue_behavior_outcome_loop.png
 
 ```mermaid
 sequenceDiagram
-    participant User as Trader or Simulator
-    participant API as SorHttpApiServer
-    participant Queue as ParentOrderIntentQueue
+    participant User as Integrator or Simulator
+    participant API as SorEngine API
+    participant Engine as SorEngineImpl
+    participant Queue as ManyToOneRingBuffer
     participant SOR as PolicyDrivenSorExecutioner
     participant Policy as PolicyPublisher
     participant Audit as RouteAuditWriter
+    participant Venue as VenueAdapter SPI
 
-    User->>API: POST /orders
-    API->>Queue: offer(OrderIntent)
-    API-->>User: OrderStatusView
+    User->>API: submitParentOrder(ParentOrderRequest)
+    API->>Engine: validate API DTO
+    Engine->>Queue: offer parent order command
     SOR->>Queue: poll()
     SOR->>Policy: activePolicy()
     SOR->>SOR: route by HotRouteBook routeKey
+    SOR->>Venue: offer ChildOrderRef via RingWriter
     SOR->>Audit: append(RouteAuditEvent)
+    Engine-->>User: OrderStatus + SorEvent stream
 ```
 
 ## Policy Optimization Cycle
@@ -160,16 +169,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Notebook as Jupyter Notebook
-    participant Client as SorNotebookClient
-    participant API as SorHttpApiServer
-    participant Queue as ParentOrderIntentQueue
+    participant Client as adaptive-quantum-sor-client
+    participant API as HttpControlPlaneServer
+    participant Engine as SorEngineImpl
+    participant Queue as ManyToOneRingBuffer
     participant Events as LifecycleEventStore
 
-    Notebook->>Client: submit_orders_dataframe(DataFrame)
+    Notebook->>Client: SorClient.submit_parent_order(...)
     Client->>API: POST /orders
-    API->>Queue: offer(OrderIntent)
+    API->>Engine: submitParentOrder(ParentOrderRequest)
+    Engine->>Queue: offer parent order command
     API->>Events: append(order accepted)
-    API-->>Client: OrderStatusView JSON
+    API-->>Client: OrderStatus JSON
     Client-->>Notebook: pandas DataFrame
 ```
 
@@ -182,12 +193,12 @@ sequenceDiagram
     participant Notebook as Jupyter Notebook
     participant Catalog as Scenario Catalog Library
     participant Client as SorNotebookClient
-    participant API as Scenario API
+    participant API as NotebookScenarioApiLauncher
     participant Control as ScenarioControlService
     participant Context as ScenarioEngineContext
     participant Runner as ScenarioRunner
-    participant SOR as PolicyDrivenSorExecutioner
-    participant Venue as VenueBehaviorSimulator
+    participant Engine as SorEngineImpl
+    participant Venue as SimulatedVenueAdapter
     participant Events as LifecycleEventStore
 
     Notebook->>Catalog: load/search/suggest scenario
@@ -203,8 +214,8 @@ sequenceDiagram
     Client->>API: POST /scenario/run
     API->>Control: run(ScenarioRunRequest parentOrders[])
     Control->>Runner: run(spec, context)
-    Runner->>SOR: submit parentOrders[] at scheduled ticks
-    SOR->>Venue: route child orders by active HotRouteBook
+    Runner->>Engine: submit parentOrders[] through SorEngineBuilder path
+    Engine->>Venue: route ChildOrderRef by active HotRouteBook
     Venue-->>Runner: fills/rejects/residuals
     Runner-->>Control: ScenarioSummary + parent-order evidence
     Control->>Events: append scenario run summary
@@ -218,16 +229,16 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SOR as SOR Executioner
-    participant Child as ChildOrderState
-    participant Venue as VenueBehaviorSimulator
-    participant Outcomes as ExecutionOutcomeStore
+    participant Engine as SorEngineImpl
+    participant Child as ChildOrderRef
+    participant Venue as SimulatedVenueAdapter
+    participant Outcomes as Fill/Reject callbacks
     participant Stats as FeatureAggregator
     participant Features as VenueStatsState
 
-    SOR->>Child: create child orders
-    Child->>Venue: simulated venue interaction
-    Venue->>Outcomes: append ACK/FILL/REJECT
+    Engine->>Child: encode child-order command
+    Engine->>Venue: RingWriter.offer(ChildOrderRef)
+    Venue->>Outcomes: emit ACK/FILL/REJECT
     Outcomes->>Stats: rolling aggregation
     Stats->>Features: update latency/fill/toxicity/slippage
 ```

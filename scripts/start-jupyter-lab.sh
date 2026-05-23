@@ -10,7 +10,7 @@ WORKSPACE="${ADAPTIVE_QUANTUM_SOR_JUPYTER_WORKSPACE:-adaptive-quantum-sor}"
 VENV_DIR="${ADAPTIVE_QUANTUM_SOR_NOTEBOOK_VENV:-$ROOT_DIR/.venv-notebook}"
 JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
 export JAVA_HOME
-export PYTHONPATH="$ROOT_DIR/python${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$ROOT_DIR/tools/notebook-helpers:$ROOT_DIR/tools/python-research${PYTHONPATH:+:$PYTHONPATH}"
 
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
   echo "Creating notebook Python virtual environment at ${VENV_DIR} ..."
@@ -31,7 +31,7 @@ PY
 then
   echo "Installing notebook dependencies into ${VENV_DIR} ..."
   "$VENV_PYTHON" -m pip install --upgrade pip
-  "$VENV_PYTHON" -m pip install -r "$ROOT_DIR/python/requirements.txt" jupyterlab
+  "$VENV_PYTHON" -m pip install -r "$ROOT_DIR/tools/python-research/requirements.txt" jupyterlab
 fi
 
 API_PID=""
@@ -43,12 +43,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "Building Java classes for the SOR engine API..."
-"$ROOT_DIR/gradlew" -q classes
+echo "Building Java classes for the SOR notebook API..."
+"$ROOT_DIR/gradlew" -q :sor-test-server:classes
 
 echo "Starting SOR engine API on http://127.0.0.1:${API_PORT} ..."
-java -cp "$ROOT_DIR/build/classes/java/main:$ROOT_DIR/build/resources/main" \
-  com.nitroj.adaptive.quantum.sor.AdaptiveQuantumSorApplication --api-port="$API_PORT" &
+"$ROOT_DIR/gradlew" -q :sor-test-server:runNotebookApi --args="--http-control-port=${API_PORT}" &
 API_PID="$!"
 
 echo "Waiting for API readiness..."
@@ -73,7 +72,7 @@ fi
 
 echo "Opening JupyterLab workspace '${WORKSPACE}' with three notebook panels..."
 echo "API base URL: http://127.0.0.1:${API_PORT}"
-echo "Dataset: python/examples/sor_notebook_features_large.csv"
+echo "Dataset: tools/python-research/examples/sor_notebook_features_large.csv"
 echo "Panels:"
 echo "  1. notebooks/submit_parent_order.ipynb"
 echo "  2. notebooks/live_stats_monitor.ipynb"

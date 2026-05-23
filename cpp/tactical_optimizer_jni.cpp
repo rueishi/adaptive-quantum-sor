@@ -8,7 +8,7 @@
 #include <jni.h>
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_nitroj_adaptive_quantum_sor_nativebridge_JniTacticalOptimizerNativeBridge_echoNative(
+Java_com_nitroj_sor_optnative_JniTacticalOptimizerNativeBridge_echoNative(
         JNIEnv*,
         jobject,
         jint value) {
@@ -16,7 +16,7 @@ Java_com_nitroj_adaptive_quantum_sor_nativebridge_JniTacticalOptimizerNativeBrid
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_nitroj_adaptive_quantum_sor_nativebridge_JniTacticalOptimizerNativeBridge_optimizeStatusNative(
+Java_com_nitroj_sor_optnative_JniTacticalOptimizerNativeBridge_optimizeStatusNative(
         JNIEnv* env,
         jobject,
         jobject input_buffer,

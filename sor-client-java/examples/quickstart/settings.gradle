@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenLocal {
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'sor-client-java-quickstart'

@@ -27,7 +27,7 @@ Runs focused unit-test packages for model, state, policy, and optimizer code.
 scripts/run_tests.sh integration
 ```
 
-Runs integration, E2E, and API workflow tests.
+Runs core integration tests plus test-server E2E and API workflow tests.
 
 ## Simulator Deterministic Profile
 
@@ -36,9 +36,9 @@ scripts/run_tests.sh simulator
 ```
 
 Runs deterministic simulator contract coverage only. This profile is for
-low-level simulator unit tests such as `SimulatorTest`,
-`MarketDataSimulatorTest`, `VenueBehaviorSimulatorTest`, and session/throttle
-simulator tests.
+the `sor-test-server` module: adapter contract tests, deterministic market-data
+tests, venue behavior tests, scenario generator tests, and package-boundary
+guards.
 
 This profile should not run scenario replay tests. Keeping it narrow makes
 single-simulator regressions easy to diagnose.
@@ -75,8 +75,9 @@ com.nitroj.adaptive.quantum.sor.e2e.SorEndToEndTest.scenarioLiquidityDisappearan
 ```
 
 The deterministic simulator profile must stay focused on
-`com.nitroj.adaptive.quantum.sor.sim.*` tests and must not include the scenario
-package. This separation keeps direct simulator regressions distinct from
+`sor-test-server` tests, while replayable scenario tests also run from
+`sor-test-server`.
+This separation keeps direct simulator regressions distinct from
 scenario orchestration failures.
 
 The simulator profile must not include the scenario package.
@@ -134,7 +135,7 @@ build/reports/benchmarks/sor-comparison-report.md
 Override inputs and output paths:
 
 ```bash
-ADAPTIVE_QUANTUM_SOR_COMPARISON_DATASET=python/examples/sor_notebook_features_100k.csv \
+ADAPTIVE_QUANTUM_SOR_COMPARISON_DATASET=tools/python-research/examples/sor_notebook_features_100k.csv \
 ADAPTIVE_QUANTUM_SOR_COMPARISON_REPORT=build/reports/benchmarks/custom-report.md \
 scripts/run_benchmarks.sh comparison
 ```

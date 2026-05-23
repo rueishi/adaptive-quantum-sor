@@ -1,0 +1,29 @@
+Metadata-Version: 2.4
+Name: adaptive-quantum-sor-client
+Version: 1.0.0
+Summary: Typed Python SDK for the Adaptive Quantum SOR HTTP control plane
+Author-email: Nitroj Engineering <engineering@nitroj.com>
+License-Expression: Apache-2.0
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.31
+Requires-Dist: httpx>=0.27
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: mypy>=1.8; extra == "dev"
+Requires-Dist: build>=1.2; extra == "dev"
+Requires-Dist: twine>=5; extra == "dev"
+
+# Adaptive Quantum SOR Python Client
+
+```python
+from adaptive_quantum_sor_client import SorClient
+
+client = SorClient("http://127.0.0.1:8080")
+order = client.submit_parent_order(instrument_id=7, side=1, quantity=1000, urgency_id=2)
+status = client.get_status(order.parent_order_id)
+```
+
+The package wraps the existing HTTP control-plane endpoints used by notebooks:
+`POST /orders`, `GET /orders/{id}`, `GET /policy/current`, and
+`GET /events/stream`.
