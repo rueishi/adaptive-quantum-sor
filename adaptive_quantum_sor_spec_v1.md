@@ -3143,25 +3143,25 @@ optimization, publication, notebooks, live scenario testing, and venue outcomes.
 The editable professional diagram source is:
 
 ```text
-docs/sequence_diagrams.drawio
+docs/architecture/diagrams/sequence_diagrams.drawio
 ```
 
 Rendered PNGs:
 
 ```text
-docs/sequence_parent_order_routing.png
-docs/sequence_policy_optimization_cycle.png
-docs/sequence_cross_parent_batch_allocation.png
-docs/sequence_robust_policy_selection.png
-docs/sequence_policy_publication.png
-docs/sequence_jupyter_order_submission.png
-docs/sequence_live_jupyter_scenario_parent_orders.png
-docs/sequence_venue_behavior_outcome_loop.png
+docs/architecture/diagrams/sequence_parent_order_routing.png
+docs/architecture/diagrams/sequence_policy_optimization_cycle.png
+docs/architecture/diagrams/sequence_cross_parent_batch_allocation.png
+docs/architecture/diagrams/sequence_robust_policy_selection.png
+docs/architecture/diagrams/sequence_policy_publication.png
+docs/architecture/diagrams/sequence_jupyter_order_submission.png
+docs/architecture/diagrams/sequence_live_jupyter_scenario_parent_orders.png
+docs/architecture/diagrams/sequence_venue_behavior_outcome_loop.png
 ```
 
 ##### Parent Order Routing
 
-![Parent order routing](docs/sequence_parent_order_routing.png)
+![Parent order routing](docs/architecture/diagrams/sequence_parent_order_routing.png)
 
 ```mermaid
 sequenceDiagram
@@ -3183,7 +3183,7 @@ sequenceDiagram
 
 ##### Policy Optimization Cycle
 
-![Policy optimization cycle](docs/sequence_policy_optimization_cycle.png)
+![Policy optimization cycle](docs/architecture/diagrams/sequence_policy_optimization_cycle.png)
 
 ```mermaid
 sequenceDiagram
@@ -3203,7 +3203,7 @@ sequenceDiagram
 
 ##### Cross-Parent Batch Venue Allocation
 
-![Cross-parent batch venue allocation](docs/sequence_cross_parent_batch_allocation.png)
+![Cross-parent batch venue allocation](docs/architecture/diagrams/sequence_cross_parent_batch_allocation.png)
 
 ```mermaid
 sequenceDiagram
@@ -3233,7 +3233,7 @@ sequenceDiagram
 
 ##### Robust Policy Selection
 
-![Robust policy selection](docs/sequence_robust_policy_selection.png)
+![Robust policy selection](docs/architecture/diagrams/sequence_robust_policy_selection.png)
 
 ```mermaid
 sequenceDiagram
@@ -3270,7 +3270,7 @@ sequenceDiagram
 
 ##### Policy Publication
 
-![Policy publication](docs/sequence_policy_publication.png)
+![Policy publication](docs/architecture/diagrams/sequence_policy_publication.png)
 
 ```mermaid
 sequenceDiagram
@@ -3292,7 +3292,7 @@ sequenceDiagram
 
 ##### Jupyter Order Submission
 
-![Jupyter order submission](docs/sequence_jupyter_order_submission.png)
+![Jupyter order submission](docs/architecture/diagrams/sequence_jupyter_order_submission.png)
 
 ```mermaid
 sequenceDiagram
@@ -3314,7 +3314,7 @@ sequenceDiagram
 
 ##### Live Jupyter Scenario Run With Explicit Reset And Parent Orders
 
-![Live Jupyter scenario run with explicit reset and parent orders](docs/sequence_live_jupyter_scenario_parent_orders.png)
+![Live Jupyter scenario run with explicit reset and parent orders](docs/architecture/diagrams/sequence_live_jupyter_scenario_parent_orders.png)
 
 ```mermaid
 sequenceDiagram
@@ -3353,7 +3353,7 @@ sequenceDiagram
 
 ##### Venue Behavior Outcome Loop
 
-![Venue behavior outcome loop](docs/sequence_venue_behavior_outcome_loop.png)
+![Venue behavior outcome loop](docs/architecture/diagrams/sequence_venue_behavior_outcome_loop.png)
 
 ```mermaid
 sequenceDiagram
@@ -4931,7 +4931,7 @@ scenario-driven integration tests have Scenario*IntegrationTest names
 scenario-driven E2E tests have scenario-specific method names
 scripts/run_tests.sh simulator runs deterministic simulator contract tests
 scripts/run_tests.sh scenario runs scenario-driven tests
-docs/CI_TEST_PROFILES.md documents both profiles separately
+docs/testing/CI_TEST_PROFILES.md documents both profiles separately
 ```
 
 #### P5-SIM-015 Scenario summaries are deterministic and assertion-friendly
@@ -7569,7 +7569,7 @@ static vs adaptive comparison report
 **Primary files:**
 
 ```text
-docs/PHASE_1_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md
 ```
 
 **Inputs:**
@@ -8206,7 +8206,7 @@ E2E test evidence
 **Primary files:**
 
 ```text
-docs/PHASE_2_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_2_COMPLETION_REPORT.md
 ```
 
 **Inputs:**
@@ -8571,7 +8571,7 @@ Phase 3 report
 
 ```text
 governance/StrategicOptimizerAudit.java
-docs/PHASE_3_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_3_COMPLETION_REPORT.md
 ```
 
 **Inputs:**
@@ -8944,7 +8944,7 @@ ml/ModelArtifactImporter.java
 ml/ModelSignalValidator.java
 ml/ModelArtifactMetadata.java
 tools/python-research/scripts/train_models.py
-docs/PHASE_4_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_4_COMPLETION_REPORT.md
 src/test/java/com/nitroj/adaptive/quantum/sor/docs/Phase4CompletionReportTest.java
 ```
 
@@ -9555,9 +9555,9 @@ src/test/java/com/nitroj/adaptive/quantum/sor/sim/*
 src/test/java/com/nitroj/adaptive/quantum/sor/scenario/*
 src/test/java/com/nitroj/adaptive/quantum/sor/integration/*
 src/test/java/com/nitroj/adaptive/quantum/sor/e2e/SorEndToEndTest.java
-docs/CI_TEST_PROFILES.md
-docs/ARCHITECTURE.md
-docs/PHASE_5_COMPLETION_REPORT.md
+docs/testing/CI_TEST_PROFILES.md
+docs/architecture/ARCHITECTURE.md
+docs/reports/phase-1-7/PHASE_5_COMPLETION_REPORT.md
 sor-test-server/src/main/resources/scenarios/<category>/*.yaml
 adaptive_quantum_sor_spec_v1.md
 scripts/run_tests.sh
@@ -9672,9 +9672,9 @@ AdaptiveQuantumSorApplication.java
 SorEngineRuntime.java
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py
 notebooks/scenario_runner.ipynb
-docs/CI_TEST_PROFILES.md
+docs/testing/CI_TEST_PROFILES.md
 tools/python-research/README.md
-docs/SEQUENCE_DIAGRAMS.md
+docs/architecture/SEQUENCE_DIAGRAMS.md
 ```
 
 **Inputs:**
@@ -10179,7 +10179,7 @@ Jupyter report surfaces
 sor-test-server/src/main/resources/scenarios/optimizer-policy/*
 notebooks/scenario_runner.ipynb
 metrics/*
-docs/PHASE_6_COMPLETION_REPORT.md
+docs/reports/phase-1-7/PHASE_6_COMPLETION_REPORT.md
 ```
 
 **Tests:**
@@ -10235,7 +10235,7 @@ LifecycleEvent
 
 ```text
 adaptive_quantum_sor_spec_v1.md
-docs/ARCHITECTURE.md
+docs/architecture/ARCHITECTURE.md
 ```
 
 **Acceptance criteria covered:**
@@ -10263,7 +10263,7 @@ venue behavior outcome loop
 **Primary files:**
 
 ```text
-docs/SEQUENCE_DIAGRAMS.md
+docs/architecture/SEQUENCE_DIAGRAMS.md
 ```
 
 **Acceptance criteria covered:**
@@ -10299,7 +10299,7 @@ scripts/run_tests.sh
 scripts/run_benchmarks.sh
 tools/python-research/scripts/generate_sor_dataset.py
 tools/python-research/scripts/compare_sor_dataset.py
-docs/CI_TEST_PROFILES.md
+docs/testing/CI_TEST_PROFILES.md
 ```
 
 **Outputs:**

@@ -1208,7 +1208,7 @@ N×4+128 N×4    routeEnd[]                    size = instr * regime * urgency
 All multibyte fields are little-endian. The `routeKey` derivation matches the
 existing
 `routeKey = ((instrumentId * regimeCount) + regimeId) * urgencyCount + urgencyId`
-formula in `docs/ARCHITECTURE.md`.
+formula in `docs/architecture/ARCHITECTURE.md`.
 
 ### 8.5.2 Versioning Rules
 
@@ -2004,7 +2004,7 @@ Phase 1–7 test still passes.
 - Commit the JVM flags from §3.1 to `scripts/run_engine.sh` and document
   them.
 - Re-run all JMH benchmarks and record the new baseline in
-  `docs/PHASE_8A_JMH_BASELINE.md`.
+  `docs/testing/PHASE_8_JMH_BASELINE.md`.
 - Restructure `settings.gradle` into a multi-project build. Initial
   subprojects: `sor-api`, `sor-core`, `sor-test-server` (everything else
   is added in later sub-phases).
@@ -2025,7 +2025,7 @@ Phase 1–7 test still passes.
   `OrderIntent`s through `PolicyDrivenSorExecutioner` to drive JIT.
   `/ready` returns false until warmup completes.
 - Lock down `HotRouteBook` binary ABI v1. Write the spec section into
-  `docs/HOT_ROUTE_BOOK_ABI_V1.md`. Generate the golden binary at
+  `docs/integration/HOT_ROUTE_BOOK_ABI_V1.md`. Generate the golden binary at
   `src/test/resources/abi/hot_route_book_v1_golden.bin`. Add
   `HotRouteBookAbiV1GoldenTest`.
 - Add ArchUnit test enforcing: `sor-core` types do not appear in any
@@ -2278,11 +2278,11 @@ out of this repository and belong in integrator-owned modules.
     Service, ServiceMonitor for Prometheus, NetworkPolicy,
     liveness/readiness probes mapped to `/healthz` and `/ready`, sized
     resource requests based on the 8GB ZGC heap default.
-- New `docs/INTEGRATING_AS_EMBEDDED.md` — written for an integrator
+- New `docs/integration/INTEGRATING_AS_EMBEDDED.md` — written for an integrator
   picking up the framework for the first time. Covers: dependency
   declaration, SPI implementation walk-through, warmup,
   observability wiring, troubleshooting.
-- New `docs/INTEGRATING_OVER_AERON.md` — same for the out-of-process
+- New `docs/integration/INTEGRATING_OVER_AERON.md` — same for the out-of-process
   shape.
 
 **Acceptance:** P8-AC-045 through P8-AC-051.
@@ -2336,7 +2336,7 @@ maps to one or more acceptance criteria.
 ```text
 P8-TC-001  Bump Gradle toolchain to JDK 25 LTS; update CI runners.
 P8-TC-002  Commit ZGC + warmup-related JVM flags to scripts/run_engine.sh.
-P8-TC-003  Re-run JMH; capture new baseline in docs/PHASE_8A_JMH_BASELINE.md.
+P8-TC-003  Re-run JMH; capture new baseline in docs/testing/PHASE_8_JMH_BASELINE.md.
 P8-TC-004  Restructure settings.gradle into multi-project layout.
 P8-TC-005  Create sor-api module; define SorEngine, SorEngineBuilder, DTOs.
 P8-TC-006  Define five SPI interfaces in sor-api/spi.
@@ -2427,8 +2427,8 @@ P8-TC-065  sor-client-java published to Maven Central, version 1.0.0.
 P8-TC-066  sor-client-python published to PyPI, version 1.0.0.
 P8-TC-067  sor-test-server sample server: CLI, run.sh, jib OCI image.
 P8-TC-068  Helm chart: Deployment, Service, ServiceMonitor, NetworkPolicy.
-P8-TC-069  docs/INTEGRATING_AS_EMBEDDED.md.
-P8-TC-070  docs/INTEGRATING_OVER_AERON.md.
+P8-TC-069  docs/integration/INTEGRATING_AS_EMBEDDED.md.
+P8-TC-070  docs/integration/INTEGRATING_OVER_AERON.md.
 P8-TC-071  Publish PHASE_8G_COMPLETION_REPORT.md.
 ```
 
@@ -2554,7 +2554,7 @@ P8-AC-049  jib OCI image builds; container starts and passes /healthz.
 P8-AC-050  Helm chart installs cleanly; ServiceMonitor scraped by
             Prometheus; smoke test order submitted via Aeron.
 P8-AC-051  Fresh-developer onboarding: `helm install …` → first order
-            submitted in under 30 minutes per docs/INTEGRATING_*.md.
+            submitted in under 30 minutes per docs/integration/INTEGRATING_*.md.
 ```
 
 ### Phase 8H
@@ -2688,9 +2688,9 @@ sor-test-server/src/main/resources/scenarios/*                         → uncha
 notebooks/*                         → simplified to workflow cells that call helper modules
 tools/notebook-helpers/*            → notebook widgets/report templates
 tools/python-research/*             → research helpers, datasets, scenario catalog
-docs/SEQUENCE_DIAGRAMS.md           → updated to reflect new module names
-docs/CI_TEST_PROFILES.md            → updated for multi-project profiles
-docs/PHASE_*_COMPLETION_REPORT.md   → unchanged
+docs/architecture/SEQUENCE_DIAGRAMS.md           → updated to reflect new module names
+docs/testing/CI_TEST_PROFILES.md            → updated for multi-project profiles
+docs/reports/phase-*/PHASE_*_COMPLETION_REPORT.md   → unchanged
 ```
 
 ---
@@ -2840,7 +2840,7 @@ jib {
 |---|---|---|---|
 | R-8-01 | The SPI design omits a capability a real integrator needs. | Forces a breaking change in `sor-api` post-1.0. | Phase 8B (simulator rewrite) is the primary forcing function. Additionally, run the SPI design past one external reviewer experienced in OMS integration *before* Phase 8A starts. |
 | R-8-02 | The 4-byte JDK 25 + ZGC config interacts badly with native libraries used by integrators (Netty's epoll, Tomcat's APR, etc). | Crashes on some integrator deployments. | Document the supported JDK 25 patch level minimum (currently 25.0.3); run a Testcontainers matrix against common-conflict native libs in CI. |
-| R-8-03 | Aeron media driver tuning is fragile; integrators hit jitter without dedicated cores. | Out-of-process P99 misses the 10µs target on customer hardware. | Ship `docs/INTEGRATING_OVER_AERON.md` with the canonical `taskset`/`numactl`/CPU-isolation recipe; default to Aeron IPC (less tuning required) before recommending UDP. |
+| R-8-03 | Aeron media driver tuning is fragile; integrators hit jitter without dedicated cores. | Out-of-process P99 misses the 10µs target on customer hardware. | Ship `docs/integration/INTEGRATING_OVER_AERON.md` with the canonical `taskset`/`numactl`/CPU-isolation recipe; default to Aeron IPC (less tuning required) before recommending UDP. |
 | R-8-04 | Chronicle Queue file format changes between major versions; migration burden for integrators. | Forced downtime to migrate WAL on upgrades. | Pin the Chronicle major version in the BOM; document the file format in `docs/PERSISTENCE_FORMAT.md`. |
 | R-8-05 | The HotRouteBook ABI v1 includes a field that needs to change. | Either a v2 ABI breaks every C++ consumer (Phase 9 path), or v1 ossifies suboptimal layout. | Spend longer on §8.5.1 review before locking v1; include 16 bytes of reserved padding in the header so v2 can add fields without changing offsets. |
 | R-8-06 | The simulator rewrite (Phase 8B) discovers the SPI cannot represent something the existing simulator depends on. | Phase 8B slips; SPI redesign. | Time-box Phase 8B at 6 engineer-weeks; if blocked, halt and revise §8.4 before continuing. |
@@ -2848,7 +2848,7 @@ jib {
 | R-8-08 | gRPC turns out to be needed for a specific integrator after all. | Replan. | Document the explicit reasoning in §8.3.4 so the team has a clean record of when the assumption no longer holds; revisit only if signed-up integrator requirement appears. |
 | R-8-09 | Multi-tenant (8H) creep into earlier phases. | Phases 8A–8G slip. | Keep 8H formally out of scope through 8G's completion report. Reject mid-phase requests for "could we make this multi-tenant now?" |
 | R-8-10 | Notebook users break when control-plane HTTP API is restructured. | Research team blocked. | Keep the existing HTTP endpoints byte-for-byte unchanged in `sor-transport-http-control`; rename the module, not the wire surface. |
-| R-8-11 | JEP 519 ZGC support ships on a JDK 25 update; team forgets to enable it. | 5–10% CPU win left on the table. | Track JEP 534 status in `docs/PHASE_8A_JMH_BASELINE.md`; re-baseline at each quarterly CPU. |
+| R-8-11 | JEP 519 ZGC support ships on a JDK 25 update; team forgets to enable it. | 5–10% CPU win left on the table. | Track JEP 534 status in `docs/testing/PHASE_8_JMH_BASELINE.md`; re-baseline at each quarterly CPU. |
 | R-8-12 | Maven Central / PyPI publishing setup blocks Phase 8G. | Adapter pack ships without published SDKs. | Pre-stage publishing credentials and a dry-run release on a separate org/group ID during Phase 8E. |
 
 ---
@@ -3093,7 +3093,7 @@ convention of `adaptive_quantum_sor_spec_v1.md` §11.3 through §11.9. Each AC i
 expressed in Given-When-Then form. The 22 cards in §8.17.2 each list the ACs
 they deliver and the test-class roster that proves them. JUnit implementation
 lives in `src/test/java/` under the relevant module — referenced from each
-card and cross-checked at exit via the `docs/PHASE_8_<CARD_ID>_REPORT.md`
+card and cross-checked at exit via the `docs/reports/phase-8/PHASE_8_<CARD_ID>_REPORT.md`
 completion reports.
 
 ### 8.17.1 Acceptance Criteria Catalog
@@ -3140,7 +3140,7 @@ then the test JVM uses ZGC and the GC log records `Using The Z Garbage Collector
 
 Given the engine runs under ZGC,
 when `-XX:+UseCompactObjectHeaders` is added to the run script,
-then JVM startup fails with a clear diagnostic, and `docs/PHASE_8_JMH_BASELINE.md`
+then JVM startup fails with a clear diagnostic, and `docs/testing/PHASE_8_JMH_BASELINE.md`
 documents the incompatibility for the team.
 
 ##### P8-BOOT-004 Positive: production JVM flags are committed
@@ -3154,7 +3154,7 @@ then it contains `-XX:+UseZGC`, `-XX:+AlwaysPreTouch`, `-Xms<heap>` equal to `-X
 
 Given the JMH hot-path suite,
 when the baseline run executes,
-then `docs/PHASE_8_JMH_BASELINE.md` records the numbers with environment metadata
+then `docs/testing/PHASE_8_JMH_BASELINE.md` records the numbers with environment metadata
 (JDK build, kernel, hardware, GC, heap).
 
 ##### P8-BOOT-006 Failure: JMH regression gate
@@ -4032,9 +4032,9 @@ then it is denied by the policy.
 ##### P8-DEPLOY-006 Positive: integrator can reach an order in 30 minutes
 
 Given a developer outside the core team,
-when they follow `docs/INTEGRATING_AS_EMBEDDED.md` from a clean machine,
+when they follow `docs/integration/INTEGRATING_AS_EMBEDDED.md` from a clean machine,
 then they submit a paper-traded order in under 30 minutes (recorded as
-`docs/PHASE_8_ONBOARDING_REPORT.md`).
+`docs/reports/phase-8/PHASE_8_ONBOARDING_REPORT.md`).
 
 ##### P8-DEPLOY-007 Positive: CLI flags work
 
@@ -4063,10 +4063,10 @@ Effort
 
 JUnit implementation lives under `src/test/java/` in the relevant module.
 Each card produces a completion report
-`docs/PHASE_8_<CARD_ID>_REPORT.md` that cross-references the AC IDs to
+`docs/reports/phase-8/PHASE_8_<CARD_ID>_REPORT.md` that cross-references the AC IDs to
 the test-class methods that satisfied them — the convention established
-by `docs/PHASE_1_COMPLETION_REPORT.md` through
-`docs/PHASE_7_COMPLETION_REPORT.md`.
+by `docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md` through
+`docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md`.
 
 ---
 
@@ -4092,7 +4092,7 @@ behavior changes elsewhere.
   `PRODUCTION_FRAMEWORK_RECOMMENDATION.md` (UseZGC, AlwaysPreTouch,
   Xms=Xmx, UseTransparentHugePages, UseNUMA, GC logging).
 - Document the ZGC + compact-headers incompatibility in
-  `docs/PHASE_8_JMH_BASELINE.md` so future engineers don't enable
+  `docs/testing/PHASE_8_JMH_BASELINE.md` so future engineers don't enable
   `-XX:+UseCompactObjectHeaders` and silently break ZGC.
 - Run the full existing JMH suite. Capture: hot-path allocation,
   hot-path latency, optimizer cycle latency. Record environment metadata
@@ -4139,7 +4139,7 @@ com.nitroj.sor.core.boot.RunScriptFlagPresenceTest
 
 com.nitroj.sor.core.boot.JmhBaselineFileFormatTest
   → P8-BOOT-005
-  Parses docs/PHASE_8_JMH_BASELINE.md and asserts the required headings,
+  Parses docs/testing/PHASE_8_JMH_BASELINE.md and asserts the required headings,
   the per-benchmark sections, and that the environment-metadata block is
   populated. CI profile: unit.
 
@@ -4168,7 +4168,7 @@ com.nitroj.sor.core.benchmark.HotPathLatencyBenchmark (existing)
 ./gradlew :sor-core:check
 ./gradlew :sor-core:jmh -PjmhInclude='.*HotPath.*'
 ./gradlew jmhRegressionCheck
-cat docs/PHASE_8_JMH_BASELINE.md
+cat docs/testing/PHASE_8_JMH_BASELINE.md
 ```
 
 **Dependencies.** None.
@@ -4464,7 +4464,7 @@ consumer of policy snapshots over shared memory. Land it once, freeze
 it, never touch the layout again without a version bump.
 
 **Implementation outline.**
-- `docs/HOT_ROUTE_BOOK_ABI_V1.md` containing the field-by-field layout
+- `docs/integration/HOT_ROUTE_BOOK_ABI_V1.md` containing the field-by-field layout
   table from §8.5.1, versioning rules from §8.5.2, golden-binary contract
   from §8.5.4.
 - `HotRouteBookAbiV1.java` with `public static final` offsets and sizes.
@@ -5543,7 +5543,7 @@ Holding it for Aeron (P8-14) would delay observability deployment.
 - Add `tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py` for the
   `scenario_runner.ipynb` widget panel, HTML report templates, DataFrame
   shaping, and rendering helpers.
-- Document the module in its README and in `docs/INTEGRATING_*.md`:
+- Document the module in its README and in `docs/integration/INTEGRATING_*.md`:
   research/ops only.
 - Add a startup banner: "HTTP control plane on :PORT — research and ops
   only; order flow uses Aeron".
@@ -5711,7 +5711,7 @@ right" with "is the transport plumbing right".
 - Each message has a unique `template_id`. Field types primarily fixed-size
   primitives; variable-length used sparingly.
 - SBE codegen into `build/generated/sbe/com/nitroj/sor/codec/v1/`.
-- Schema versioning policy in `docs/SBE_SCHEMA_POLICY.md`: v1 frozen at
+- Schema versioning policy in `docs/integration/SBE_SCHEMA_POLICY.md`: v1 frozen at
   first release; appending optional fields allowed within v1 minor
   revisions (SBE's extension mechanism); breaking changes bump to v2.
 - Golden binary per message in `src/test/resources/sbe/golden/`.
@@ -6036,7 +6036,7 @@ staging, release process). Best done in isolation.
   builds against the published artifact and submits one order to a
   locally-running `sor-test-server`.
 - Version 1.0.0 release process documented in
-  `docs/RELEASE_PROCESS_JAVA_CLIENT.md`.
+  `docs/release/RELEASE_PROCESS_JAVA_CLIENT.md`.
 
 **Acceptance criteria delivered.**
 
@@ -6120,7 +6120,7 @@ support, retry semantics) is separate from any Java work.
   or retired.
 - Type stubs (`.pyi`) included.
 - PyPI publishing via Twine; release process in
-  `docs/RELEASE_PROCESS_PYTHON_CLIENT.md`.
+  `docs/release/RELEASE_PROCESS_PYTHON_CLIENT.md`.
 
 **Acceptance criteria delivered.**
 
@@ -6198,7 +6198,7 @@ twine check dist/*
 server as a standalone process. CLI flags. jib OCI image. Helm chart with
 Deployment, Service, ServiceMonitor, NetworkPolicy, liveness/readiness
 probes. Two new integrator guides:
-`docs/INTEGRATING_AS_EMBEDDED.md` and `docs/INTEGRATING_OVER_AERON.md`.
+`docs/integration/INTEGRATING_AS_EMBEDDED.md` and `docs/integration/INTEGRATING_OVER_AERON.md`.
 
 **Why it's its own card.** The deployment artifact integrates every other
 Phase 8 deliverable. Land it last so it picks up finished versions of
@@ -6221,10 +6221,10 @@ everything else.
   - `ServiceMonitor` for Prometheus scrape;
   - `NetworkPolicy` allowing ingress from the OMS namespace only;
   - liveness probe → `/healthz`; readiness probe → `/ready`.
-- `docs/INTEGRATING_AS_EMBEDDED.md`: dependency declaration, SPI
+- `docs/integration/INTEGRATING_AS_EMBEDDED.md`: dependency declaration, SPI
   implementation walk-through, warmup, observability wiring,
   troubleshooting.
-- `docs/INTEGRATING_OVER_AERON.md`: out-of-process shape, including the
+- `docs/integration/INTEGRATING_OVER_AERON.md`: out-of-process shape, including the
   `taskset`/`numactl`/CPU-isolation recipe for low-latency deployments.
 
 **Acceptance criteria delivered.**
@@ -6279,9 +6279,9 @@ com.nitroj.sor.sim.server.NetworkPolicyEnforcementTest
 com.nitroj.sor.sim.server.IntegratorOnboardingRehearsal
   → P8-DEPLOY-006
   Not a unit test — a documented manual rehearsal. A developer outside
-  the core team follows docs/INTEGRATING_AS_EMBEDDED.md from a clean
+  the core team follows docs/integration/INTEGRATING_AS_EMBEDDED.md from a clean
   machine. Wall-clock time recorded as evidence in
-  docs/PHASE_8_ONBOARDING_REPORT.md. Pass criterion: < 30 minutes to
+  docs/reports/phase-8/PHASE_8_ONBOARDING_REPORT.md. Pass criterion: < 30 minutes to
   first paper-traded order.
 
 com.nitroj.sor.sim.server.CliFlagsTest
@@ -6336,11 +6336,11 @@ Roughly **17 calendar weeks** with three engineers. The deferred P8-12
 (Postgres tail) is not on this timeline.
 
 Each card produces a phase-completion-report-style document at
-`docs/PHASE_8_<CARD_ID>_REPORT.md` recording: implemented scope,
+`docs/reports/phase-8/PHASE_8_<CARD_ID>_REPORT.md` recording: implemented scope,
 acceptance criteria evidence (with named test-class methods that
 satisfied each AC), validation commands, known limitations. The
-discipline matches `docs/PHASE_1_COMPLETION_REPORT.md` through
-`docs/PHASE_7_COMPLETION_REPORT.md`.
+discipline matches `docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md` through
+`docs/reports/phase-1-7/PHASE_7_COMPLETION_REPORT.md`.
 
 Phase 8 is complete when all 21 non-deferred cards have shipped
 completion reports and every AC named in §8.17.1 has a corresponding
@@ -6366,6 +6366,6 @@ deployment    Helm + container + Prometheus + NetworkPolicy tests
 python        pytest + mypy for sor-client-python
 ```
 
-`docs/CI_TEST_PROFILES.md` is updated in Phase 8A to reflect the
+`docs/testing/CI_TEST_PROFILES.md` is updated in Phase 8A to reflect the
 multi-project profile mapping. Each card's "CI profile" annotation in
 its test roster names which profile(s) the test runs under.

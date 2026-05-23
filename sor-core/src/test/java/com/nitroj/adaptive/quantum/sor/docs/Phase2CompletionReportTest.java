@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Role in system: P2-TC-009 owns the final completion report and this guard
  * keeps the completion evidence visible in the build.</p>
  *
- * <p>Relationships: reads {@code docs/PHASE_2_COMPLETION_REPORT.md} as a
+ * <p>Relationships: reads {@code docs/reports/phase-1-7/PHASE_2_COMPLETION_REPORT.md} as a
  * build-time documentation check.</p>
  *
  * <p>Lifecycle: executed by Gradle with the JUnit suite.</p>
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * the repository.</p>
  */
 final class Phase2CompletionReportTest {
-    private static final Path REPORT = Path.of("docs", "PHASE_2_COMPLETION_REPORT.md");
+    private static final Path REPORT = Path.of("docs", "reports", "phase-1-7", "PHASE_2_COMPLETION_REPORT.md");
 
     @Test
     void reportContainsRequiredPhaseTwoSections() throws IOException {

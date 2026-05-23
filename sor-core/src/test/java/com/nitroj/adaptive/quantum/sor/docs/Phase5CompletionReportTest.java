@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Role in system: covers P5-TC-006 documentation guards for implemented
  * acceptance criteria, known limits, and reproduction commands.</p>
  *
- * <p>Relationships: reads {@code docs/PHASE_5_COMPLETION_REPORT.md} and the
+ * <p>Relationships: reads {@code docs/reports/phase-1-7/PHASE_5_COMPLETION_REPORT.md} and the
  * CI profile documentation.</p>
  *
  * <p>Lifecycle: executed by Gradle/JUnit with documentation tests.</p>
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class Phase5CompletionReportTest {
     @Test
     void phase5CompletionReportListsImplementedAcsAndCommands() throws IOException {
-        final String report = Files.readString(Path.of("docs/PHASE_5_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
+        final String report = Files.readString(Path.of("docs/reports/phase-1-7/PHASE_5_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
 
         for (String expected : new String[]{
                 "P5-SIM-001",

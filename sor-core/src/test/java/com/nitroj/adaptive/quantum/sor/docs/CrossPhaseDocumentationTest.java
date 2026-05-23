@@ -28,7 +28,7 @@ final class CrossPhaseDocumentationTest {
     @Test
     void glossaryAndArchitectureCoverRequiredTerms() throws IOException {
         final String glossary = Files.readString(Path.of("adaptive_quantum_sor_spec_v1.md"), StandardCharsets.UTF_8);
-        final String architecture = read("ARCHITECTURE.md");
+        final String architecture = read("architecture/ARCHITECTURE.md");
 
         for (final String term : new String[]{
                 "HotRouteBook",
@@ -50,7 +50,7 @@ final class CrossPhaseDocumentationTest {
 
     @Test
     void sequenceDiagramsCoverRequiredFlows() throws IOException {
-        final String diagrams = read("SEQUENCE_DIAGRAMS.md");
+        final String diagrams = read("architecture/SEQUENCE_DIAGRAMS.md");
 
         for (final String expected : new String[]{
                 "```mermaid",
@@ -86,18 +86,18 @@ final class CrossPhaseDocumentationTest {
     @Test
     void specEmbedsGoldenScenarioFlowDiagram() throws IOException {
         final String spec = Files.readString(Path.of("adaptive_quantum_sor_spec_v1.md"), StandardCharsets.UTF_8);
-        final String drawio = Files.readString(Path.of("docs/sequence_diagrams.drawio"), StandardCharsets.UTF_8);
+        final String drawio = Files.readString(Path.of("docs/architecture/diagrams/sequence_diagrams.drawio"), StandardCharsets.UTF_8);
 
         assertContains(spec, "Golden Sequence Diagrams");
-        assertContains(spec, "docs/sequence_diagrams.drawio");
-        assertContains(spec, "docs/sequence_parent_order_routing.png");
-        assertContains(spec, "docs/sequence_policy_optimization_cycle.png");
-        assertContains(spec, "docs/sequence_cross_parent_batch_allocation.png");
-        assertContains(spec, "docs/sequence_robust_policy_selection.png");
-        assertContains(spec, "docs/sequence_policy_publication.png");
-        assertContains(spec, "docs/sequence_jupyter_order_submission.png");
-        assertContains(spec, "docs/sequence_live_jupyter_scenario_parent_orders.png");
-        assertContains(spec, "docs/sequence_venue_behavior_outcome_loop.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_diagrams.drawio");
+        assertContains(spec, "docs/architecture/diagrams/sequence_parent_order_routing.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_policy_optimization_cycle.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_cross_parent_batch_allocation.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_robust_policy_selection.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_policy_publication.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_jupyter_order_submission.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_live_jupyter_scenario_parent_orders.png");
+        assertContains(spec, "docs/architecture/diagrams/sequence_venue_behavior_outcome_loop.png");
         assertContains(drawio, "Cross-Parent Batch Venue Allocation");
         assertContains(drawio, "Robust Policy Selection");
         assertContains(drawio, "Live Jupyter Scenario Run With Explicit Reset And Parent Orders");
@@ -107,14 +107,14 @@ final class CrossPhaseDocumentationTest {
         assertContains(drawio, "Jupyter Order Submission");
         assertContains(drawio, "Venue Behavior Outcome Loop");
         for (final String png : new String[]{
-                "docs/sequence_parent_order_routing.png",
-                "docs/sequence_policy_optimization_cycle.png",
-                "docs/sequence_cross_parent_batch_allocation.png",
-                "docs/sequence_robust_policy_selection.png",
-                "docs/sequence_policy_publication.png",
-                "docs/sequence_jupyter_order_submission.png",
-                "docs/sequence_live_jupyter_scenario_parent_orders.png",
-                "docs/sequence_venue_behavior_outcome_loop.png"
+                "docs/architecture/diagrams/sequence_parent_order_routing.png",
+                "docs/architecture/diagrams/sequence_policy_optimization_cycle.png",
+                "docs/architecture/diagrams/sequence_cross_parent_batch_allocation.png",
+                "docs/architecture/diagrams/sequence_robust_policy_selection.png",
+                "docs/architecture/diagrams/sequence_policy_publication.png",
+                "docs/architecture/diagrams/sequence_jupyter_order_submission.png",
+                "docs/architecture/diagrams/sequence_live_jupyter_scenario_parent_orders.png",
+                "docs/architecture/diagrams/sequence_venue_behavior_outcome_loop.png"
         }) {
             assertTrue(Files.isRegularFile(Path.of(png)), () -> "rendered sequence PNG must exist: " + png);
         }

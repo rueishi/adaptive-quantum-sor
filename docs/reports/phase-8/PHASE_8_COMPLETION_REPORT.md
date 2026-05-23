@@ -18,7 +18,7 @@ The obsolete `AdaptiveQuantumSorApplication`, `SorEngineRuntime`, and
 lives in `sor-test-server` through `SimulatorServerApplication`.
 
 The completion gate in `adaptive_quantum_sor_spec_phase8.md` requires all 17
-non-deferred card reports. Those reports are present under `docs/` as
+non-deferred card reports. Those reports are present under `docs/reports/phase-8/` as
 `PHASE_8_P8-<card>_REPORT.md`. P8-12 remains deferred and does not gate Phase 8.
 
 ## Implemented Task Cards

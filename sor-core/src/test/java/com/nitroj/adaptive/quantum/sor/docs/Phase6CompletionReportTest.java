@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class Phase6CompletionReportTest {
     @Test
     void phase6CompletionReportListsImplementedAcsScenariosAndCommands() throws IOException {
-        final String report = Files.readString(Path.of("docs/PHASE_6_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
+        final String report = Files.readString(Path.of("docs/reports/phase-1-7/PHASE_6_COMPLETION_REPORT.md"), StandardCharsets.UTF_8);
 
         for (String expected : new String[]{
                 "P6-BATCH-001",

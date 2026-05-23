@@ -11,25 +11,25 @@ the Phase 8 names: `SorEngineImpl`, `SorEngineBuilder`, `AeronSorClient`,
 The editable professional diagram source is:
 
 ```text
-docs/sequence_diagrams.drawio
+docs/architecture/diagrams/sequence_diagrams.drawio
 ```
 
 Rendered PNGs:
 
 ```text
-docs/sequence_parent_order_routing.png
-docs/sequence_policy_optimization_cycle.png
-docs/sequence_cross_parent_batch_allocation.png
-docs/sequence_robust_policy_selection.png
-docs/sequence_policy_publication.png
-docs/sequence_jupyter_order_submission.png
-docs/sequence_live_jupyter_scenario_parent_orders.png
-docs/sequence_venue_behavior_outcome_loop.png
+docs/architecture/diagrams/sequence_parent_order_routing.png
+docs/architecture/diagrams/sequence_policy_optimization_cycle.png
+docs/architecture/diagrams/sequence_cross_parent_batch_allocation.png
+docs/architecture/diagrams/sequence_robust_policy_selection.png
+docs/architecture/diagrams/sequence_policy_publication.png
+docs/architecture/diagrams/sequence_jupyter_order_submission.png
+docs/architecture/diagrams/sequence_live_jupyter_scenario_parent_orders.png
+docs/architecture/diagrams/sequence_venue_behavior_outcome_loop.png
 ```
 
 ## Parent Order Routing
 
-![Parent order routing](sequence_parent_order_routing.png)
+![Parent order routing](diagrams/sequence_parent_order_routing.png)
 
 ```mermaid
 sequenceDiagram
@@ -55,7 +55,7 @@ sequenceDiagram
 
 ## Policy Optimization Cycle
 
-![Policy optimization cycle](sequence_policy_optimization_cycle.png)
+![Policy optimization cycle](diagrams/sequence_policy_optimization_cycle.png)
 
 ```mermaid
 sequenceDiagram
@@ -75,7 +75,7 @@ sequenceDiagram
 
 ## Cross-Parent Batch Venue Allocation
 
-![Cross-parent batch venue allocation](sequence_cross_parent_batch_allocation.png)
+![Cross-parent batch venue allocation](diagrams/sequence_cross_parent_batch_allocation.png)
 
 ```mermaid
 sequenceDiagram
@@ -105,7 +105,7 @@ sequenceDiagram
 
 ## Robust Policy Selection
 
-![Robust policy selection](sequence_robust_policy_selection.png)
+![Robust policy selection](diagrams/sequence_robust_policy_selection.png)
 
 ```mermaid
 sequenceDiagram
@@ -142,7 +142,7 @@ sequenceDiagram
 
 ## Policy Publication
 
-![Policy publication](sequence_policy_publication.png)
+![Policy publication](diagrams/sequence_policy_publication.png)
 
 ```mermaid
 sequenceDiagram
@@ -164,7 +164,7 @@ sequenceDiagram
 
 ## Jupyter Order Submission
 
-![Jupyter order submission](sequence_jupyter_order_submission.png)
+![Jupyter order submission](diagrams/sequence_jupyter_order_submission.png)
 
 ```mermaid
 sequenceDiagram
@@ -186,7 +186,7 @@ sequenceDiagram
 
 ## Live Jupyter Scenario Run With Explicit Reset And Parent Orders
 
-![Live Jupyter scenario run with explicit reset and parent orders](sequence_live_jupyter_scenario_parent_orders.png)
+![Live Jupyter scenario run with explicit reset and parent orders](diagrams/sequence_live_jupyter_scenario_parent_orders.png)
 
 ```mermaid
 sequenceDiagram
@@ -225,7 +225,7 @@ sequenceDiagram
 
 ## Venue Behavior Outcome Loop
 
-![Venue behavior outcome loop](sequence_venue_behavior_outcome_loop.png)
+![Venue behavior outcome loop](diagrams/sequence_venue_behavior_outcome_loop.png)
 
 ```mermaid
 sequenceDiagram
