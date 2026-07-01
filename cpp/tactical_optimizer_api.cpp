@@ -1,7 +1,13 @@
-// Phase 2 deterministic native tactical optimizer API stub.
-//
-// The Gradle Adaptive Quantum SOR build does not compile this file yet; it documents the native
-// side of the bridge and can be compiled by a later CMake/CUDA profile.
+/**
+ * @file
+ * @brief Deterministic implementation of the tactical optimizer C ABI.
+ *
+ * This Phase 2 implementation validates ABI shape and timeout handling without
+ * performing full routing optimization. It is compiled into the native
+ * optimizer library and exercised by Panama bridge tests and native CTest
+ * targets.
+ */
+
 #include "tactical_optimizer_api.h"
 
 extern "C" int sor_tactical_echo(int value) {

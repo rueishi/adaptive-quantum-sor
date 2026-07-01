@@ -1,4 +1,7 @@
-"""Notebook-only helpers for Adaptive Quantum SOR local workflows."""
+"""
+Purpose: Exports notebook helper utilities for Adaptive Quantum SOR research workflows.
+Usage: Import these helpers from notebooks that talk to the test server or HTTP control plane.
+"""
 
 __all__ = [
     "LiveMonitorInputs",
@@ -14,7 +17,7 @@ __all__ = [
 ]
 
 _MODULE_BY_EXPORT = {
-    "SorNotebookClient": "client",
+    "SorNotebookClient": "notebook_client",
     "LiveMonitorInputs": "live_monitor",
     "LiveSnapshot": "live_monitor",
     "LiveStatsDashboard": "live_monitor",

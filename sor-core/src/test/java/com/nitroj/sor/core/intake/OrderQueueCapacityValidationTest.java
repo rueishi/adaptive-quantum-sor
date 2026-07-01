@@ -8,6 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies order queue capacity validation behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 class OrderQueueCapacityValidationTest {
     @ParameterizedTest
     @ValueSource(ints = {1000, 1023, 5000})

@@ -22,7 +22,7 @@ tools/python-research/scripts/compare_sor_dataset.py              static-vs-adap
 tools/python-research/scripts/train_models.py                     offline training script
 tools/python-research/requirements.txt                    Python dependencies
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/     notebook-only widgets and report helpers
-tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py      SorNotebookClient API helper
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/notebook_client.py SorNotebookClient API helper
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/live_monitor.py live_stats_monitor dashboard templates
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py  scenario_runner notebook report templates
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/submit_order_report.py submit_parent_order report templates
@@ -58,18 +58,36 @@ from adaptive_quantum_sor_research import (
 )
 ```
 
-`SorNotebookClient` is used by notebooks and scripts to call the local Java
-engine API:
+`SorNotebookClient` is used by notebooks and scripts to call Java HTTP APIs.
+Order/status/control methods work with the built-in user HTTP module
+(`sor-transport-http-control`) when the server exposes those endpoints:
 
 ```python
 from adaptive_quantum_sor_notebooks import SorNotebookClient
 
 client = SorNotebookClient("http://127.0.0.1:8080")
-client.stats_dataframe()
+client.health()
+client.ready()
+client.submit_order({"instrumentId": 0, "side": "BUY", "quantity": 1000, "urgencyId": 1})
+client.order_status(1)
+client.policy_dataframe()
+client.control_state()
+client.market_data_snapshot()
+client.reset_engine(mode="APPEND", reason="readme smoke")
+client.metrics_text()
+```
+
+Some helpers target the test-server/demo API rather than the built-in user HTTP
+module:
+
+```python
+client.stats_dataframe()       # test-server/demo /stats/current
+client.order_summary_frames()  # test-server/demo /orders/summary
 client.policy_dataframe()
 ```
 
-Scenario helpers are also exposed through the client:
+Scenario helpers are test-server/demo-only because `/scenario/*` belongs to
+`sor-test-server`, not the built-in user HTTP control module:
 
 ```python
 client.reset_scenario("baseline-normal-open", seed=42, ticks=10, reset_mode="PURGE_AND_REPOPULATE")

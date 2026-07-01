@@ -6,6 +6,11 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies the exposed SOR meter names and shape remain stable.
+ *
+ * <p>Run with observability tests to protect dashboards and scrape configuration.</p>
+ */
 class MeterRegistryShapeTest {
     @Test
     void exposesDocumentedMeterSet() {

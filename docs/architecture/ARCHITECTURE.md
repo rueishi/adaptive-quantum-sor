@@ -6,16 +6,17 @@ an embedded engine implementation, simulator components that satisfy the public
 SPI, explicit transports, and a standalone server assembly.
 
 The current source tree keeps the clean embedded-engine package in
-`com.nitroj.sor.core`. Legacy-style scenario replay and notebook scenario API
-compatibility now live in `sor-test-server` under
-`com.nitroj.adaptive.quantum.sor.*`, outside the reusable core boundary.
+`com.nitroj.sor.core`. Reusable scenario replay and simulator support live in
+`sor-testkit`, while notebook/demo HTTP compatibility lives in
+`sor-test-server`, outside the reusable core boundary.
 
 ## Module Boundaries
 
 ```text
 sor-api                    Public engine contract, DTOs, events, and SPI.
 sor-core                   Embedded engine, policy, execution, and core abstractions.
-sor-test-server             SPI-facing simulator adapters, scenario fixtures, and sample server.
+sor-testkit                Reusable scenario replay and simulator fixtures.
+sor-test-server             Runnable notebook/demo HTTP API and sample server.
 sor-transport-aeron        Low-latency remote transport over SBE/Aeron.
 sor-transport-http-control Research and ops HTTP control plane.
 sor-optimizers-native      Panama native optimizer linkers; no project deps.
@@ -26,7 +27,7 @@ sor-client-python          Python/Jupyter control and research helpers.
 These boundaries are executable, not only descriptive. Gradle dependency edges
 are checked by `ModuleDependencyGraphTest`, public API leakage is checked by
 `SorApiZeroDependencyTest`, and package-level architecture rules are checked by
-ArchUnit tests in `sor-core` and `sor-test-server`.
+ArchUnit tests in `sor-core`, `sor-testkit`, and `sor-test-server`.
 
 ## Runtime Layers
 
@@ -47,7 +48,8 @@ The HTTP and Jupyter pieces are control-plane only. They are useful for demos,
 research, and observability, but they are not part of the execution hot path.
 The Java engine owns runtime state. The simulator-backed sample server starts
 through `SimulatorServerApplication` and the `sor-transport-http-control` server;
-legacy notebook/scenario compatibility endpoints are owned by `sor-test-server`.
+legacy notebook/scenario compatibility endpoints are owned by `sor-test-server`
+and use reusable scenario/simulator services from `sor-testkit`.
 
 ## Simulation Layer
 
@@ -65,15 +67,15 @@ generation.
 Low-level simulator classes live under:
 
 ```text
-com.nitroj.sor.sim.adapters
-com.nitroj.sor.sim.scenario
-com.nitroj.sor.sim.scenario.venues
+com.nitroj.sor.testkit.sim.adapters
+com.nitroj.sor.testkit.sim.scenario
+com.nitroj.sor.testkit.sim.scenario.venues
 ```
 
-Scenario orchestration classes live in `sor-test-server` under:
+Scenario orchestration classes live in `sor-testkit` under:
 
 ```text
-com.nitroj.adaptive.quantum.sor.scenario
+com.nitroj.sor.testkit.scenario
 ```
 
 This separation is intentional. `sim` classes generate bounded state for one

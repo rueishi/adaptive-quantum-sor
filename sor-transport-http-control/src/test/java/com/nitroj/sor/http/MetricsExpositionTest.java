@@ -6,6 +6,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies metrics exposition output from the HTTP control plane.
+ *
+ * <p>Run with HTTP transport tests to protect Prometheus-style scraping behavior.</p>
+ */
 class MetricsExpositionTest {
     @Test
     void metricsEndpointReturnsPrometheusText() throws Exception {

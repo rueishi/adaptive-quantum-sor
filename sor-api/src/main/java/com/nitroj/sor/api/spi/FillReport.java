@@ -22,9 +22,23 @@ public final class FillReport {
     private long filledEpochNanos;
 
     /**
+     * Creates an empty reusable fill report.
+     */
+    public FillReport() {
+    }
+
+    /**
      * Updates every fill field for reuse.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @param childOrderId engine-assigned child order identifier
+     * @param parentOrderId engine-assigned parent order identifier
+     * @param venueId venue reporting the fill
+     * @param filledQuantity filled quantity
+     * @param fillPrice fill price in fixed-point price units
+     * @param filledEpochNanos wall-clock fill timestamp in epoch nanoseconds
+     * @return this reusable report
      */
     public FillReport set(final long childOrderId, final long parentOrderId, final int venueId,
                           final long filledQuantity, final long fillPrice, final long filledEpochNanos) {
@@ -41,13 +55,45 @@ public final class FillReport {
      * Clears all fields to zero.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @return this reusable report
      */
     public FillReport clear() { return set(0, 0, 0, 0, 0, 0); }
 
+    /**
+     * Returns engine-assigned child order identifier.
+     *
+     * @return engine-assigned child order identifier
+     */
     public long childOrderId() { return childOrderId; }
+    /**
+     * Returns engine-assigned parent order identifier.
+     *
+     * @return engine-assigned parent order identifier
+     */
     public long parentOrderId() { return parentOrderId; }
+    /**
+     * Returns venue reporting the fill.
+     *
+     * @return venue reporting the fill
+     */
     public int venueId() { return venueId; }
+    /**
+     * Returns filled quantity.
+     *
+     * @return filled quantity
+     */
     public long filledQuantity() { return filledQuantity; }
+    /**
+     * Returns fill price in fixed-point price units.
+     *
+     * @return fill price in fixed-point price units
+     */
     public long fillPrice() { return fillPrice; }
+    /**
+     * Returns wall-clock fill timestamp in epoch nanoseconds.
+     *
+     * @return wall-clock fill timestamp in epoch nanoseconds
+     */
     public long filledEpochNanos() { return filledEpochNanos; }
 }

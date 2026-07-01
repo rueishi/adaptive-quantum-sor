@@ -5,6 +5,11 @@ import com.nitroj.sor.api.Side;
 import com.nitroj.sor.client.AeronSorClient;
 import com.nitroj.sor.client.SorClientConfig;
 
+/**
+ * Demonstrates a minimal Java SDK quickstart for connecting to SOR and submitting an order.
+ *
+ * <p>Run it from the example project or read it as the first integration sample for Java clients.</p>
+ */
 public final class Quickstart {
     private Quickstart() {
     }

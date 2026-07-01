@@ -62,7 +62,7 @@ none
 
 ## Scenario Evidence
 
-Phase 6 scenario files live under `sor-test-server/src/main/resources/scenarios/optimizer-policy/`:
+Phase 6 scenario files live under `sor-testkit/src/main/resources/scenarios/optimizer-policy/`:
 
 ```text
 batch_same_venue_self_impact.yaml
@@ -83,9 +83,9 @@ fallback behavior when the batch problem is infeasible
 ## Reproduction Commands
 
 ```bash
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.optimizer.batch.*
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.scenario.ScenarioDefinitionLoaderTest
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.docs.Phase6CompletionReportTest
+./gradlew test --tests com.nitroj.sor.core.optimizer.batch.*
+./gradlew test --tests com.nitroj.sor.testkit.scenario.ScenarioDefinitionLoaderTest
+./gradlew test --tests com.nitroj.sor.core.docs.Phase6CompletionReportTest
 scripts/run_tests.sh scenario
 scripts/run_tests.sh all
 ```

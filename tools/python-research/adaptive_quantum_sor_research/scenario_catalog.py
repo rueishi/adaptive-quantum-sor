@@ -1,4 +1,7 @@
-"""Scenario catalog library for readable SOR scenario files."""
+"""
+Purpose: Indexes and lists bundled reusable scenario YAML files from the testkit resources.
+Usage: Use it from notebooks or scripts to discover scenario IDs and paths.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +12,7 @@ from typing import Iterable, Mapping, TextIO
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_SCENARIOS_DIR = REPO_ROOT / "sor-test-server" / "src" / "main" / "resources" / "scenarios"
+DEFAULT_SCENARIOS_DIR = REPO_ROOT / "sor-testkit" / "src" / "main" / "resources" / "scenarios"
 
 
 @dataclass(frozen=True)

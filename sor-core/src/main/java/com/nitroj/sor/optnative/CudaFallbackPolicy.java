@@ -7,7 +7,7 @@ package com.nitroj.sor.optnative;
  * whether library/GPU/timeout/native errors should fall back to the Java stub or
  * fail the optimizer cycle.</p>
  *
- * <p>Relationships: consumed by {@link com.nitroj.adaptive.quantum.sor.optimizer.CudaTacticalOptimizer}.</p>
+ * <p>Relationships: consumed by {@link com.nitroj.sor.core.optimizer.CudaTacticalOptimizer}.</p>
  *
  * <p>Lifecycle: immutable runtime configuration created during optimizer
  * wiring.</p>

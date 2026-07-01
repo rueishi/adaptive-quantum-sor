@@ -1,4 +1,14 @@
-// Unit tests for the deterministic CUDA tactical optimizer MVP scoring helper.
+/**
+ * @file
+ * @brief Tests the CUDA tactical optimizer native scoring contract.
+ *
+ * Run through CTest or the Gradle native build before changing tactical
+ * optimizer GPU entry points. The test covers basis-point addition,
+ * toxicity-penalty subtraction, lower clamping, and upper clamping.
+ *
+ * These unit tests intentionally use standard assert instead of an external test
+ * framework so the Adaptive Quantum SOR native build remains dependency-free.
+ */
 #include "../cuda_tactical_optimizer.h"
 
 #include <cassert>

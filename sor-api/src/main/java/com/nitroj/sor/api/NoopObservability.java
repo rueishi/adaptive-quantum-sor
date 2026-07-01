@@ -1,5 +1,10 @@
 package com.nitroj.sor.api;
 
+/**
+ * Provides a no-op observability implementation for tests and minimal embedded deployments.
+ *
+ * <p>Pass it when an integrator wants a valid Observability dependency without external metrics side effects.</p>
+ */
 enum NoopObservability implements Observability {
     INSTANCE;
 

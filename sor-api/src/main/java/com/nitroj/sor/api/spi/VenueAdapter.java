@@ -46,6 +46,8 @@ public interface VenueAdapter {
          * Delivers a fill report.
          *
          * <p>Hot-path method. Must not allocate. Must not block.</p>
+         *
+         * @param report reusable fill report
          */
         void deliverFill(FillReport report);
 
@@ -53,6 +55,8 @@ public interface VenueAdapter {
          * Delivers a reject report.
          *
          * <p>Hot-path method. Must not allocate. Must not block.</p>
+         *
+         * @param report reusable reject report
          */
         void deliverReject(RejectReport report);
     }

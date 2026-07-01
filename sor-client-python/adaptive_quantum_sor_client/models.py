@@ -1,4 +1,7 @@
-"""Dataclasses returned by the Adaptive Quantum SOR Python client."""
+"""
+Purpose: Defines typed Python models for SOR orders, policies, lifecycle events, and API responses.
+Usage: Use these dataclasses to parse HTTP responses and keep SDK callers away from raw dictionaries.
+"""
 
 from __future__ import annotations
 

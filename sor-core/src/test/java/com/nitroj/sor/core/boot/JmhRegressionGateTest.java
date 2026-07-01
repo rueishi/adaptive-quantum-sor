@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class JmhRegressionGateTest {
     private static final String BENCHMARK =
-            "com.nitroj.adaptive.quantum.sor.benchmark.PolicyDrivenSorJmhBenchmark.strictRouteInto";
+            "com.nitroj.sor.core.benchmark.PolicyDrivenSorJmhBenchmark.strictRouteInto";
 
     @TempDir
     Path tempDir;
@@ -69,6 +69,8 @@ class JmhRegressionGateTest {
 
         assertTrue(build.contains("tasks.register('jmhRegressionCheck')"),
                 "build.gradle must define the jmhRegressionCheck task");
+        assertTrue(build.contains("dependsOn ':sor-core:jmh'"),
+                "jmhRegressionCheck must run the sor-core JMH suite before comparing results");
         assertTrue(build.contains("dependsOn tasks.named('jmhRegressionCheck')"),
                 "check must depend on jmhRegressionCheck");
     }

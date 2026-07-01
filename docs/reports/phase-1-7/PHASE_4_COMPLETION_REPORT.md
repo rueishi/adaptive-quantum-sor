@@ -136,9 +136,9 @@ Phase4CompletionReportTest
 Representative commands:
 
 ```text
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.adaptive.quantum.sor.ml.*'
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew :sor-test-server:test --tests 'com.nitroj.adaptive.quantum.sor.scenario.ScenarioOptimizerLineageIntegrationTest'
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.adaptive.quantum.sor.docs.Phase4CompletionReportTest'
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.sor.core.ml.*'
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew :sor-testkit:test --tests 'com.nitroj.sor.testkit.scenario.ScenarioOptimizerLineageIntegrationTest'
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew test --tests 'com.nitroj.sor.core.docs.Phase4CompletionReportTest'
 ```
 
 ## Known Limitations

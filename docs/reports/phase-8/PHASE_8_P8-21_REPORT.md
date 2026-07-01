@@ -2,8 +2,9 @@
 
 ## Implemented Scope
 
-P8-21 adds the Python HTTP client SDK, packaging metadata, async client support,
-notebook compatibility, mypy/type-stub coverage, and retry semantics tests.
+P8-21 adds the Python HTTP client SDK, PyPI-ready packaging metadata, async
+client support, notebook compatibility, mypy/type-stub coverage, and retry
+semantics tests.
 
 ## Acceptance Criteria Evidence
 
@@ -34,4 +35,3 @@ none
 ```bash
 cd sor-client-python && pytest
 ```
-

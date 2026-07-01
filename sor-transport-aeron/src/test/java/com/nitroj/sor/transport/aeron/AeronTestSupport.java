@@ -5,12 +5,17 @@ import com.nitroj.sor.api.Side;
 import com.nitroj.sor.api.SorConfig;
 import com.nitroj.sor.api.SorEngine;
 import com.nitroj.sor.api.SorEngineBuilder;
-import com.nitroj.sor.sim.adapters.InMemoryPersistence;
-import com.nitroj.sor.sim.adapters.ManualClock;
-import com.nitroj.sor.sim.adapters.SimulatedMarketDataSource;
-import com.nitroj.sor.sim.adapters.SimulatedRiskProvider;
-import com.nitroj.sor.sim.adapters.SimulatedVenueAdapter;
+import com.nitroj.sor.testkit.sim.adapters.InMemoryPersistence;
+import com.nitroj.sor.testkit.sim.adapters.ManualClock;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedMarketDataSource;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedRiskProvider;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedVenueAdapter;
 
+/**
+ * Provides shared fixtures for Aeron transport tests.
+ *
+ * <p>Use it from transport tests to keep fake engines and channel setup consistent.</p>
+ */
 final class AeronTestSupport {
     private AeronTestSupport() {}
 

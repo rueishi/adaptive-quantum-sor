@@ -1,7 +1,7 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.optimizer.StrategicVenueSubsetResult;
-import com.nitroj.adaptive.quantum.sor.policy.PolicyOptimizationInput;
+import com.nitroj.sor.core.optimizer.StrategicVenueSubsetResult;
+import com.nitroj.sor.core.policy.PolicyOptimizationInput;
 
 import java.nio.ByteBuffer;
 

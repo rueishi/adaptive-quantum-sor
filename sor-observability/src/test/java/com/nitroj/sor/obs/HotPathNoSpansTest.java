@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies hot-path routing telemetry does not create tracing spans.
+ *
+ * <p>Run with observability tests to keep latency-sensitive paths free of control-plane span overhead.</p>
+ */
 class HotPathNoSpansTest {
     @Test
     void routeObservationsDoNotCreateSpans() {

@@ -73,21 +73,21 @@ none
 ## Reproduction Commands
 
 ```bash
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.policy.robust.*
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.policy.publication.RobustPublicationGateTest
-./gradlew test --tests com.nitroj.adaptive.quantum.sor.docs.Phase7CompletionReportTest
+./gradlew test --tests com.nitroj.sor.core.policy.robust.*
+./gradlew test --tests com.nitroj.sor.core.policy.publication.RobustPublicationGateTest
+./gradlew test --tests com.nitroj.sor.core.docs.Phase7CompletionReportTest
 scripts/run_tests.sh all
 ```
 
 Focused regression groups:
 
 ```text
-com.nitroj.adaptive.quantum.sor.execution.*
-com.nitroj.adaptive.quantum.sor.policy.publication.*
-com.nitroj.adaptive.quantum.sor.optimizer.PolicyOptimizerCoordinatorTest
-com.nitroj.adaptive.quantum.sor.scenario.*
-com.nitroj.adaptive.quantum.sor.optimizer.batch.*
-com.nitroj.adaptive.quantum.sor.optimizer.ising.*
+com.nitroj.sor.core.execution.*
+com.nitroj.sor.core.policy.publication.*
+com.nitroj.sor.core.optimizer.PolicyOptimizerCoordinatorTest
+com.nitroj.sor.testkit.scenario.*
+com.nitroj.sor.core.optimizer.batch.*
+com.nitroj.sor.core.optimizer.ising.*
 ```
 
 ## Known Limits

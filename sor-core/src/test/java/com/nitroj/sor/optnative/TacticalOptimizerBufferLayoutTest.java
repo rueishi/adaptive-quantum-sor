@@ -1,10 +1,10 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.TestPolicyFixtures;
-import com.nitroj.adaptive.quantum.sor.optimizer.IsingCudaQStrategicOptimizerStub;
-import com.nitroj.adaptive.quantum.sor.optimizer.StrategicVenueSubsetResult;
-import com.nitroj.adaptive.quantum.sor.optimizer.TacticalPolicyResult;
-import com.nitroj.adaptive.quantum.sor.policy.PolicyOptimizationInput;
+import com.nitroj.sor.core.TestPolicyFixtures;
+import com.nitroj.sor.core.optimizer.IsingCudaQStrategicOptimizerStub;
+import com.nitroj.sor.core.optimizer.StrategicVenueSubsetResult;
+import com.nitroj.sor.core.optimizer.TacticalPolicyResult;
+import com.nitroj.sor.core.policy.PolicyOptimizationInput;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

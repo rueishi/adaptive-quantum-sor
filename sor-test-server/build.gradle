@@ -4,13 +4,14 @@ plugins {
 }
 
 application {
-    mainClass = 'com.nitroj.sor.sim.server.SimulatorServerApplication'
+    mainClass = 'com.nitroj.sor.testserver.SimulatorServerApplication'
 }
 
 dependencies {
     implementation project(':sor-api')
     implementation project(':sor-core')
     implementation project(':sor-observability')
+    implementation project(':sor-testkit')
     implementation project(':sor-transport-aeron')
     implementation project(':sor-transport-http-control')
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
@@ -20,7 +21,7 @@ tasks.register('runNotebookApi', JavaExec) {
     description = 'Starts the HTTP API used by the Jupyter scenario notebooks.'
     group = 'application'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.nitroj.adaptive.quantum.sor.api.NotebookScenarioApiLauncher'
+    mainClass = 'com.nitroj.sor.testserver.NotebookScenarioApiLauncher'
 }
 
 jib {
@@ -32,7 +33,7 @@ jib {
     }
     container {
         mainClass = application.mainClass.get()
-        jvmFlags = ['-XX:+UseZGC', '-XX:+AlwaysPreTouch', '-Xms2g', '-Xmx2g']
+        jvmFlags = ['-XX:+UseZGC', '-XX:+UseCompactObjectHeaders', '-XX:+AlwaysPreTouch', '-Xms2g', '-Xmx2g']
         ports = ['9090', '40123/udp']
     }
 }

@@ -68,7 +68,7 @@ DefaultPolicyLintTest / DefaultPolicyValidatorTest / DefaultPolicyCompilerTest /
 StaticSorExecutionerTest / PolicyDrivenSorExecutionerTest / ResliceSchedulerTest
 ComparisonRunnerTest
 NarrativeLifecycleLoggerTest / RouteAuditWriterTest
-SorHttpApiServerTest / JupyterNotebookArtifactTest
+NotebookScenarioHttpServerTest / JupyterNotebookArtifactTest
 BenchmarkHarnessTest
 StartupRecoveryCoordinatorTest
 SorEndToEndTest

@@ -11,14 +11,14 @@ and deleted the old simulator package.
 The simulator module is now organized by responsibility:
 
 ```text
-com.nitroj.sor.sim.adapters  SPI implementations used like production adapters
-com.nitroj.sor.sim.scenario     deterministic scenario state, generators, and evidence
-com.nitroj.sor.sim.scenario.venues venue behavior state, profiles, and outcomes
+com.nitroj.sor.testkit.sim.adapters  SPI implementations used like production adapters
+com.nitroj.sor.testkit.sim.scenario     deterministic scenario state, generators, and evidence
+com.nitroj.sor.testkit.sim.scenario.venues venue behavior state, profiles, and outcomes
 ```
 
 The current codebase has completed the follow-on parity and migration work:
 `ScenarioRunner` uses the new simulator path, and
-`com.nitroj.adaptive.quantum.sor.sim` has been deleted.
+`com.nitroj.sor.core.sim` has been deleted.
 
 ## Acceptance Criteria Evidence
 
@@ -36,11 +36,6 @@ P8-SIM-008 ScenarioRunnerNewSimulatorPathTest
 P8-SIM-009 SimulatorInternalStateReachabilityTest
 P8-SIM-010 SimulatedClusterControllerTest
 P8-SIM-011 ScenarioOrchestrationOwnershipTest
-```
-
-Planned ACs:
-
-```text
 P8-SIM-012 SimulatedFeeSchedule legacy-equivalent semantics
 P8-SIM-013 catalog metadata parity
 P8-SIM-014 market data and regime parity
@@ -55,6 +50,12 @@ P8-SIM-022 legacy sim package deleted
 P8-SIM-023 remove all @SimulatorMapping legacy-name annotations
 P8-SIM-024 every simulator component exposes a stable integration interface
 P8-SIM-025 SimulatorPackageBoundaryTest
+```
+
+Planned ACs:
+
+```text
+none
 ```
 
 Failed ACs:

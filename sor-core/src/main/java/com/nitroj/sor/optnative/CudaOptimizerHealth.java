@@ -6,7 +6,7 @@ package com.nitroj.sor.optnative;
  * <p>Role in system: fallback and reporting paths inspect this value after
  * native optimization attempts.</p>
  *
- * <p>Relationships: populated by {@link com.nitroj.adaptive.quantum.sor.optimizer.CudaTacticalOptimizer}
+ * <p>Relationships: populated by {@link com.nitroj.sor.core.optimizer.CudaTacticalOptimizer}
  * from {@link TacticalOptimizerNativeOutput} status codes.</p>
  *
  * <p>Lifecycle: immutable snapshot created per optimizer run.</p>

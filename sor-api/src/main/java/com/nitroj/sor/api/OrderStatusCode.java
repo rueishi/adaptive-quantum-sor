@@ -14,11 +14,18 @@ package com.nitroj.sor.api;
  * future wire-codec clients.</p>
  */
 public enum OrderStatusCode {
+    /** Parent order has been accepted by the engine. */
     ACCEPTED,
+    /** Parent order has produced one or more child routes. */
     ROUTED,
+    /** Parent order has some filled quantity and remaining open quantity. */
     PARTIALLY_FILLED,
+    /** Parent order is fully filled. */
     FILLED,
+    /** Parent order has been cancelled. */
     CANCELLED,
+    /** Parent order or its routed child flow has been rejected. */
     REJECTED,
+    /** Parent order is not known to the engine. */
     UNKNOWN
 }

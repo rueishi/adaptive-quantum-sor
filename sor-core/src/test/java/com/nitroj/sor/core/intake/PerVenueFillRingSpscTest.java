@@ -6,6 +6,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
+/**
+ * Verifies per venue fill ring spsc behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 class PerVenueFillRingSpscTest {
     @Test
     void inboundFillRingIsSpscPerVenue() {

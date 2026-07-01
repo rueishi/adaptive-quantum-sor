@@ -1,4 +1,7 @@
-"""Notebook-facing scenario report helpers."""
+"""
+Purpose: Builds notebook scenario reports from test-server scenario API responses.
+Usage: Use it after scenario runs to turn summaries and events into tabular notebook output.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +13,7 @@ from typing import Mapping
 import pandas as pd
 from IPython.display import HTML, clear_output, display
 
-from .client import SorNotebookClient
+from .notebook_client import SorNotebookClient
 from adaptive_quantum_sor_research.scenario_catalog import load_scenarios
 
 

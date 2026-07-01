@@ -10,6 +10,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies sor engine observability behavior for embedded SOR engine implementation and public API wiring.
+ *
+ * <p>Run with :sor-core:test to protect engine bootstrap, order submission, reset, diagnostics, and tests.</p>
+ */
 class SorEngineObservabilityTest {
     @Test
     void engineReportsPolicyRouteDepthAndBackpressureSignals() {

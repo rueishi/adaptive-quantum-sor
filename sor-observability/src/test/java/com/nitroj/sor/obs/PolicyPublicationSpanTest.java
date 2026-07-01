@@ -5,6 +5,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies policy publication span metadata is emitted on control-plane publication.
+ *
+ * <p>Run with observability tests before changing optimizer or publisher telemetry.</p>
+ */
 class PolicyPublicationSpanTest {
     @Test
     void policyPublishCreatesOneWarmPathSpanWithAttributes() {

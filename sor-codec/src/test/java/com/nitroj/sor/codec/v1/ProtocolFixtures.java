@@ -3,6 +3,11 @@ package com.nitroj.sor.codec.v1;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+/**
+ * Provides reusable protocol fixtures for codec compatibility tests.
+ *
+ * <p>Use it from codec tests to keep round-trip, golden, and extension scenarios consistent.</p>
+ */
 final class ProtocolFixtures {
     private ProtocolFixtures() {}
 

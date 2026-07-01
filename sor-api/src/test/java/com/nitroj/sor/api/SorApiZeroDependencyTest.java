@@ -65,8 +65,7 @@ class SorApiZeroDependencyTest {
                 "com.nitroj.sor.core",
                 "com.nitroj.sor.server",
                 "com.nitroj.sor.sim",
-                "com.nitroj.sor.optnative",
-                "com.nitroj.adaptive.quantum.sor"
+                "com.nitroj.sor.optnative"
         );
 
         final boolean referencesImplementation = classes.stream()

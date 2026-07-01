@@ -1,4 +1,7 @@
-"""Pandas-friendly helpers for SOR feature datasets and model artifacts."""
+"""
+Purpose: Provides pandas DataFrame helpers and schema-aware validation for SOR research data.
+Usage: Use it from notebooks and dataset scripts to build consistent order, event, and scenario tables.
+"""
 
 from __future__ import annotations
 

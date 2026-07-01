@@ -38,6 +38,7 @@ subprojects {
         useJUnitPlatform()
         workingDir rootProject.projectDir
         jvmArgs '-XX:+UseZGC',
+                '-XX:+UseCompactObjectHeaders',
                 '-XX:+AlwaysPreTouch',
                 '-Xms2g',
                 '-Xmx2g'
@@ -52,6 +53,7 @@ subprojects {
 tasks.register('jmhRegressionCheck') {
     description = 'Fails when the JMH result JSON regresses more than 10% from the Phase 8 baseline.'
     group = 'verification'
+    dependsOn ':sor-core:jmh'
 
     def baselineFile = providers.gradleProperty('jmhBaselineFile')
             .map { file(it) }
@@ -69,8 +71,7 @@ tasks.register('jmhRegressionCheck') {
             throw new GradleException("JMH baseline file not found: ${baseline}")
         }
         if (!results.isFile()) {
-            logger.lifecycle("No JMH result file found at ${results}; skipping regression comparison for this check run.")
-            return
+            throw new GradleException("JMH result file not found after running :sor-core:jmh: ${results}")
         }
 
         Map<String, BigDecimal> baselineNanos = [:]

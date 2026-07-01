@@ -1,7 +1,12 @@
-// Deterministic CUDA tactical optimizer MVP.
-//
-// This MVP scoring function is intentionally simple and bounded. Full cuOpt or
-// custom kernel performance work is outside P2-TC-003.
+/**
+ * @file
+ * @brief CPU-compatible implementation of the CUDA tactical scoring ABI.
+ *
+ * The current implementation is intentionally deterministic and CPU-compatible
+ * so the native build can run in environments without a production CUDA
+ * optimizer kernel.
+ */
+
 #include "cuda_tactical_optimizer.h"
 
 int sor_cuda_tactical_score(int venue_weight_bps, int fill_probability_bps, int toxicity_penalty_bps) {

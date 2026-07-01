@@ -12,7 +12,7 @@ low-level deterministic simulator tests from scenario-driven replay tests.
   scenario-aware APIs while preserving baseline deterministic helpers.
 - `ScenarioRunner.run(ScenarioSpec)` is the canonical Gradle/JUnit scenario
   entry point and returns a stable `ScenarioSummary`.
-- User-readable scenario files under `sor-test-server/src/main/resources/scenarios/<category>/*.yaml` load through
+- User-readable scenario files under `sor-testkit/src/main/resources/scenarios/<category>/*.yaml` load through
   `ScenarioDefinitionLoader` into `ScenarioSpec`.
 - The checked-in scenario catalog contains at least 62 files covering baseline,
   regime, liquidity, stale feed, outage, toxic venue, lineage, failure, live
@@ -89,12 +89,12 @@ scripts/run_tests.sh all
 ```
 
 The simulator profile is intentionally limited to deterministic low-level
-simulator contract tests under `com.nitroj.adaptive.quantum.sor.sim`.
+simulator contract tests under `com.nitroj.sor.core.sim`.
 
 The scenario profile includes:
 
 ```text
-com.nitroj.adaptive.quantum.sor.scenario.*
+com.nitroj.sor.testkit.scenario.*
 SorEndToEndTest.replayableScenarioProducesEquivalentSummary
 SorEndToEndTest.scenarioLiquidityDisappearanceRoutesSafely
 ```

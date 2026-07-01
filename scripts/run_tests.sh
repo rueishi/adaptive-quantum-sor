@@ -16,32 +16,40 @@ run_gradle() {
 case "$PROFILE" in
   unit)
     run_gradle :sor-core:test \
-      --tests 'com.nitroj.adaptive.quantum.sor.model.*' \
-      --tests 'com.nitroj.adaptive.quantum.sor.state.*' \
-      --tests 'com.nitroj.adaptive.quantum.sor.policy.*' \
-      --tests 'com.nitroj.adaptive.quantum.sor.optimizer.*'
+      --tests 'com.nitroj.sor.core.model.*' \
+      --tests 'com.nitroj.sor.core.state.*' \
+      --tests 'com.nitroj.sor.core.policy.*' \
+      --tests 'com.nitroj.sor.core.optimizer.*'
     ;;
   integration)
     run_gradle :sor-core:test \
-      --tests 'com.nitroj.adaptive.quantum.sor.integration.*'
+      --tests 'com.nitroj.sor.core.integration.*'
     run_gradle :sor-test-server:test \
-      --tests 'com.nitroj.adaptive.quantum.sor.e2e.*' \
-      --tests 'com.nitroj.adaptive.quantum.sor.api.*'
+      --tests 'com.nitroj.sor.testserver.e2e.*' \
+      --tests 'com.nitroj.sor.testserver.*'
     ;;
   simulator)
-    run_gradle :sor-test-server:test
+    run_gradle :sor-testkit:test \
+      --tests 'com.nitroj.sor.testkit.sim.*' \
+      --tests 'com.nitroj.sor.testkit.sim.adapters.*' \
+      --tests 'com.nitroj.sor.testkit.sim.scenario.*'
+    run_gradle :sor-test-server:test \
+      --tests 'com.nitroj.sor.testserver.*'
     ;;
   scenario)
+    run_gradle :sor-testkit:test \
+      --tests 'com.nitroj.sor.testkit.scenario.*' \
+      --tests 'com.nitroj.sor.testkit.ml.*' \
+      --tests 'com.nitroj.sor.testkit.policy.robust.*'
     run_gradle :sor-test-server:test \
-      --tests 'com.nitroj.adaptive.quantum.sor.scenario.*' \
-      --tests 'com.nitroj.adaptive.quantum.sor.e2e.SorEndToEndTest.replayableScenarioProducesEquivalentSummary' \
-      --tests 'com.nitroj.adaptive.quantum.sor.e2e.SorEndToEndTest.scenarioLiquidityDisappearanceRoutesSafely'
+      --tests 'com.nitroj.sor.testserver.e2e.SorEndToEndTest.replayableScenarioProducesEquivalentSummary' \
+      --tests 'com.nitroj.sor.testserver.e2e.SorEndToEndTest.scenarioLiquidityDisappearanceRoutesSafely'
     ;;
   policy)
     run_gradle :sor-core:test \
-      --tests 'com.nitroj.adaptive.quantum.sor.policy.compile.DefaultPolicyCompilerTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.policy.validation.DefaultPolicyValidatorTest' \
-      --tests 'com.nitroj.adaptive.quantum.sor.policy.lint.DefaultPolicyLintTest'
+      --tests 'com.nitroj.sor.core.policy.compile.DefaultPolicyCompilerTest' \
+      --tests 'com.nitroj.sor.core.policy.validation.DefaultPolicyValidatorTest' \
+      --tests 'com.nitroj.sor.core.policy.lint.DefaultPolicyLintTest'
     ;;
   native)
     run_gradle :sor-core:nativeTest

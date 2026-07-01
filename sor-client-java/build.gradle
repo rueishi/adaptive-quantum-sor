@@ -15,7 +15,7 @@ dependencies {
     api project(':sor-codec')
     api project(':sor-transport-aeron')
     testImplementation project(':sor-core')
-    testImplementation project(':sor-test-server')
+    testImplementation project(':sor-testkit')
 }
 
 jar {

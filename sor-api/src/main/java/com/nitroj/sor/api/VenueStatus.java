@@ -15,8 +15,12 @@ package com.nitroj.sor.api;
  * for integrators.</p>
  */
 public enum VenueStatus {
+    /** Venue is open for routing. */
     OPEN,
+    /** Venue is closed for routing. */
     CLOSED,
+    /** Venue is temporarily halted. */
     HALTED,
+    /** Venue is open but degraded and should be treated cautiously. */
     DEGRADED
 }

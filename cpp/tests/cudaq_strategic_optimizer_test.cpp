@@ -1,3 +1,15 @@
+/**
+ * @file
+ * @brief Tests the CUDA-Q strategic optimizer native subset-selection contract.
+ *
+ * Run through CTest or the Gradle native build before changing strategic
+ * optimizer ABI or QUBO selection logic. The test covers linear coefficient
+ * selection, pairwise penalties, deterministic output order, and invalid input
+ * handling.
+ *
+ * These unit tests intentionally use standard assert instead of an external test
+ * framework so the Adaptive Quantum SOR native build remains dependency-free.
+ */
 #include "cudaq_strategic_optimizer.h"
 
 #include <cassert>

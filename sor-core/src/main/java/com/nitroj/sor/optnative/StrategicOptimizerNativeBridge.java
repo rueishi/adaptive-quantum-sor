@@ -1,6 +1,6 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.optimizer.ising.QuboObjectiveConfig;
+import com.nitroj.sor.core.optimizer.ising.QuboObjectiveConfig;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

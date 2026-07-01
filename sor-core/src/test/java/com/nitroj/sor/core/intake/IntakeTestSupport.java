@@ -16,6 +16,11 @@ import com.nitroj.sor.api.spi.VenueAdapter;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Verifies intake test support behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 final class IntakeTestSupport {
     private IntakeTestSupport() {}
 

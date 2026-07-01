@@ -10,14 +10,14 @@ simulator, transport, codec, observability, client, and deployment
 modules while preserving Phase 1-7 behavior.
 
 Simulator parity work from P8-23 through P8-30 has migrated the runtime path to
-`sor-test-server`; the legacy `com.nitroj.adaptive.quantum.sor.sim` package has
+`sor-test-server`; the legacy `com.nitroj.sor.core.sim` package has
 now been deleted.
 
 The obsolete `AdaptiveQuantumSorApplication`, `SorEngineRuntime`, and
 `NotebookDemoApiLauncher` wrappers have also been removed. Launch ownership now
 lives in `sor-test-server` through `SimulatorServerApplication`.
 
-The completion gate in `adaptive_quantum_sor_spec_phase8.md` requires all 17
+The completion gate in `adaptive_quantum_sor_spec_phase8.md` requires all 25
 non-deferred card reports. Those reports are present under `docs/reports/phase-8/` as
 `PHASE_8_P8-<card>_REPORT.md`. P8-12 remains deferred and does not gate Phase 8.
 
@@ -37,6 +37,14 @@ P8-10 HTTP Control Plane Modernization
 P8-13 SBE Wire Protocol
 P8-14 Aeron Transport Server and Client
 P8-15 Panama FFM Migration of Native Bridges
+P8-23 Simulator Parity: Catalog, Fee, Session, Throttle, Risk
+P8-24 Simulator Parity: Market Data And Regime Evolution
+P8-25 Simulator Parity: Venue Outcomes
+P8-26 Simulator Parity: Parent Orders And Scenario Catalog
+P8-27 Simulator Components For Test-Server Scenario Runner
+P8-28 ScenarioRunner Migration Into sor-test-server
+P8-29 Legacy Simulator Retirement Gate
+P8-30 Simulator Integration Interfaces And Legacy Mapping Removal
 P8-20 sor-client-java SDK
 P8-21 sor-client-python SDK
 P8-22 sor-test-server Sample Deployment
@@ -61,7 +69,7 @@ cd sor-client-python && pytest
 ## Planned ACs
 
 ```text
-P8-SIM-012 through P8-SIM-024 for full legacy simulator parity, simulator integration interfaces, legacy mapping removal, and test-server ScenarioRunner migration
+none
 ```
 
 ## Failed ACs
@@ -72,13 +80,6 @@ none
 
 ## Known Limits
 
-P8-12 remains deferred by specification. External publication to public Maven
-Central and PyPI is represented by dry-run/package metadata tests rather than a
-live registry push from this workspace.
-
-P8-07 currently proves simulator SPI shape and transitional mapping coverage,
-not full legacy behavior parity. P8-30 removes `@SimulatorMapping(legacy = "...")`
-metadata and requires simulator runtime components to implement the public SOR
-SPI contracts directly, the same contracts integrator-owned adapters implement.
-Deletion of `com.nitroj.adaptive.quantum.sor.sim` was completed after P8-23
-through P8-30 parity coverage and the explicit cleanup request.
+P8-12 remains deferred by specification. Public Maven Central and PyPI upload is
+a release-operation step described in `docs/release/`; the Phase 8 source gate
+validates release-ready metadata, local staging, and package integrity.

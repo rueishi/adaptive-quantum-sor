@@ -7,6 +7,11 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies protocol v1 can tolerate documented extension fields.
+ *
+ * <p>Run with codec tests before changing message layouts or forward-compatibility handling.</p>
+ */
 class SorProtocolV1ExtensionTest {
     @Test
     void v1DecoderIgnoresTrailingMinorRevisionBytes() {

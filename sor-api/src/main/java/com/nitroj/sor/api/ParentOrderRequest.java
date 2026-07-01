@@ -31,6 +31,9 @@ public record ParentOrderRequest(
         long clientOrderId,
         long arrivalEpochNanos
 ) {
+    /**
+     * Validates the immutable parent-order request.
+     */
     public ParentOrderRequest {
         if (instrumentId < 0) {
             throw new IllegalArgumentException("instrumentId must be non-negative");
@@ -83,9 +86,18 @@ public record ParentOrderRequest(
         private long arrivalEpochNanos;
 
         /**
+         * Creates an empty request builder.
+         */
+        public Builder() {
+        }
+
+        /**
          * Sets the non-negative instrument identifier.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param id non-negative instrument identifier
+         * @return this builder
          */
         public Builder instrumentId(final int id) {
             this.instrumentId = id;
@@ -96,6 +108,9 @@ public record ParentOrderRequest(
          * Sets the side using {@link Side#BUY} or {@link Side#SELL}.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param side public side constant
+         * @return this builder
          */
         public Builder side(final int side) {
             this.side = side;
@@ -106,6 +121,9 @@ public record ParentOrderRequest(
          * Sets the strictly positive parent quantity.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param qty strictly positive parent quantity
+         * @return this builder
          */
         public Builder quantity(final long qty) {
             this.quantity = qty;
@@ -116,6 +134,9 @@ public record ParentOrderRequest(
          * Sets the non-negative urgency bucket.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param urgencyId non-negative urgency bucket
+         * @return this builder
          */
         public Builder urgency(final int urgencyId) {
             this.urgencyId = urgencyId;
@@ -126,6 +147,9 @@ public record ParentOrderRequest(
          * Sets the integrator-owned correlation identifier.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param id integrator-owned correlation identifier
+         * @return this builder
          */
         public Builder clientOrderId(final long id) {
             this.clientOrderId = id;
@@ -136,6 +160,9 @@ public record ParentOrderRequest(
          * Sets arrival epoch nanos; zero asks the engine to use its clock.
          *
          * <p>Control-plane method, not hot-path.</p>
+         *
+         * @param nanos arrival epoch nanoseconds, or zero for engine clock
+         * @return this builder
          */
         public Builder arrivalEpochNanos(final long nanos) {
             this.arrivalEpochNanos = nanos;

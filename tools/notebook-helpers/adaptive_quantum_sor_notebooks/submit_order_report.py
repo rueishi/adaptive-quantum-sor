@@ -1,4 +1,7 @@
-"""Notebook-facing parent-order submission report helpers."""
+"""
+Purpose: Builds notebook order-submission reports from HTTP API responses.
+Usage: Use it from notebooks to submit sample orders and display typed response tables.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +12,7 @@ from html import escape
 import pandas as pd
 from IPython.display import HTML, clear_output, display
 
-from .client import SorNotebookClient
+from .notebook_client import SorNotebookClient
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8080"

@@ -8,6 +8,11 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies embedded media-driver directory lifecycle handling.
+ *
+ * <p>Run with transport tests to keep temporary driver resources cleaned up.</p>
+ */
 class MediaDriverLifecycleTest {
     @Test
     void embeddedMediaDriverDirectoryExistsWhileRunningAndIsRemovedOnClose() {

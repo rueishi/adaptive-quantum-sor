@@ -81,6 +81,8 @@ tasks.register('jmh', JavaExec) {
             '-wi', project.findProperty('jmhWarmupIterations') ?: '3',
             '-i', project.findProperty('jmhMeasurementIterations') ?: '5',
             '-f', project.findProperty('jmhForks') ?: '1',
+            '-jvmArgsAppend', project.findProperty('jmhJvmArgs')
+                    ?: '-XX:+UseZGC -XX:+UseCompactObjectHeaders -XX:+AlwaysPreTouch',
             '-rf', 'json',
             '-rff', resultFile.get().asFile.absolutePath,
             '-prof', 'gc'

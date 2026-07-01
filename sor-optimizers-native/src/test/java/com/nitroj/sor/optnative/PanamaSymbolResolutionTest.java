@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies native symbol resolution behavior for Panama linkers.
+ *
+ * <p>Run when changing native library names, directories, or exported symbol lists.</p>
+ */
 class PanamaSymbolResolutionTest {
     @Test
     void expectedSymbolsResolve() {

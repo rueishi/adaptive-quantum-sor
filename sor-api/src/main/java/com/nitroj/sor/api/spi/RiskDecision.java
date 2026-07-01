@@ -18,9 +18,17 @@ public final class RiskDecision {
     private int reasonCode;
 
     /**
+     * Creates an empty reusable risk decision.
+     */
+    public RiskDecision() {
+    }
+
+    /**
      * Marks the decision as allowed.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @return this reusable decision
      */
     public RiskDecision allow() {
         this.allowed = true;
@@ -32,6 +40,9 @@ public final class RiskDecision {
      * Marks the decision as rejected with a reason code.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @param reasonCode rejection reason code
+     * @return this reusable decision
      */
     public RiskDecision reject(final int reasonCode) {
         this.allowed = false;
@@ -43,11 +54,23 @@ public final class RiskDecision {
      * Clears to a rejecting default.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @return this reusable decision
      */
     public RiskDecision clear() {
         return reject(0);
     }
 
+    /**
+     * Returns whether the request is allowed.
+     *
+     * @return true when risk allowed the request
+     */
     public boolean allowed() { return allowed; }
+    /**
+     * Returns the rejection reason code.
+     *
+     * @return rejection reason code, or zero when allowed
+     */
     public int reasonCode() { return reasonCode; }
 }

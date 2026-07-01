@@ -20,8 +20,8 @@
 | Owning layers | All layers; Phase 8 is structural |
 | Hot-path impact | **Must preserve all Phase 1–7 hot-path guarantees.** Section 8.2 of `adaptive_quantum_sor_spec_v1.md` remains binding. |
 | Backward compatibility | Phase 1–7 acceptance criteria must remain green after every Phase 8 sub-phase. Existing scenario YAMLs in `sor-test-server/src/main/resources/scenarios/` must continue to drive Gradle/JUnit scenario tests without edits. |
-| Language pin | OpenJDK 25 LTS (currently 25.0.3, April 2026 CPU). |
-| GC pin | Generational ZGC. Compact Object Headers (JEP 519) explicitly **disabled** — incompatible with ZGC in JDK 25/26. Re-evaluate when JEP 534 lands ZGC support, likely JDK 29 LTS (2027). |
+| Language pin | OpenJDK 25 LTS. The committed Phase 8 baseline was captured on OpenJDK 25.0.2+10. |
+| GC pin | Generational ZGC. Phase 8 originally disabled Compact Object Headers; Phase 9 P9-TC-017 supersedes this with a verified JDK 25.0.2+ profile using `-XX:+UseZGC -XX:+UseCompactObjectHeaders`. |
 
 ### 8.0.1 Change Notes
 
@@ -135,8 +135,10 @@ against the public DTOs, the SPI is wrong. The simulator rewrite is the test.
   warmup completes; the HTTP `/ready` probe mirrors `isReady()`.
 - `sor-test-server` assembles the standalone simulator sample server:
   CLI flags, jib-built OCI image, Helm chart.
-- Java client SDK (`sor-client-java`) published to Maven Central.
-- Python client SDK (`sor-client-python`) published to PyPI.
+- Java client SDK (`sor-client-java`) is release-ready for Maven Central:
+  versioned, signed/publishable, dry-run validated, and documented.
+- Python client SDK (`sor-client-python`) is release-ready for PyPI:
+  versioned, packaged, `twine check` validated, and documented.
 - JDK 25 upgrade with explicit ZGC configuration documented and committed.
 
 ### 8.2.2 Out Of Scope
@@ -148,9 +150,8 @@ against the public DTOs, the SPI is wrong. The simulator rewrite is the test.
   rewrite.
 - **Project Valhalla value types for `OrderIntent` / `ChildOrder`.** Not in
   JDK 25 or 26. When Valhalla GA lands on an LTS (likely JDK 29+), revisit.
-- **`-XX:+UseCompactObjectHeaders`.** Mutually exclusive with ZGC in JDK 25
-  and JDK 26. Tracked as a deferred optimization; re-evaluate per quarterly
-  release.
+- **`-XX:+UseCompactObjectHeaders`.** Deferred during Phase 8, then superseded
+  by Phase 9 P9-TC-017 after JDK 25.0.2 verified the flag works with ZGC.
 - **Multi-tenant within a single process by default.** Phase 8H adds it as an
   optional capability for integrators who need it. The recommended deployment
   pattern remains one tenant per JVM, multiplexed by k8s.
@@ -1997,7 +1998,7 @@ Phase 1–7 test still passes.
 
 **Scope:**
 
-- Bump Gradle toolchain to JDK 25 LTS (currently 25.0.3). Update
+- Bump Gradle toolchain to JDK 25 LTS. Update
   `build.gradle` `sourceCompatibility`/`targetCompatibility` and the
   toolchain block.
 - Update CI runners to JDK 25.
@@ -2064,9 +2065,9 @@ legacy `com.nitroj.adaptive.quantum.sor.sim` package has been deleted, and
 - Simulator source is split by responsibility:
 
   ```text
-  com.nitroj.sor.sim.adapters  deterministic implementations of public SOR SPI contracts
-  com.nitroj.sor.sim.scenario     scenario generators, scenario state, and evidence DTOs
-  com.nitroj.sor.sim.scenario.venues venue metadata, profiles, sessions, throttles, and outcomes
+  com.nitroj.sor.testkit.sim.adapters  deterministic implementations of public SOR SPI contracts
+  com.nitroj.sor.testkit.sim.scenario     scenario generators, scenario state, and evidence DTOs
+  com.nitroj.sor.testkit.sim.scenario.venues venue metadata, profiles, sessions, throttles, and outcomes
   ```
 
   The adapters package contains classes a real production system would
@@ -2260,10 +2261,10 @@ out of this repository and belong in integrator-owned modules.
 
 **Scope:**
 
-- `sor-client-java` — Maven Central artifact. Depends on `sor-api` and
+- `sor-client-java` — Maven Central-ready artifact. Depends on `sor-api` and
   `sor-codec`. Includes the Aeron client. Semantic versioning starts
   at 1.0.0.
-- `sor-client-python` — PyPI package
+- `sor-client-python` — PyPI-ready package
   `adaptive-quantum-sor-client`. Wraps the HTTP control plane for notebook
   research where latency is irrelevant. Maps SorEvents into typed dataclasses.
 
@@ -2423,8 +2424,8 @@ P8-TC-060  Publish PHASE_8F_COMPLETION_REPORT.md.
 ### Phase 8G
 
 ```text
-P8-TC-065  sor-client-java published to Maven Central, version 1.0.0.
-P8-TC-066  sor-client-python published to PyPI, version 1.0.0.
+P8-TC-065  sor-client-java release-ready for Maven Central, version 1.0.0.
+P8-TC-066  sor-client-python release-ready for PyPI, version 1.0.0.
 P8-TC-067  sor-test-server sample server: CLI, run.sh, jib OCI image.
 P8-TC-068  Helm chart: Deployment, Service, ServiceMonitor, NetworkPolicy.
 P8-TC-069  docs/integration/INTEGRATING_AS_EMBEDDED.md.
@@ -2451,7 +2452,7 @@ reproduction command.
 ### Phase 8A
 
 ```text
-P8-AC-001  Build compiles on JDK 25 LTS (currently 25.0.3).
+P8-AC-001  Build compiles on JDK 25 LTS.
 P8-AC-002  All Phase 1–7 JUnit tests pass on JDK 25 + ZGC.
 P8-AC-003  Existing JMH benchmarks complete with a recorded baseline.
 P8-AC-004  sor-api module compiles with zero implementation dependencies.
@@ -2547,9 +2548,9 @@ P8-AC-044  Panama bench latency within 5% of prior JNI bench.
 ```text
             ExecutionReport → SorEvent.Filled.
             valid Quote stream.
-P8-AC-047  sor-client-java available on Maven Central; sample integrator
-            project compiles against it.
-P8-AC-048  sor-client-python available on PyPI; notebook examples run.
+P8-AC-047  sor-client-java publish metadata and local staging validate;
+            sample integrator project compiles against it.
+P8-AC-048  sor-client-python wheel/sdist metadata validate; notebook examples run.
 P8-AC-049  jib OCI image builds; container starts and passes /healthz.
 P8-AC-050  Helm chart installs cleanly; ServiceMonitor scraped by
             Prometheus; smoke test order submitted via Aeron.
@@ -2661,7 +2662,7 @@ sim/SyntheticScenarioGenerator.java → deleted after scenario runner migration
 ### Transport → split
 
 ```text
-api/SorHttpApiServer.java           → sor-test-server legacy scenario/notebook API coverage
+api/NotebookScenarioHttpServer.java           → sor-test-server legacy scenario/notebook API coverage
 api/EventStreamHandler.java         → sor-test-server legacy scenario/notebook API coverage
 api/NotebookDemoApiLauncher.java    → deleted; replaced by NotebookScenarioApiLauncher for Jupyter scenario workflows
 api/StatsSnapshotView.java          → sor-test-server legacy scenario/notebook API coverage
@@ -2839,7 +2840,7 @@ jib {
 | ID | Risk | Impact | Mitigation |
 |---|---|---|---|
 | R-8-01 | The SPI design omits a capability a real integrator needs. | Forces a breaking change in `sor-api` post-1.0. | Phase 8B (simulator rewrite) is the primary forcing function. Additionally, run the SPI design past one external reviewer experienced in OMS integration *before* Phase 8A starts. |
-| R-8-02 | The 4-byte JDK 25 + ZGC config interacts badly with native libraries used by integrators (Netty's epoll, Tomcat's APR, etc). | Crashes on some integrator deployments. | Document the supported JDK 25 patch level minimum (currently 25.0.3); run a Testcontainers matrix against common-conflict native libs in CI. |
+| R-8-02 | The 4-byte JDK 25 + ZGC config interacts badly with native libraries used by integrators (Netty's epoll, Tomcat's APR, etc). | Crashes on some integrator deployments. | Document the supported JDK 25 patch level minimum in `docs/testing/PHASE_8_JMH_BASELINE.md`; run a Testcontainers matrix against common-conflict native libs in CI. |
 | R-8-03 | Aeron media driver tuning is fragile; integrators hit jitter without dedicated cores. | Out-of-process P99 misses the 10µs target on customer hardware. | Ship `docs/integration/INTEGRATING_OVER_AERON.md` with the canonical `taskset`/`numactl`/CPU-isolation recipe; default to Aeron IPC (less tuning required) before recommending UDP. |
 | R-8-04 | Chronicle Queue file format changes between major versions; migration burden for integrators. | Forced downtime to migrate WAL on upgrades. | Pin the Chronicle major version in the BOM; document the file format in `docs/PERSISTENCE_FORMAT.md`. |
 | R-8-05 | The HotRouteBook ABI v1 includes a field that needs to change. | Either a v2 ABI breaks every C++ consumer (Phase 9 path), or v1 ossifies suboptimal layout. | Spend longer on §8.5.1 review before locking v1; include 16 bytes of reserved padding in the header so v2 can add fields without changing offsets. |
@@ -2848,8 +2849,8 @@ jib {
 | R-8-08 | gRPC turns out to be needed for a specific integrator after all. | Replan. | Document the explicit reasoning in §8.3.4 so the team has a clean record of when the assumption no longer holds; revisit only if signed-up integrator requirement appears. |
 | R-8-09 | Multi-tenant (8H) creep into earlier phases. | Phases 8A–8G slip. | Keep 8H formally out of scope through 8G's completion report. Reject mid-phase requests for "could we make this multi-tenant now?" |
 | R-8-10 | Notebook users break when control-plane HTTP API is restructured. | Research team blocked. | Keep the existing HTTP endpoints byte-for-byte unchanged in `sor-transport-http-control`; rename the module, not the wire surface. |
-| R-8-11 | JEP 519 ZGC support ships on a JDK 25 update; team forgets to enable it. | 5–10% CPU win left on the table. | Track JEP 534 status in `docs/testing/PHASE_8_JMH_BASELINE.md`; re-baseline at each quarterly CPU. |
-| R-8-12 | Maven Central / PyPI publishing setup blocks Phase 8G. | Adapter pack ships without published SDKs. | Pre-stage publishing credentials and a dry-run release on a separate org/group ID during Phase 8E. |
+| R-8-11 | JEP 519 ZGC support ships on a JDK 25 update; team forgets to enable it. | 5–10% CPU win left on the table. | Superseded by Phase 9 P9-TC-017, which enables Compact Object Headers with ZGC on the verified JDK 25.0.2 runtime and refreshes the baseline evidence. |
+| R-8-12 | Maven Central / PyPI publishing setup blocks a public release after Phase 8G. | Adapter pack ships with release-ready SDKs but no public registry upload. | Pre-stage publishing credentials and a dry-run release on a separate org/group ID during Phase 8E. |
 
 ---
 
@@ -2877,7 +2878,7 @@ Reproduction commands for each phase. These run locally and in CI.
 
 ```bash
 ./gradlew :sor-test-server:build
-./gradlew :sor-core:test --tests 'com.nitroj.sor.core.scenario.*'
+./gradlew :sor-core:test --tests 'com.nitroj.sor.testkit.scenario.*'
 ./gradlew :sor-test-server:test --tests '*DeterminismTest'
 
 # Existing scenario catalog still works
@@ -2972,7 +2973,7 @@ Hot path       The route-decision call path. Allocation-free, no logging,
 HotRouteBook   The struct-of-arrays the executioner walks per route. Its
                binary layout is locked as an ABI in Phase 8A (§8.5).
 JEP 519        OpenJDK Compact Object Headers. Product feature in JDK 25.
-               Incompatible with ZGC in JDK 25 and 26.
+               Phase 9 P9-TC-017 verifies use with ZGC on JDK 25.0.2.
 JEP 534        Draft "Compact Object Headers by Default". No target version
                assigned as of this writing.
 Out-of-process Deployment mode in which the integrator's process speaks to
@@ -3014,7 +3015,8 @@ The mechanism is:
 4. A versioned binary ABI for `HotRouteBook` so a future C++ port of L0
    is incremental, not a rewrite.
 5. JDK 25 LTS + generational ZGC + JIT warmup as part of the framework
-   contract. `-XX:+UseCompactObjectHeaders` explicitly off.
+   contract. Phase 9 P9-TC-017 later enables
+   `-XX:+UseCompactObjectHeaders` after compatibility verification.
 6. Eight independently-shippable sub-phases (8A–8H), the last one
    optional.
 
@@ -3068,12 +3070,10 @@ maps the binary layout directly without a serialization step. Estimated
 route-decision requirement, typically a co-located deployment at a
 real HFT venue.
 
-**Compact Object Headers on ZGC.** Flip `-XX:+UseCompactObjectHeaders`
-once OpenJDK ships ZGC support. Expected gain on the warm path: 5–10%
-CPU, 10–20% heap reduction on audit/lifecycle/scenario objects. Re-run
-the full JMH suite and update the baseline at the time of flip. Gated
-on: JEP 534 (or equivalent) landing in a JDK 25 update or on a future
-LTS — likely JDK 29 LTS in late 2027.
+**Compact Object Headers on ZGC.** Superseded by Phase 9 P9-TC-017. The
+production profile now enables `-XX:+UseCompactObjectHeaders` with
+`-XX:+UseZGC` on the verified JDK 25.0.2 runtime, guarded by regression and JMH
+evidence.
 
 **gRPC transport.** Only if a non-latency-sensitive integrator
 specifically requires it. The Phase 8 architecture supports adding a
@@ -3126,7 +3126,7 @@ P8-DEPLOY    sor-test-server sample server, OCI image, Helm chart, integrator gu
 
 ##### P8-BOOT-001 Positive: build compiles on JDK 25 LTS
 
-Given the Gradle toolchain is pinned to JDK 25 LTS (currently 25.0.3),
+Given the Gradle toolchain is pinned to JDK 25 LTS,
 when `./gradlew build` runs from a clean checkout,
 then every submodule compiles and the build exits zero.
 
@@ -3675,7 +3675,7 @@ mid-scrape) and Prometheus rate calculations remain monotonic where expected.
 
 ##### P8-HTTP-001 Positive: HTTP endpoint ownership is explicit
 
-Given every endpoint shipped in Phase 1–7's `SorHttpApiServer`,
+Given every endpoint shipped in Phase 1–7's `NotebookScenarioHttpServer`,
 when Phase 8 starts HTTP surfaces,
 then research/ops endpoints live in `sor-transport-http-control`, while legacy
 notebook scenario endpoints (`/scenario/reset`, `/scenario/run`,
@@ -3946,17 +3946,16 @@ attempted path.
 
 #### P8-CLIENT — Client SDKs
 
-##### P8-CLIENT-JAVA-001 Positive: published to Maven Central
+##### P8-CLIENT-JAVA-001 Positive: Maven Central metadata and local staging
 
 Given the release process,
-when `sor-client-java:1.0.0` is published,
-then it resolves from Maven Central in a fresh Gradle build with no additional
-repositories configured.
+when `sor-client-java:1.0.0` is staged locally with Central-ready metadata,
+then it resolves in a fresh Gradle build with no dependency on `sor-core`.
 
 ##### P8-CLIENT-JAVA-002 Positive: sample project works end-to-end
 
 Given `sor-client-java/examples/quickstart`,
-when built against the published artifact and run against a local
+when built against the locally staged artifact and run against a local
 `sor-test-server`,
 then one parent order is submitted and one `SorEvent.Filled` is observed.
 
@@ -3966,11 +3965,11 @@ Given the jar,
 when Javadoc is generated,
 then no `missing comment` warning is emitted for any public type or method.
 
-##### P8-CLIENT-PY-001 Positive: published to PyPI
+##### P8-CLIENT-PY-001 Positive: PyPI metadata validates
 
 Given the release process,
-when `adaptive-quantum-sor-client==1.0.0` is published,
-then `pip install adaptive-quantum-sor-client` succeeds against the public index.
+when `adaptive-quantum-sor-client==1.0.0` wheel and sdist are built,
+then `twine check dist/*` succeeds and the package imports from a clean install target.
 
 ##### P8-CLIENT-PY-002 Positive: notebook compatibility
 
@@ -4072,8 +4071,8 @@ by `docs/reports/phase-1-7/PHASE_1_COMPLETION_REPORT.md` through
 
 #### P8-01 — JDK 25 Toolchain and ZGC Baseline
 
-**What it delivers.** Gradle toolchain pinned to JDK 25 LTS (currently
-25.0.3). Generational ZGC selected for the engine JVM. Production JVM flags
+**What it delivers.** Gradle toolchain pinned to JDK 25 LTS.
+Generational ZGC selected for the engine JVM. Production JVM flags
 committed to `scripts/run_engine.sh`. JMH baseline captured as the new
 hot-path floor against which Phase 8 regressions are measured. CI gate
 that fails any PR regressing the hot-path allocation benchmark by more
@@ -4087,13 +4086,13 @@ behavior changes elsewhere.
 **Implementation outline.**
 - Update `build.gradle` toolchain block: `JavaLanguageVersion.of(25)`,
   `sourceCompatibility = VERSION_25`, `targetCompatibility = VERSION_25`.
-- Update CI runner images to Temurin 25.0.3.
+- Update CI runner images to a supported JDK 25 LTS patch level.
 - Create `scripts/run_engine.sh` with the JVM flags from §3.1 of
   `PRODUCTION_FRAMEWORK_RECOMMENDATION.md` (UseZGC, AlwaysPreTouch,
   Xms=Xmx, UseTransparentHugePages, UseNUMA, GC logging).
-- Document the ZGC + compact-headers incompatibility in
-  `docs/testing/PHASE_8_JMH_BASELINE.md` so future engineers don't enable
-  `-XX:+UseCompactObjectHeaders` and silently break ZGC.
+- Document the Phase 8 ZGC runtime profile in
+  `docs/testing/PHASE_8_JMH_BASELINE.md`; Phase 9 P9-TC-017 supersedes this
+  by enabling Compact Object Headers with ZGC after VM compatibility checks.
 - Run the full existing JMH suite. Capture: hot-path allocation,
   hot-path latency, optimizer cycle latency. Record environment metadata
   (kernel, hardware, JDK build, GC) alongside numbers.
@@ -4126,10 +4125,11 @@ com.nitroj.sor.core.boot.GcConfigurationTest
   Reads the running JVM's GC name via java.lang.management.GarbageCollectorMXBean
   and asserts a ZGC collector is present. CI profile: unit.
 
-com.nitroj.sor.core.boot.ZgcCompactHeadersIncompatibilityTest
+com.nitroj.sor.core.boot.ZgcCompactHeadersCompatibilityTest
   → P8-BOOT-003
-  Asserts that launching a forked JVM with -XX:+UseZGC -XX:+UseCompactObjectHeaders
-  exits non-zero and the stderr contains the documented diagnostic string.
+  Superseded by Phase 9 P9-TC-017. Asserts that launching a forked JVM with
+  -XX:+UseZGC -XX:+UseCompactObjectHeaders succeeds and PrintFlagsFinal reports
+  both flags enabled.
   CI profile: integration (forks a JVM).
 
 com.nitroj.sor.core.boot.RunScriptFlagPresenceTest
@@ -4726,8 +4726,8 @@ scenario helper packages in `sor-test-server`. Concrete deliverables:
 `SimulatedRiskProvider implements RiskProvider`,
 `InMemoryPersistence implements Persistence`,
 `ManualClock implements Clock`, plus scenario/catalog/venue helpers split
-under `com.nitroj.sor.sim.scenario` and
-`com.nitroj.sor.sim.scenario.venues`.
+under `com.nitroj.sor.testkit.sim.scenario` and
+`com.nitroj.sor.testkit.sim.scenario.venues`.
 
 **Historical limit.** P8-07 by itself was not sufficient to retire
 `com.nitroj.adaptive.quantum.sor.sim`; P8-23 through P8-30 closed the parity,
@@ -4836,7 +4836,7 @@ com.nitroj.sor.sim.SimulatorAdapterContractCoverageTest
   directly and no simulator-only wrapper interface replaces those contracts.
   CI: unit.
 
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioRunnerNewSimulatorPathTest
+com.nitroj.sor.testkit.scenario.ScenarioRunnerNewSimulatorPathTest
   → P8-SIM-008
   Runs scenarios through the test-server-owned ScenarioRunner while composing
   sor-test-server components; asserts legacy-compatible summary evidence.
@@ -4896,9 +4896,9 @@ adapters use the SPI patterns established here.
 integrations: each simulator capability is consumed through a stable interface,
 not through concrete class names or `@SimulatorMapping(legacy = "...")`.
 Simulator code is organized so public SPI implementations live under
-`com.nitroj.sor.sim.adapters`, while deterministic scenario-only helpers live
-under `com.nitroj.sor.sim.scenario`; venue-specific profiles, snapshots, and
-outcomes live under `com.nitroj.sor.sim.scenario.venues`.
+`com.nitroj.sor.testkit.sim.adapters`, while deterministic scenario-only helpers live
+under `com.nitroj.sor.testkit.sim.scenario`; venue-specific profiles, snapshots, and
+outcomes live under `com.nitroj.sor.testkit.sim.scenario.venues`.
 
 **Why it exists.** `@SimulatorMapping(legacy = "...")` was useful while
 auditing Phase 8 coverage, but it preserves a conceptual dependency on the
@@ -4928,11 +4928,11 @@ adds production-grade contracts for those capabilities.
 **Implementation outline.**
 - Make runtime simulator components implement the public `sor-api` SPI
   interfaces directly where such an integration contract exists.
-- Move the SPI implementation classes into `com.nitroj.sor.sim.adapters`.
+- Move the SPI implementation classes into `com.nitroj.sor.testkit.sim.adapters`.
 - Move scenario generators, config/regime/profile types, snapshots, and
-  simulator evidence records into `com.nitroj.sor.sim.scenario`.
+  simulator evidence records into `com.nitroj.sor.testkit.sim.scenario`.
 - Move venue-specific profiles, venue metadata, venue session/throttle
-  snapshots, and venue outcomes into `com.nitroj.sor.sim.scenario.venues`.
+  snapshots, and venue outcomes into `com.nitroj.sor.testkit.sim.scenario.venues`.
 - Do not add simulator-local interface wrappers for production SPI contracts.
 - Remove `SimulatorMapping`, `SimulatorMappings`, and every
   `@SimulatorMapping(legacy = "...")` annotation from production simulator
@@ -5149,7 +5149,7 @@ P8-SIM-021 partial
 ```text
 com.nitroj.sor.sim.LegacyParentOrderInjectorParityTest
 com.nitroj.sor.sim.SimulatedScenarioParentOrdersTest
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioDefinitionLoaderTest
+com.nitroj.sor.testkit.scenario.ScenarioDefinitionLoaderTest
 ```
 
 **Validation.**
@@ -5166,9 +5166,9 @@ com.nitroj.adaptive.quantum.sor.scenario.ScenarioDefinitionLoaderTest
 test-server-owned scenario runner. Scenario orchestration classes, run-result
 DTOs, and notebook scenario API live in `sor-test-server` because they are
 testing/workflow concerns, not embedded-engine core.
-Simulator classes are separated into `com.nitroj.sor.sim.adapters` for
-public SPI implementations, `com.nitroj.sor.sim.scenario` for scenario
-state/generators, and `com.nitroj.sor.sim.scenario.venues` for venue behavior
+Simulator classes are separated into `com.nitroj.sor.testkit.sim.adapters` for
+public SPI implementations, `com.nitroj.sor.testkit.sim.scenario` for scenario
+state/generators, and `com.nitroj.sor.testkit.sim.scenario.venues` for venue behavior
 state and evidence.
 
 **Implementation outline.**
@@ -5176,7 +5176,7 @@ state and evidence.
   `com.nitroj.sor.sim.ScenarioRunResult`; those names belong to the
   test-server scenario orchestration package.
 - Expose simulator component APIs and DTOs needed by
-  `com.nitroj.adaptive.quantum.sor.scenario.ScenarioRunner` to compose
+  `com.nitroj.sor.testkit.scenario.ScenarioRunner` to compose
   market data, venue behavior, risk, order injection, catalogs, fees,
   persistence, and `SorEngineBuilder`.
 - Keep scenario orchestration in `sor-test-server`, importing simulator SPI
@@ -5197,15 +5197,15 @@ P8-SIM-021 partial
 **Tests.**
 
 ```text
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioRunnerNewSimulatorPathTest
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioApiNewSimulatorPathTest
+com.nitroj.sor.testkit.scenario.ScenarioRunnerNewSimulatorPathTest
+com.nitroj.sor.testkit.scenario.ScenarioApiNewSimulatorPathTest
 com.nitroj.sor.sim.ScenarioOrchestrationOwnershipTest
 com.nitroj.sor.sim.SimulatedClusterControllerLifecycleEventParityTest
 ```
 
 **Validation.**
 ```bash
-./gradlew :sor-test-server:test --tests 'com.nitroj.adaptive.quantum.sor.scenario.*'
+./gradlew :sor-test-server:test --tests 'com.nitroj.sor.testkit.scenario.*'
 ./gradlew :sor-test-server:test --tests '*ScenarioOrchestrationOwnershipTest'
 ```
 
@@ -5245,15 +5245,15 @@ P8-SIM-021 partial
 **Tests.**
 
 ```text
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioRunnerNewSimulatorPathTest
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioApiNewSimulatorPathTest
-com.nitroj.adaptive.quantum.sor.scenario.ScenarioSummaryCompatibilityTest
+com.nitroj.sor.testkit.scenario.ScenarioRunnerNewSimulatorPathTest
+com.nitroj.sor.testkit.scenario.ScenarioApiNewSimulatorPathTest
+com.nitroj.sor.testkit.scenario.ScenarioSummaryCompatibilityTest
 com.nitroj.sor.core.boot.NoLegacySimulatorProductionImportTest
 ```
 
 **Validation.**
 ```bash
-./gradlew :sor-test-server:test --tests 'com.nitroj.adaptive.quantum.sor.scenario.*'
+./gradlew :sor-test-server:test --tests 'com.nitroj.sor.testkit.scenario.*'
 ./gradlew :sor-core:test --tests '*NoLegacySimulatorProductionImportTest'
 ```
 
@@ -5600,7 +5600,7 @@ com.nitroj.sor.core.boot.JupyterLauncherScriptTest
   `:sor-test-server:runNotebookApi` with `--http-control-port`, keeps the notebook
   Python path, and opens the three canonical notebook panels. CI profile: unit.
 
-com.nitroj.adaptive.quantum.sor.api.JupyterNotebookArtifactTest
+com.nitroj.sor.testserver.api.JupyterNotebookArtifactTest
   → P8-HTTP-007, P8-HTTP-008
   Verifies notebook artifacts still cover order, stats, and scenario workflows,
   and verifies `scenario_runner.ipynb` delegates widget/report implementation
@@ -6012,9 +6012,9 @@ Reference market-data, venue, and risk adapter implementations are removed from
 this repository. Integrators implement `MarketDataSource`, `VenueAdapter`, and
 `RiskProvider` in their own modules against `sor-api`.
 
-#### P8-20 — sor-client-java SDK (Maven Central)
+#### P8-20 — sor-client-java SDK (Maven Central-ready)
 
-**What it delivers.** New `sor-client-java` module published to Maven
+**What it delivers.** New `sor-client-java` module release-ready for Maven
 Central as `com.nitroj.sor:sor-client-java:1.0.0`. Depends on `sor-api`,
 `sor-codec`, and the Aeron client side from `sor-transport-aeron`.
 Exposes `AeronSorClient.connect(channelUri, config)` as entry point.
@@ -6033,7 +6033,7 @@ staging, release process). Best done in isolation.
   shutdown.
 - README quickstart: 30-line example.
 - Sample integrator project under `sor-client-java/examples/quickstart/`
-  builds against the published artifact and submits one order to a
+  builds against the locally staged artifact and submits one order to a
   locally-running `sor-test-server`.
 - Version 1.0.0 release process documented in
   `docs/release/RELEASE_PROCESS_JAVA_CLIENT.md`.
@@ -6041,7 +6041,7 @@ staging, release process). Best done in isolation.
 **Acceptance criteria delivered.**
 
 ```text
-P8-CLIENT-JAVA-001  published to Maven Central
+P8-CLIENT-JAVA-001  Maven Central metadata and local staging validated
 P8-CLIENT-JAVA-002  sample project works end-to-end
 P8-CLIENT-JAVA-003  every public type has Javadoc
 ```
@@ -6089,9 +6089,9 @@ cd sor-client-java/examples/quickstart && ./gradlew run
 
 ---
 
-#### P8-21 — sor-client-python SDK (PyPI, HTTP-based)
+#### P8-21 — sor-client-python SDK (PyPI-ready, HTTP-based)
 
-**What it delivers.** New `sor-client-python` package published to PyPI
+**What it delivers.** New `sor-client-python` package release-ready for PyPI
 as `adaptive-quantum-sor-client==1.0.0`. Wraps the HTTP control plane
 (not Aeron — see §8.16 Phase 9 roadmap note). Replaces the ad-hoc
 `requests`-based calls in existing notebooks with a typed, documented
@@ -6125,7 +6125,7 @@ support, retry semantics) is separate from any Java work.
 **Acceptance criteria delivered.**
 
 ```text
-P8-CLIENT-PY-001  published to PyPI
+P8-CLIENT-PY-001  wheel/sdist metadata validates for PyPI
 P8-CLIENT-PY-002  notebook compatibility
 P8-CLIENT-PY-003  type stubs and mypy
 P8-CLIENT-PY-004  retry semantics

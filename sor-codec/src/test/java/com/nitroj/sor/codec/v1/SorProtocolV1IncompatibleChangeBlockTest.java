@@ -7,6 +7,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Guards against incompatible protocol v1 message changes.
+ *
+ * <p>Run with codec tests whenever fields, template IDs, or message semantics change.</p>
+ */
 class SorProtocolV1IncompatibleChangeBlockTest {
     @Test
     void schemaPolicyRequiresV2ForBreakingChanges() throws Exception {

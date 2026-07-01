@@ -5,6 +5,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Verifies variable-length string encoding boundaries.
+ *
+ * <p>Run with codec tests to protect malformed, empty, and maximum-length payload handling.</p>
+ */
 class VariableLengthStringBoundaryTest {
     @Test
     void boundedStringRoundTripsAtMaxLength() {

@@ -10,6 +10,11 @@ import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Benchmarks the Aeron UDP-style transport latency path.
+ *
+ * <p>Run with JMH when evaluating remote transport latency assumptions.</p>
+ */
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1)

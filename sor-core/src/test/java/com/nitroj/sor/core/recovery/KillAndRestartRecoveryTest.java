@@ -12,6 +12,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies kill and restart recovery behavior for startup recovery and initial policy bootstrap.
+ *
+ * <p>Run with :sor-core:test to protect engine startup, persistence replay, and recovery tests.</p>
+ */
 class KillAndRestartRecoveryTest {
     @Test
     void coordinatorRecoversLastPolicyAndLifecycleSequenceFromPersistence() {

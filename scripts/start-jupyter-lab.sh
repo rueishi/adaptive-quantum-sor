@@ -8,7 +8,7 @@ API_PORT="${ADAPTIVE_QUANTUM_SOR_API_PORT:-8080}"
 JUPYTER_PORT="${ADAPTIVE_QUANTUM_SOR_JUPYTER_PORT:-8888}"
 WORKSPACE="${ADAPTIVE_QUANTUM_SOR_JUPYTER_WORKSPACE:-adaptive-quantum-sor}"
 VENV_DIR="${ADAPTIVE_QUANTUM_SOR_NOTEBOOK_VENV:-$ROOT_DIR/.venv-notebook}"
-JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-25-openjdk-amd64}"
 export JAVA_HOME
 export PYTHONPATH="$ROOT_DIR/tools/notebook-helpers:$ROOT_DIR/tools/python-research${PYTHONPATH:+:$PYTHONPATH}"
 

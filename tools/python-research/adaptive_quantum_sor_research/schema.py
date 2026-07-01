@@ -1,4 +1,7 @@
-"""Shared schema constants for notebook and training helpers."""
+"""
+Purpose: Defines shared column schemas for Python research and notebook workflows.
+Usage: Use these constants when validating DataFrames and notebook order inputs.
+"""
 
 FEATURE_SCHEMA_VERSION = "feature-schema-v1"
 

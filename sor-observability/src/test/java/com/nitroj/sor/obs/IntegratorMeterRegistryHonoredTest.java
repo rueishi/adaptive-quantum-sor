@@ -5,6 +5,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies integrator-provided meter registry behavior is preserved.
+ *
+ * <p>Run with observability tests before changing registry wiring or defaults.</p>
+ */
 class IntegratorMeterRegistryHonoredTest {
     @Test
     void suppliedRegistryFacadeScrapesSuppliedBackend() {

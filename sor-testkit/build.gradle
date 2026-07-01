@@ -1,0 +1,6 @@
+dependencies {
+    api project(':sor-api')
+    api project(':sor-core')
+
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+}

@@ -11,7 +11,7 @@ PROFILE="${1:-manual}"
 
 case "$PROFILE" in
   manual)
-    "$ROOT_DIR/gradlew" :sor-core:test --tests 'com.nitroj.adaptive.quantum.sor.benchmark.BenchmarkHarnessTest'
+    "$ROOT_DIR/gradlew" :sor-core:test --tests 'com.nitroj.sor.core.benchmark.BenchmarkHarnessTest'
     ;;
   jmh)
     "$ROOT_DIR/gradlew" :sor-core:jmh \
@@ -21,7 +21,7 @@ case "$PROFILE" in
       -PjmhForks="${ADAPTIVE_QUANTUM_SOR_JMH_FORKS:-1}"
     ;;
   comparison)
-    "$ROOT_DIR/gradlew" :sor-core:test --tests 'com.nitroj.adaptive.quantum.sor.metrics.ComparisonRunnerTest'
+    "$ROOT_DIR/gradlew" :sor-core:test --tests 'com.nitroj.sor.core.metrics.ComparisonRunnerTest'
     PYTHONPATH="$ROOT_DIR/tools/python-research${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT_DIR/tools/python-research/scripts/compare_sor_dataset.py" \
       --dataset "${ADAPTIVE_QUANTUM_SOR_COMPARISON_DATASET:-$ROOT_DIR/tools/python-research/examples/sor_notebook_features_100k.csv}" \
       --output "${ADAPTIVE_QUANTUM_SOR_COMPARISON_REPORT:-$ROOT_DIR/build/reports/benchmarks/sor-comparison-report.md}"

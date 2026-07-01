@@ -16,7 +16,7 @@ final class NoLegacySimulatorProductionImportTest {
             final var offenders = paths
                     .filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !path.toString().contains("/sim/"))
-                    .filter(path -> read(path).contains("import com.nitroj.adaptive.quantum.sor.sim"))
+                    .filter(path -> read(path).contains("import com.nitroj.sor.core.sim"))
                     .toList();
 
             assertEquals(java.util.List.of(), offenders);

@@ -8,6 +8,11 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies the inventory of Panama linker classes and expected symbols.
+ *
+ * <p>Run with native optimizer tests to keep bridge coverage complete.</p>
+ */
 class PanamaLinkerInventoryTest {
     @Test
     void documentedNativeFunctionsHavePanamaCallersAndNoNativeMethodsInModule() throws Exception {

@@ -75,7 +75,7 @@ fallback safety, metrics, and report generation.
 Java-to-native shared-library integration evidence:
 
 ```text
-JniTacticalOptimizerNativeBridgeTest
+Panama FFM replacement
 ```
 
 Phase 2 integration evidence:

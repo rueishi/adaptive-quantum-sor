@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies route-latency histogram recording accuracy.
+ *
+ * <p>Run with observability tests before changing latency bucket or recorder logic.</p>
+ */
 class RouteLatencyHistogramAccuracyTest {
     @Test
     void percentilesMatchDeterministicReference() {

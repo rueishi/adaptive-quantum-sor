@@ -22,6 +22,14 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Route decision event emitted once the engine determines child allocation.
+     *
+     * @param parentOrderId engine-assigned parent order identifier
+     * @param policyVersion active policy version used for the decision
+     * @param policyHash64 active policy hash used for the decision
+     * @param childCount number of child orders emitted by the route
+     * @param routedQuantity total quantity routed to child orders
+     * @param residualQuantity parent quantity left unrouted
+     * @param decidedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record RouteDecided(long parentOrderId, long policyVersion, long policyHash64,
                         int childCount, long routedQuantity, long residualQuantity,
@@ -30,6 +38,13 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Child order emission event produced after a route decision writes a child.
+     *
+     * @param childOrderId engine-assigned child order identifier
+     * @param parentOrderId engine-assigned parent order identifier
+     * @param venueId destination venue identifier
+     * @param side side encoded by {@link Side#BUY} or {@link Side#SELL}
+     * @param quantity child order quantity
+     * @param emittedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record ChildOrderEmitted(long childOrderId, long parentOrderId, int venueId,
                              int side, long quantity, long emittedEpochNanos) implements SorEvent {
@@ -37,6 +52,13 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Fill event delivered from a venue or simulator callback.
+     *
+     * @param childOrderId engine-assigned child order identifier
+     * @param parentOrderId engine-assigned parent order identifier
+     * @param venueId venue reporting the fill
+     * @param filledQuantity filled quantity
+     * @param fillPrice fill price in fixed-point price units
+     * @param filledEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record Filled(long childOrderId, long parentOrderId, int venueId,
                   long filledQuantity, long fillPrice, long filledEpochNanos) implements SorEvent {
@@ -44,6 +66,12 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Rejection event delivered when a child order cannot be accepted or filled.
+     *
+     * @param childOrderId engine-assigned child order identifier
+     * @param parentOrderId engine-assigned parent order identifier
+     * @param venueId venue reporting the rejection
+     * @param reasonCode venue or engine rejection reason code
+     * @param rejectedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record Rejected(long childOrderId, long parentOrderId, int venueId,
                     int reasonCode, long rejectedEpochNanos) implements SorEvent {
@@ -51,6 +79,10 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Policy publication event emitted when a new policy becomes active.
+     *
+     * @param policyVersion active policy version after publication
+     * @param policyHash64 active policy hash after publication
+     * @param publishedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record PolicyPublished(long policyVersion, long policyHash64,
                            long publishedEpochNanos) implements SorEvent {
@@ -58,6 +90,11 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Venue session state transition event.
+     *
+     * @param venueId venue whose status changed
+     * @param oldStatus previous venue status
+     * @param newStatus new venue status
+     * @param changedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record SessionStatusChanged(int venueId, VenueStatus oldStatus,
                                 VenueStatus newStatus, long changedEpochNanos) implements SorEvent {
@@ -65,6 +102,10 @@ public sealed interface SorEvent permits SorEvent.RouteDecided, SorEvent.ChildOr
 
     /**
      * Backpressure event emitted when intake capacity rejects a parent order.
+     *
+     * @param parentOrderId rejected parent order identifier, if available
+     * @param reasonCode engine backpressure reason code
+     * @param rejectedEpochNanos wall-clock event timestamp in epoch nanoseconds
      */
     record BackpressureRejected(long parentOrderId, int reasonCode,
                                 long rejectedEpochNanos) implements SorEvent {

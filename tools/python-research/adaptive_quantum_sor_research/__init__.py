@@ -1,4 +1,7 @@
-"""Research, dataset, and scenario-catalog helpers for Adaptive Quantum SOR."""
+"""
+Purpose: Exports reusable Python research helpers for Adaptive Quantum SOR.
+Usage: Import it from notebooks and scripts that need scenario catalog, schema, or DataFrame utilities.
+"""
 
 from .dataframe import (
     read_feature_dataframe,
