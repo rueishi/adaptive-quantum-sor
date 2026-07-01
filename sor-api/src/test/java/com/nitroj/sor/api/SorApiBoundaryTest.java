@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Responsibility: verifies public API boundary separation.
  *
  * <p>Role in system: keeps hot-path order submission on {@link SorEngine} and
- * reset/diagnostics on {@link SorControlPlane}.</p>
+ * reset/hydration/diagnostics on {@link SorControlPlane}.</p>
  *
  * <p>Relationships: reflection-level guard for API review.</p>
  *
@@ -30,15 +30,16 @@ class SorApiBoundaryTest {
         assertTrue(methods.contains("submitParentOrder"));
         assertTrue(methods.contains("cancelParentOrder"));
         assertFalse(methods.contains("reset"));
+        assertFalse(methods.contains("hydrate"));
         assertFalse(methods.contains("stateSummary"));
         assertFalse(methods.contains("marketDataSnapshot"));
     }
 
     @Test
-    void controlPlaneOwnsResetAndDiagnostics() {
+    void controlPlaneOwnsResetHydrationAndDiagnostics() {
         final Set<String> methods = methodNames(SorControlPlane.class);
 
-        assertEquals(Set.of("reset", "stateSummary", "marketDataSnapshot"), methods);
+        assertEquals(Set.of("reset", "hydrate", "stateSummary", "marketDataSnapshot"), methods);
     }
 
     private static Set<String> methodNames(final Class<?> type) {

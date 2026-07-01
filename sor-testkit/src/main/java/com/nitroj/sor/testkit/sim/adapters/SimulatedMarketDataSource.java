@@ -3,6 +3,8 @@ package com.nitroj.sor.testkit.sim.adapters;
 import com.nitroj.sor.testkit.sim.scenario.*;
 import com.nitroj.sor.testkit.sim.scenario.venues.*;
 
+import com.nitroj.sor.api.MarketDataSeedCell;
+import com.nitroj.sor.api.MarketDataSeedSnapshot;
 import com.nitroj.sor.api.spi.MarketDataListener;
 import com.nitroj.sor.api.spi.MarketDataSource;
 import com.nitroj.sor.api.spi.Quote;
@@ -195,6 +197,34 @@ public final class SimulatedMarketDataSource implements MarketDataSource {
 
     public SimMarketBookSnapshot currentBook() {
         return book;
+    }
+
+    /**
+     * Builds a venue-aware startup seed snapshot from the feed's current
+     * primitive state.
+     *
+     * <p>Control-plane method, not hot-path. Scenario hydration uses this
+     * method so the runner does not read simulator-local books as SOR evidence
+     * while still obtaining deterministic market seed inputs.</p>
+     *
+     * @param snapshotId source snapshot identifier
+     * @param asOfSequence source sequence watermark
+     * @param asOfEpochNanos source timestamp
+     * @return immutable market-data seed snapshot
+     */
+    public MarketDataSeedSnapshot startupSeedSnapshot(final String snapshotId, final long asOfSequence,
+                                                      final long asOfEpochNanos) {
+        final MarketDataSeedCell[] cells = new MarketDataSeedCell[config.instrumentCount() * config.venueCount()];
+        int offset = 0;
+        for (int instrumentId = 0; instrumentId < config.instrumentCount(); instrumentId++) {
+            for (int venueId = 0; venueId < config.venueCount(); venueId++) {
+                final int idx = config.cellIndex(instrumentId, venueId);
+                cells[offset++] = new MarketDataSeedCell(instrumentId, venueId,
+                        lastBidByInstrumentVenue[idx], lastAskByInstrumentVenue[idx],
+                        bidQtyByInstrumentVenue[idx], askQtyByInstrumentVenue[idx], asOfEpochNanos);
+            }
+        }
+        return new MarketDataSeedSnapshot(snapshotId, asOfSequence, asOfEpochNanos, cells);
     }
 
     public SimFeedHealthSnapshot feedHealth() {

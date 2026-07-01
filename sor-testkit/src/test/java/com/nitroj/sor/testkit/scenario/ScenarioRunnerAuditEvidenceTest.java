@@ -32,6 +32,10 @@ final class ScenarioRunnerAuditEvidenceTest {
 
         assertEquals(SorResetMode.SCENARIO_REPLAY_RESET, evidence.resetSummary().mode());
         assertEquals(true, evidence.resetSummary().accepted());
+        assertEquals(true, evidence.hydrationSummary().accepted());
+        assertEquals(0, evidence.hydrationSummary().parentCount());
+        assertEquals(0, evidence.hydrationSummary().childCount());
+        assertTrue(evidence.hydrationSummary().marketCellCount() > 0);
         assertTrue(evidence.marketDataSnapshot().sequence() > 0);
         assertEquals(evidence.summary().routeCount(), evidence.routeDecidedEvents());
         assertEquals(evidence.summary().childOrderCount(), evidence.childOrderEvents());
@@ -51,6 +55,8 @@ final class ScenarioRunnerAuditEvidenceTest {
 
         assertEquals(first.summary(), second.summary());
         assertEquals(first.resetSummary().mode(), second.resetSummary().mode());
+        assertEquals(first.hydrationSummary().orderChecksum(), second.hydrationSummary().orderChecksum());
+        assertEquals(first.hydrationSummary().marketChecksum(), second.hydrationSummary().marketChecksum());
         assertEquals(first.marketDataSnapshot().checksum(), second.marketDataSnapshot().checksum());
         assertEquals(first.routeDecidedEvents(), second.routeDecidedEvents());
         assertEquals(first.childOrderEvents(), second.childOrderEvents());

@@ -1,6 +1,8 @@
 package com.nitroj.sor.testkit.scenario;
 
 import com.nitroj.sor.api.MarketDataSnapshotSummary;
+import com.nitroj.sor.api.MarketDataSeedSnapshot;
+import com.nitroj.sor.api.OrderStateSnapshot;
 import com.nitroj.sor.api.OrderStatus;
 import com.nitroj.sor.api.ParentOrderRequest;
 import com.nitroj.sor.api.SorConfig;
@@ -13,6 +15,8 @@ import com.nitroj.sor.api.SorResetMode;
 import com.nitroj.sor.api.SorResetRequest;
 import com.nitroj.sor.api.SorResetSummary;
 import com.nitroj.sor.api.SorStateSummary;
+import com.nitroj.sor.api.SorStartupHydrationRequest;
+import com.nitroj.sor.api.SorStartupHydrationSummary;
 import com.nitroj.sor.core.policy.PolicyOptimizationInput;
 import com.nitroj.sor.testkit.sim.adapters.InMemoryPersistence;
 import com.nitroj.sor.testkit.sim.adapters.ManualClock;
@@ -74,6 +78,7 @@ public final class ScenarioRunner {
         return new ScenarioAuditEvidence(
                 summary,
                 result.resetSummary(),
+                result.hydrationSummary(),
                 result.marketDataSnapshot(),
                 result.finalStateSummary(),
                 result.routeDecidedEvents(),
@@ -190,6 +195,11 @@ public final class ScenarioRunner {
             final SorControlPlane controlPlane = (SorControlPlane) engine;
             final SorResetSummary resetSummary = controlPlane.reset(new SorResetRequest(
                     SorResetMode.SCENARIO_REPLAY_RESET, false, "scenario replay " + spec.scenarioId()));
+            final SorStartupHydrationSummary hydrationSummary = controlPlane.hydrate(
+                    hydrationRequest(spec, marketData, clock.epochNanos()));
+            if (!hydrationSummary.accepted()) {
+                throw new IllegalStateException("scenario hydration failed: " + hydrationSummary.message());
+            }
             engine.registerListener(event -> {
                 if (event instanceof SorEvent.RouteDecided) {
                     routeEvents.incrementAndGet();
@@ -233,8 +243,29 @@ public final class ScenarioRunner {
             final LifecycleCounts lifecycleCounts = countLifecycleEvents(persistence);
             return new RunEvidence(orderCount, lifecycleCounts.routeEvents(), lifecycleCounts.fillEvents(),
                     lifecycleCounts.rejectEvents(), residual, checksum, lifecycleCounts.childEvents(),
-                    resetSummary, marketDataSnapshot, finalStateSummary, lifecycleCounts.totalEvents());
+                    resetSummary, hydrationSummary, marketDataSnapshot, finalStateSummary,
+                    lifecycleCounts.totalEvents());
         }
+    }
+
+    private static SorStartupHydrationRequest hydrationRequest(final ScenarioSpec spec,
+                                                               final SimulatedMarketDataSource marketData,
+                                                               final long epochNanos) {
+        final OrderStateSnapshot orderState = OrderStateSnapshot.empty(
+                "scenario-orders-" + spec.scenarioId() + '-' + spec.seed(),
+                0L,
+                epochNanos);
+        final MarketDataSeedSnapshot marketState = marketData.startupSeedSnapshot(
+                "scenario-market-" + spec.scenarioId() + '-' + spec.seed(),
+                0L,
+                epochNanos);
+        return new SorStartupHydrationRequest(
+                "scenario-hydrate-" + spec.scenarioId() + '-' + spec.seed(),
+                spec.scenarioId(),
+                orderState,
+                marketState,
+                true,
+                "scenario hydration " + spec.scenarioId());
     }
 
     private static LifecycleCounts countLifecycleEvents(final InMemoryPersistence persistence) {
@@ -273,6 +304,7 @@ public final class ScenarioRunner {
     private record RunEvidence(int orderCount, int routeDecidedEvents, int fillEvents, int rejectEvents,
                                long residualQuantity, long replayChecksum, int childOrderCount,
                                SorResetSummary resetSummary,
+                               SorStartupHydrationSummary hydrationSummary,
                                MarketDataSnapshotSummary marketDataSnapshot,
                                SorStateSummary finalStateSummary,
                                long lifecycleEventCount) {

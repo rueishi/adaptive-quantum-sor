@@ -1,7 +1,9 @@
 package com.nitroj.sor.core;
 
 import com.nitroj.sor.api.BackpressureException;
+import com.nitroj.sor.api.MarketDataSeedCell;
 import com.nitroj.sor.api.MarketDataSnapshotSummary;
+import com.nitroj.sor.api.OrderStateSnapshot;
 import com.nitroj.sor.api.OrderStatus;
 import com.nitroj.sor.api.OrderStatusCode;
 import com.nitroj.sor.api.Observability;
@@ -15,16 +17,22 @@ import com.nitroj.sor.api.SorEngineBuilder;
 import com.nitroj.sor.api.SorEvent;
 import com.nitroj.sor.api.SorEventListener;
 import com.nitroj.sor.api.SorLifecycleEventTypes;
+import com.nitroj.sor.api.SorNotReadyException;
+import com.nitroj.sor.api.SorReadinessPhase;
 import com.nitroj.sor.api.SorResetMode;
 import com.nitroj.sor.api.SorResetRequest;
 import com.nitroj.sor.api.SorResetSummary;
 import com.nitroj.sor.api.SorStateSummary;
+import com.nitroj.sor.api.SorStartupHydrationRequest;
+import com.nitroj.sor.api.SorStartupHydrationSummary;
 import com.nitroj.sor.api.spi.Clock;
 import com.nitroj.sor.api.spi.ChildOrderRef;
+import com.nitroj.sor.api.spi.FillReport;
 import com.nitroj.sor.api.spi.LifecycleEvent;
 import com.nitroj.sor.api.spi.MarketDataListener;
 import com.nitroj.sor.api.spi.Persistence;
 import com.nitroj.sor.api.spi.Quote;
+import com.nitroj.sor.api.spi.RejectReport;
 import com.nitroj.sor.api.spi.RingWriter;
 import com.nitroj.sor.api.spi.RiskCheckRequest;
 import com.nitroj.sor.api.spi.RiskDecision;
@@ -46,6 +54,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Responsibility: first Phase 8 implementation of the public {@link SorEngine}
@@ -66,6 +75,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * small while making API semantics executable and testable.</p>
  */
 public final class SorEngineImpl implements SorEngine, SorControlPlane {
+    private static final int HYDRATION_DELTA_BUFFER_CAPACITY = 1_024;
+
     private final SorConfig config;
     private final Clock clock;
     private final com.nitroj.sor.api.spi.RiskProvider riskProvider;
@@ -86,6 +97,14 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
     private final EngineOrderBook orderBook = new EngineOrderBook();
     private final RingWriter[] childOrderWriters;
     private volatile SorResetSummary lastResetSummary;
+    private volatile SorStartupHydrationSummary lastHydrationSummary;
+    private volatile String lastAcceptedHydrationKey;
+    private final AtomicReference<SorReadinessPhase> readinessPhase =
+            new AtomicReference<>(SorReadinessPhase.CONSTRUCTED);
+    private final BufferedQuote[] bufferedQuotes = new BufferedQuote[HYDRATION_DELTA_BUFFER_CAPACITY];
+    private final BufferedVenueReport[] bufferedVenueReports = new BufferedVenueReport[HYDRATION_DELTA_BUFFER_CAPACITY];
+    private int bufferedQuoteCount;
+    private int bufferedVenueReportCount;
 
     private SorEngineImpl(final SorEngineBuilder builder) {
         this.config = builder.config();
@@ -110,21 +129,10 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
         }
         builder.venueAdapter().callback(new com.nitroj.sor.api.spi.VenueAdapter.VenueAdapterCallback() {
             @Override public void deliverFill(final com.nitroj.sor.api.spi.FillReport report) {
-                inboundFillRings.ringForVenue(report.venueId());
-                final EngineOrderBook.ParentSnapshot snapshot = orderBook.applyFill(report);
-                if (snapshot != null) {
-                    statuses.put(snapshot.parentOrderId(), orderStatus(snapshot));
-                }
-                appendLifecycle(SorLifecycleEventTypes.FILL_DELIVERED, report.parentOrderId(), report.filledEpochNanos());
-                emit(new SorEvent.Filled(report.childOrderId(), report.parentOrderId(), report.venueId(), report.filledQuantity(), report.fillPrice(), report.filledEpochNanos()));
+                applyFill(report);
             }
             @Override public void deliverReject(final com.nitroj.sor.api.spi.RejectReport report) {
-                final EngineOrderBook.ParentSnapshot snapshot = orderBook.applyReject(report);
-                if (snapshot != null) {
-                    statuses.put(snapshot.parentOrderId(), orderStatus(snapshot));
-                }
-                appendLifecycle(SorLifecycleEventTypes.REJECT_DELIVERED, report.parentOrderId(), report.rejectedEpochNanos());
-                emit(new SorEvent.Rejected(report.childOrderId(), report.parentOrderId(), report.venueId(), report.reasonCode(), report.rejectedEpochNanos()));
+                applyReject(report);
             }
         });
     }
@@ -155,6 +163,7 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
             }
         }
         ready.set(true);
+        readinessPhase.set(SorReadinessPhase.READY);
         observability.recordPolicyPublished(activePolicy.version(), activePolicy.hash64(), 0);
         appendLifecycle(SorLifecycleEventTypes.POLICY_PUBLISHED, activePolicy.version(), clock.epochNanos());
         emit(new SorEvent.PolicyPublished(activePolicy.version(), activePolicy.hash64(), clock.epochNanos()));
@@ -166,7 +175,7 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
     public long submitParentOrder(final ParentOrderRequest request) {
         ensureOpen();
         if (!ready.get()) {
-            throw new IllegalStateException("engine must be warmed up before submitParentOrder");
+            throw new SorNotReadyException(readinessPhase.get());
         }
         final long id = nextParentOrderId.getAndIncrement();
         final long started = clock.nanoTime();
@@ -245,6 +254,48 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
     @Override public PolicyHandle activePolicy() { return activePolicy; }
 
     @Override
+    public SorStartupHydrationSummary hydrate(final SorStartupHydrationRequest request) {
+        java.util.Objects.requireNonNull(request, "request must not be null");
+        ensureOpen();
+        final String hydrationKey = request.orderStateSnapshot().snapshotId()
+                + '|' + request.marketDataSnapshot().snapshotId();
+        if (hydrationKey.equals(lastAcceptedHydrationKey) && lastHydrationSummary != null
+                && lastHydrationSummary.accepted()) {
+            return lastHydrationSummary;
+        }
+        ready.set(false);
+        readinessPhase.set(SorReadinessPhase.MARKET_HYDRATING);
+        try {
+            applyMarketSnapshot(request);
+            readinessPhase.set(SorReadinessPhase.ORDER_RECONCILING);
+            final EngineOrderBook.SnapshotApplyResult result =
+                    orderBook.applySnapshot(request.orderStateSnapshot());
+            rebuildStatuses(request.orderStateSnapshot());
+            advanceOrderIds(request.orderStateSnapshot());
+            drainBufferedVenueReports(request.orderStateSnapshot().asOfEpochNanos());
+            drainBufferedQuotes(request.marketDataSnapshot().asOfEpochNanos());
+            final SorStartupHydrationSummary summary =
+                    SorStartupHydrationSummary.accepted(request, "startup hydration accepted");
+            lastAcceptedHydrationKey = hydrationKey;
+            lastHydrationSummary = summary;
+            ready.set(true);
+            readinessPhase.set(SorReadinessPhase.READY);
+            appendLifecycle(SorLifecycleEventTypes.HYDRATION_ACCEPTED,
+                    result.parentCount() + result.childCount(), clock.epochNanos());
+            return summary;
+        } catch (RuntimeException ex) {
+            ready.set(false);
+            readinessPhase.set(SorReadinessPhase.RECOVERY_REQUIRED);
+            final SorStartupHydrationSummary summary = SorStartupHydrationSummary.rejected(
+                    request, "startup hydration rejected", new String[]{
+                            ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage()});
+            lastHydrationSummary = summary;
+            appendLifecycle(SorLifecycleEventTypes.HYDRATION_REJECTED, 0, clock.epochNanos());
+            return summary;
+        }
+    }
+
+    @Override
     public SorResetSummary reset(final SorResetRequest request) {
         java.util.Objects.requireNonNull(request, "request must not be null");
         ensureOpen();
@@ -266,6 +317,8 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
                 marketBookState.clear();
                 orderBook.clear();
                 statuses.clear();
+                ready.set(false);
+                readinessPhase.set(SorReadinessPhase.MARKET_HYDRATING);
                 yield new String[]{"marketBook", "orderBook", "orderStatus"};
             }
             case APPEND -> new String[]{};
@@ -286,7 +339,9 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
                 orderBook.childCount(),
                 orderBook.pendingChildQuantity(),
                 activePolicy.version(),
-                lastResetSummary);
+                lastResetSummary,
+                readinessPhase.get(),
+                lastHydrationSummary);
     }
 
     @Override
@@ -318,6 +373,149 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
 
     private void emit(final SorEvent event) {
         fanout.execute(() -> listeners.forEach(listener -> listener.onEvent(event)));
+    }
+
+    private void applyMarketSnapshot(final SorStartupHydrationRequest request) {
+        marketBookState.clear();
+        final MarketDataSeedCell[] cells = request.marketDataSnapshot().cells();
+        java.util.Arrays.sort(cells, java.util.Comparator
+                .comparingInt(MarketDataSeedCell::instrumentId)
+                .thenComparingInt(MarketDataSeedCell::venueId));
+        for (MarketDataSeedCell cell : cells) {
+            marketBookState.updateTopOfBook(cell.instrumentId(), cell.venueId(), cell.bidPrice(), cell.askPrice(),
+                    cell.bidQuantity(), cell.askQuantity(), cell.epochNanos());
+        }
+    }
+
+    private void rebuildStatuses(final OrderStateSnapshot snapshot) {
+        statuses.clear();
+        for (com.nitroj.sor.api.ParentOrderStateSnapshot parent : snapshot.parents()) {
+            statuses.put(parent.parentOrderId(), new OrderStatus(parent.parentOrderId(), parent.status(),
+                    parent.originalQuantity(), parent.filledQuantity(), parent.leavesQuantity(),
+                    parent.updatedEpochNanos()));
+        }
+    }
+
+    private void advanceOrderIds(final OrderStateSnapshot snapshot) {
+        long maxParentId = 0;
+        long maxChildId = 0;
+        for (com.nitroj.sor.api.ParentOrderStateSnapshot parent : snapshot.parents()) {
+            maxParentId = Math.max(maxParentId, parent.parentOrderId());
+        }
+        for (com.nitroj.sor.api.ChildOrderStateSnapshot child : snapshot.children()) {
+            maxChildId = Math.max(maxChildId, child.childOrderId());
+        }
+        final long nextParentId = maxParentId + 1;
+        final long nextChildId = maxChildId + 1;
+        nextParentOrderId.updateAndGet(current -> Math.max(current, nextParentId));
+        nextChildOrderId.updateAndGet(current -> Math.max(current, nextChildId));
+    }
+
+    private void applyFill(final FillReport report) {
+        final SorReadinessPhase phase = readinessPhase.get();
+        if (phase == SorReadinessPhase.MARKET_HYDRATING || phase == SorReadinessPhase.ORDER_RECONCILING) {
+            bufferVenueReport(BufferedVenueReport.fill(report));
+            return;
+        }
+        applyFillFields(report.childOrderId(), report.parentOrderId(), report.venueId(),
+                report.filledQuantity(), report.fillPrice(), report.filledEpochNanos());
+    }
+
+    private void applyFillFields(final long childOrderId, final long parentOrderId, final int venueId,
+                                 final long filledQuantity, final long fillPrice, final long filledEpochNanos) {
+        inboundFillRings.ringForVenue(venueId);
+        final FillReport copy = new FillReport().set(childOrderId, parentOrderId, venueId,
+                filledQuantity, fillPrice, filledEpochNanos);
+        final EngineOrderBook.ParentSnapshot snapshot = orderBook.applyFill(copy);
+        if (snapshot != null) {
+            statuses.put(snapshot.parentOrderId(), orderStatus(snapshot));
+        }
+        appendLifecycle(SorLifecycleEventTypes.FILL_DELIVERED, parentOrderId, filledEpochNanos);
+        emit(new SorEvent.Filled(childOrderId, parentOrderId, venueId,
+                filledQuantity, fillPrice, filledEpochNanos));
+    }
+
+    private void applyReject(final RejectReport report) {
+        final SorReadinessPhase phase = readinessPhase.get();
+        if (phase == SorReadinessPhase.MARKET_HYDRATING || phase == SorReadinessPhase.ORDER_RECONCILING) {
+            bufferVenueReport(BufferedVenueReport.reject(report));
+            return;
+        }
+        applyRejectFields(report.childOrderId(), report.parentOrderId(), report.venueId(),
+                report.reasonCode(), report.rejectedEpochNanos());
+    }
+
+    private void applyRejectFields(final long childOrderId, final long parentOrderId, final int venueId,
+                                   final int reasonCode, final long rejectedEpochNanos) {
+        final RejectReport copy = new RejectReport().set(childOrderId, parentOrderId, venueId,
+                reasonCode, rejectedEpochNanos);
+        final EngineOrderBook.ParentSnapshot snapshot = orderBook.applyReject(copy);
+        if (snapshot != null) {
+            statuses.put(snapshot.parentOrderId(), orderStatus(snapshot));
+        }
+        appendLifecycle(SorLifecycleEventTypes.REJECT_DELIVERED, parentOrderId, rejectedEpochNanos);
+        emit(new SorEvent.Rejected(childOrderId, parentOrderId, venueId, reasonCode, rejectedEpochNanos));
+    }
+
+    private void bufferQuote(final Quote quote) {
+        if (bufferedQuoteCount == bufferedQuotes.length) {
+            ready.set(false);
+            readinessPhase.set(SorReadinessPhase.RECOVERY_REQUIRED);
+            appendLifecycle(SorLifecycleEventTypes.HYDRATION_REJECTED,
+                    subjectId(quote.instrumentId(), quote.venueId()), quote.epochNanos());
+            throw new IllegalStateException("hydration live-delta buffer overflow");
+        }
+        bufferedQuotes[bufferedQuoteCount++] = new BufferedQuote(
+                quote.instrumentId(),
+                quote.venueId(),
+                quote.bidPrice(),
+                quote.askPrice(),
+                quote.bidQuantity(),
+                quote.askQuantity(),
+                quote.epochNanos());
+    }
+
+    private void bufferVenueReport(final BufferedVenueReport report) {
+        if (bufferedVenueReportCount == bufferedVenueReports.length) {
+            ready.set(false);
+            readinessPhase.set(SorReadinessPhase.RECOVERY_REQUIRED);
+            appendLifecycle(SorLifecycleEventTypes.HYDRATION_REJECTED, report.parentOrderId(), report.epochNanos());
+            throw new IllegalStateException("hydration live-delta buffer overflow");
+        }
+        bufferedVenueReports[bufferedVenueReportCount++] = report;
+    }
+
+    private void drainBufferedVenueReports(final long orderAsOfEpochNanos) {
+        java.util.Arrays.sort(bufferedVenueReports, 0, bufferedVenueReportCount,
+                java.util.Comparator.comparingLong(BufferedVenueReport::epochNanos));
+        for (int i = 0; i < bufferedVenueReportCount; i++) {
+            final BufferedVenueReport report = bufferedVenueReports[i];
+            if (report.epochNanos() > orderAsOfEpochNanos) {
+                if (report.fill()) {
+                    applyFillFields(report.childOrderId(), report.parentOrderId(), report.venueId(),
+                            report.quantity(), report.priceOrReason(), report.epochNanos());
+                } else {
+                    applyRejectFields(report.childOrderId(), report.parentOrderId(), report.venueId(),
+                            (int) report.priceOrReason(), report.epochNanos());
+                }
+            }
+            bufferedVenueReports[i] = null;
+        }
+        bufferedVenueReportCount = 0;
+    }
+
+    private void drainBufferedQuotes(final long marketAsOfEpochNanos) {
+        java.util.Arrays.sort(bufferedQuotes, 0, bufferedQuoteCount,
+                java.util.Comparator.comparingLong(BufferedQuote::epochNanos));
+        for (int i = 0; i < bufferedQuoteCount; i++) {
+            final BufferedQuote quote = bufferedQuotes[i];
+            if (quote.epochNanos() > marketAsOfEpochNanos) {
+                marketBookState.updateTopOfBook(quote.instrumentId(), quote.venueId(), quote.bidPrice(),
+                        quote.askPrice(), quote.bidQuantity(), quote.askQuantity(), quote.epochNanos());
+            }
+            bufferedQuotes[i] = null;
+        }
+        bufferedQuoteCount = 0;
     }
 
     private void emitChildOrder(final long parentOrderId, final ParentOrderRequest request, final long now) {
@@ -373,6 +571,12 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
         @Override
         public void onQuote(final Quote quote) {
             try {
+                final SorReadinessPhase phase = readinessPhase.get();
+                if (phase == SorReadinessPhase.MARKET_HYDRATING
+                        || phase == SorReadinessPhase.ORDER_RECONCILING) {
+                    bufferQuote(quote);
+                    return;
+                }
                 marketBookState.updateTopOfBook(
                         quote.instrumentId(),
                         quote.venueId(),
@@ -415,6 +619,23 @@ public final class SorEngineImpl implements SorEngine, SorControlPlane {
             thread.setName(prefix + "-1");
             thread.setDaemon(true);
             return thread;
+        }
+    }
+
+    private record BufferedQuote(int instrumentId, int venueId, long bidPrice, long askPrice,
+                                 long bidQuantity, long askQuantity, long epochNanos) {
+    }
+
+    private record BufferedVenueReport(boolean fill, long childOrderId, long parentOrderId, int venueId,
+                                       long quantity, long priceOrReason, long epochNanos) {
+        private static BufferedVenueReport fill(final FillReport report) {
+            return new BufferedVenueReport(true, report.childOrderId(), report.parentOrderId(), report.venueId(),
+                    report.filledQuantity(), report.fillPrice(), report.filledEpochNanos());
+        }
+
+        private static BufferedVenueReport reject(final RejectReport report) {
+            return new BufferedVenueReport(false, report.childOrderId(), report.parentOrderId(), report.venueId(),
+                    0, report.reasonCode(), report.rejectedEpochNanos());
         }
     }
 }

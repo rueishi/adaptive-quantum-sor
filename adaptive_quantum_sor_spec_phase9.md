@@ -133,6 +133,8 @@ multi-tenant hosting
     from simulator/test-server scenario endpoints.
 12. Production-grade JDK refresh with Compact Object Headers enabled with ZGC
     after regression and benchmark evidence.
+13. Startup hydration from OMS/EMS order-state snapshots and market-data
+    snapshots before the engine accepts new parent intent.
 
 ### 9.2.2 Out Of Scope
 
@@ -155,11 +157,12 @@ multi-tenant hosting
 ```text
 OMS/EMS
   book of record for parent/client orders
-  sends new parent orders and recovery/order-state seeds
+  sends startup/recovery order-state snapshots before new parent intent
+  sends new parent orders only after the SOR reports ready
 
 Market data plant/feed
   source of truth for market data
-  publishes venue-aware updates
+  publishes startup market snapshots and venue-aware incremental updates
 
 SOR
   owns local low-latency market book used for routing
@@ -174,7 +177,26 @@ Venue adapters/gateways
 The SOR's market book and order book are derived working state. They are not the
 firm's golden record, but they are the only state the hot routing path may read.
 
-### 9.3.2 Real-Path Scenario Flow
+### 9.3.2 Startup Hydration Flow
+
+Before the SOR accepts new parent-order intent from OMS/EMS, it must build a
+consistent local routing view from explicit startup inputs:
+
+```text
+Construct engine
+  -> subscribe to market-data source
+  -> load or replay initial market snapshot into MarketBookState
+  -> load OMS/EMS active parent/child state into EngineOrderBook
+  -> validate dimensions, sequence, freshness, and reconciliation evidence
+  -> mark engine READY only after hydration succeeds
+  -> accept new ParentOrderRequest from OMS/EMS
+```
+
+The hot path must never synchronously query OMS/EMS or the market-data plant to
+fill missing state. Startup hydration is a control-plane lifecycle phase, and
+its success or failure must be visible through diagnostics and audit evidence.
+
+### 9.3.3 Real-Path Scenario Flow
 
 ```text
 Scenario reset
@@ -770,6 +792,355 @@ P9-JDK-007 Given the old Phase 8 deferred note, when Phase 9 documentation is
            deferred after Phase 9.
 ```
 
+### P9-TC-018 — Startup Hydration API And Snapshot Contracts
+
+Define the public/control-plane contracts for startup hydration. Earlier Phase
+9 cards give the engine local market and order books; this card defines the
+typed inputs, outputs, validation fields, and diagnostics needed to hydrate
+those books from OMS/EMS and market-data snapshots before accepting new parent
+intent.
+
+Required behavior:
+
+```text
+OMS/EMS provides active parent/child order snapshots through a control-plane
+snapshot SPI or startup seed.
+Order snapshots carry parent records and child records. Child records must
+include childOrderId, parentOrderId, instrumentId where needed, venueId, side,
+price/limit where applicable, original quantity, leaves quantity, filled
+quantity, status, and last update metadata.
+Market-data source provides an initial venue-aware market snapshot or replayable
+snapshot stream before live increments are considered sufficient.
+Hydration request/summary DTOs expose scope, source timestamps, sequence,
+checksums, counts, replay-safety, accepted/rejected state, and failure reasons.
+Snapshots carry snapshotId plus as-of sequence/timestamp metadata. Applying the
+same accepted snapshotId again is idempotent and must not double-create parent
+or child state.
+The API is control-plane only and must not be part of the hot-path
+ParentOrderRequest flow.
+```
+
+Recommended public/control-plane shape:
+
+```java
+public interface SorStartupStateSource {
+    OrderStateSnapshot initialOrderState();
+    MarketDataSeedSnapshot initialMarketData();
+}
+
+public record OrderStateSnapshot(
+    String snapshotId,
+    long asOfSequence,
+    long asOfEpochNanos,
+    ParentOrderStateSnapshot[] parents,
+    ChildOrderStateSnapshot[] children
+) {}
+
+public interface SorControlPlane {
+    SorStartupHydrationSummary hydrate(SorStartupHydrationRequest request);
+    SorStateSummary stateSummary();
+    MarketDataSnapshotSummary marketDataSnapshot();
+}
+```
+
+Names may differ if the implementation finds a cleaner API, but the boundary
+must remain explicit: startup seeding is control-plane lifecycle input, not
+hot-path order submission.
+
+Required tests:
+
+```text
+StartupHydrationApiTest
+  validates request/summary DTOs, null handling, defensive copies, and failure
+  reason fields.
+
+StartupSnapshotContractTest
+  validates parent/child/market snapshot dimensions, IDs, quantities,
+  timestamps, sequence/checksum metadata, and empty-snapshot declarations.
+
+OrderStateSnapshotChildContractTest
+  validates that child snapshots carry venue, quantity, status, price, and
+  parent linkage fields needed to rebuild venue-resting child state.
+```
+
+Acceptance criteria:
+
+```text
+P9-HYDRATE-API-001 Given startup hydration DTOs, when constructed with valid
+                   order and market snapshots, then they preserve scope,
+                   counts, timestamps, checksums, and replay-safety metadata.
+P9-HYDRATE-API-002 Given invalid hydration DTO inputs, when constructed, then
+                   they fail with clear validation messages.
+P9-HYDRATE-API-003 Given no active OMS/EMS orders, when startup is represented,
+                   then the API supports an auditable empty order-state
+                   snapshot with source sequence and timestamp.
+P9-HYDRATE-API-004 Given public API review, then hydration APIs live in
+                   sor-api/control-plane surfaces and are not exposed through
+                   hot-path ParentOrderRequest.
+P9-HYDRATE-API-005 Given an order-state snapshot, then it includes child-order
+                   records sufficient to rebuild venue-resting children,
+                   pending child quantity, and future self-liquidity guards.
+P9-HYDRATE-API-006 Given the same accepted snapshotId is applied twice, then
+                   the second apply is idempotent and does not duplicate parent
+                   or child state.
+P9-HYDRATE-API-007 Given one snapshot contains duplicate parentOrderId or
+                   childOrderId values, then validation treats that as corrupt
+                   input, not as idempotent replay.
+```
+
+### P9-TC-019 — Engine Startup Hydration And Readiness Gate
+
+Implement the engine behavior that copies startup snapshots into engine-owned
+state and keeps the engine not ready until hydration commits successfully.
+
+Required behavior:
+
+```text
+SOR starts in CONSTRUCTED, progresses through explicit readiness phases, and
+does not rely on a single boolean for operational state.
+Recommended phases: CONSTRUCTED, WARMED, MARKET_HYDRATING, ORDER_RECONCILING,
+READY, FAILED, RECOVERY_REQUIRED.
+The engine copies startup market snapshots into MarketBookState.
+The engine atomically copies OMS/EMS active parent/child snapshots into
+EngineOrderBook. It must rebuild parents and children together, then derive
+parent pendingChildQuantity from child state rather than trusting a parent-only
+seed.
+Snapshot apply is a warm-path bulk operation. It must not reuse hot-path
+emission methods such as recordChildOrder(...), and it may allocate temporary
+validation/build structures before atomically publishing rebuilt state.
+Children are sorted by stable ID before folding into parent aggregates so
+derivation, checksums, and scenario replay evidence are input-order independent.
+If parent-level snapshot fields carry aggregate values such as leaves,
+filled quantity, or pending child quantity, the engine must cross-check those
+values against child-derived aggregates. Disagreement beyond documented
+tolerance is a fail-closed reconciliation error, not a silent overwrite.
+The engine validates dimensions, IDs, quantities, timestamps, and sequence or
+freshness metadata before committing state.
+The engine rejects new ParentOrderRequest while hydration is missing, failed, or
+not yet committed. The rejection reason must be phase-specific and hot-path
+safe: no per-call dynamic String construction or blocking work.
+The engine becomes READY only after order-state hydration, market-state
+hydration, policy availability, and startup validation all succeed.
+Hydration result, checksums, counts, and failure reasons are exposed through
+diagnostics and lifecycle/audit evidence.
+Market hydration is defined by configured freshness/coverage requirements, such
+as top-of-book availability within the staleness window for each required
+instrument/venue. Missing feeds must time out into FAILED or RECOVERY_REQUIRED
+rather than hang startup forever.
+During hydration, live quotes, fills, rejects, cancels, and venue reports must
+be buffered or sequenced against the snapshot as-of watermark, then drained,
+dropped, or replayed deterministically after snapshot commit. The engine must
+not lose or double-apply live deltas that race with startup snapshots.
+The live-delta buffer must be bounded and preferably preallocated. Buffer
+overflow during hydration is a FAILED/RECOVERY_REQUIRED condition because the
+engine can no longer prove no delta was lost. Deltas at or before the snapshot
+as-of sequence are dropped as already represented; deltas after the watermark
+are applied once in sequence order.
+OMS/EMS order snapshots are authoritative for working order/venue state; SOR
+persistence remains authoritative for SOR-owned policy, lineage, lifecycle, and
+audit evidence. Startup recovery must define precedence so parent/child state is
+not double-created from multiple sources.
+Reconciliation conflicts fail closed. Unknown venues/instruments, duplicate
+IDs, impossible quantities, missing parent linkage, indeterminate venue state,
+or stale source metadata must move the engine to FAILED or RECOVERY_REQUIRED
+with audited loaded/quarantined/rejected counts.
+Readiness phases are forward-only except explicit lifecycle operations. Normal
+startup may progress toward READY, READY may move to RECOVERY_REQUIRED or FAILED
+on unrecoverable state loss, and a PURGE_AND_REPOPULATE reset may intentionally
+re-enter MARKET_HYDRATING before rebuilding state.
+```
+
+Required tests:
+
+```text
+SorEngineStartupHydrationTest
+  proves the engine is not ready before hydration, rejects submitParentOrder
+  while hydrating, accepts after successful hydration, and records diagnostics.
+
+OrderStateHydrationTest
+  proves OMS/EMS parent and child snapshots populate EngineOrderBook without
+  calling submitParentOrder as a fake recovery path.
+
+MarketStateHydrationTest
+  proves startup market snapshots populate MarketBookState with venue-aware
+  cells, sequence/checksum, and timestamp/freshness evidence.
+
+StartupHydrationFailureTest
+  proves invalid dimensions, crossed/negative market data, impossible order
+  quantities, duplicate IDs, and stale snapshots fail closed with audit evidence.
+
+ReadinessPhaseGateTest
+  proves readiness phases are exposed through stateSummary()/ready endpoints and
+  submitParentOrder rejects with phase-specific, hot-path-safe reason codes.
+
+LiveDeltaDuringHydrationTest
+  proves live quotes and venue execution reports that arrive during hydration
+  are buffered or watermarked, then applied exactly once in deterministic order.
+
+RecoveryPrecedenceAndQuarantineTest
+  proves OMS/EMS working order state and SOR persistence state do not double-load
+  parents/children, and invalid snapshot records are quarantined or fail closed.
+
+BulkSnapshotApplyInvariantTest
+  proves snapshot recovery uses a warm-path bulk apply, sorts child records
+  before folding, derives parent aggregates from children, and cross-checks any
+  parent aggregate fields supplied by the snapshot.
+
+SnapshotIdempotencyAndDuplicateIdTest
+  proves reapplying the same accepted snapshotId is a no-op while duplicate IDs
+  inside a single snapshot fail closed.
+
+BoundedDeltaBufferOverflowTest
+  proves hydration fails closed when the live-delta buffer overflows before the
+  snapshot can be committed.
+
+ReadinessPhaseTransitionTest
+  proves startup phases move forward only, READY can degrade to
+  RECOVERY_REQUIRED/FAILED, and PURGE_AND_REPOPULATE intentionally re-enters
+  MARKET_HYDRATING.
+```
+
+Acceptance criteria:
+
+```text
+P9-HYDRATE-ENGINE-001 Given a newly built engine, when startup hydration has not
+                      completed, then isReady() is false and submitParentOrder
+                      fails with a clear not-ready/hydration message.
+P9-HYDRATE-ENGINE-002 Given a valid OMS/EMS order-state snapshot, when
+                      hydration runs, then active parent/child state is loaded
+                      into EngineOrderBook without replaying submitParentOrder.
+P9-HYDRATE-ENGINE-003 Given a valid venue-aware market-data snapshot, when
+                      hydration runs, then MarketBookState contains the
+                      expected instrument/venue cells and exposes
+                      sequence/checksum/freshness diagnostics.
+P9-HYDRATE-ENGINE-004 Given order-state, market-state, policy, and validation
+                      all succeed, when hydration commits, then the engine
+                      becomes ready and accepts new parent intent.
+P9-HYDRATE-ENGINE-005 Given invalid or stale startup data, when hydration runs,
+                      then the engine remains not ready, rejects new parent
+                      intent, and emits auditable failure evidence.
+P9-HYDRATE-ENGINE-006 Given diagnostics after hydration, then state summaries
+                      expose counts, checksums, timestamps, last hydration
+                      status, and failure reasons without returning mutable
+                      engine internals.
+P9-HYDRATE-ENGINE-007 Given a parent/child order-state snapshot, when hydration
+                      commits, then children are rebuilt by childOrderId,
+                      parent aggregates are derived consistently, and
+                      pendingChildQuantity matches venue-resting leaves.
+P9-HYDRATE-ENGINE-008 Given a parent order is submitted during MARKET_HYDRATING
+                      or ORDER_RECONCILING, then the engine rejects with a
+                      phase-specific hot-path-safe reason.
+P9-HYDRATE-ENGINE-009 Given live quotes/fills/rejects race with snapshot apply,
+                      then snapshot as-of metadata or buffering prevents lost
+                      and double-applied deltas.
+P9-HYDRATE-ENGINE-010 Given snapshot reconciliation conflicts, then startup
+                      fails closed into FAILED or RECOVERY_REQUIRED with
+                      audited loaded, quarantined, and rejected counts.
+P9-HYDRATE-ENGINE-011 Given parent aggregate fields disagree with child-derived
+                      aggregate state, then hydration fails closed instead of
+                      silently overwriting one side.
+P9-HYDRATE-ENGINE-012 Given a snapshot's children arrive in different orders,
+                      then bulk apply sorts before folding and produces the
+                      same parent aggregates and checksum.
+P9-HYDRATE-ENGINE-013 Given the same accepted snapshotId is reapplied, then it
+                      is a no-op; given duplicate IDs inside one snapshot, then
+                      hydration fails closed.
+P9-HYDRATE-ENGINE-014 Given the hydration live-delta buffer overflows, then the
+                      engine moves to FAILED or RECOVERY_REQUIRED and refuses
+                      READY.
+P9-HYDRATE-ENGINE-015 Given readiness phase transitions, then they are
+                      forward-only except documented degradation or explicit
+                      reset/repopulate lifecycle operations.
+```
+
+### P9-TC-020 — Scenario And Testkit Hydration Path
+
+Update scenario reset-and-repopulate so testkit uses the same startup
+hydration/control-plane path as production startup. Scenario code may still
+generate artificial data, but it must feed that data through the public
+hydration and live engine APIs rather than mutating engine internals or faking
+recovered orders with `submitParentOrder`.
+
+Required behavior:
+
+```text
+Scenario reset purges selected runtime state through SorControlPlane.
+Scenario repopulation hydrates market and order snapshots through the same API
+used by production startup.
+Scenario order-state snapshots include child records and are applied
+atomically, even when a scenario starts with venue-resting child liquidity.
+Scenario parent orders after hydration go through SorEngine.submitParentOrder.
+Scenario evidence records hydration summary, reset summary, market checksum,
+order counts, route events, child events, fills, rejects, and final state.
+Hydration order is deterministic: records are sorted by stable IDs or generated
+from a documented seed before application, so replay checksums and divergence
+tests stay stable.
+Scenario hydration must exercise the same bulk snapshot apply as production
+startup and must not route recovered child orders through hot-path child
+emission methods.
+Hydration emits lifecycle/audit events so replay evidence can reconstruct the
+same starting state.
+sor-core remains scenario-agnostic and must not import sor-testkit/test-server
+packages.
+```
+
+Required tests:
+
+```text
+
+ScenarioHydrationPathTest
+  proves scenario purge-and-repopulate uses the same public/control-plane
+  hydration path and then submits parent orders through SorEngine.
+
+ScenarioDeterministicHydrationTest
+  proves repeated runs with the same seed apply hydration records in the same
+  order and produce stable starting-state checksums and lifecycle evidence.
+
+ScenarioSnapshotInvariantTest
+  proves shuffled scenario child records produce the same hydrated aggregates
+  and checksum, and parent/child aggregate disagreement fails closed.
+
+ScenarioHydrationNegativeGateTest
+  proves a parent submitted during MARKET_HYDRATING is rejected with the
+  expected phase-specific reason.
+
+ArchitectureStartupHydrationTest
+  proves sor-core does not import sor-testkit/test-server scenario classes and
+  that production startup hydration APIs live in sor-api/control-plane surfaces.
+```
+
+Acceptance criteria:
+
+```text
+P9-HYDRATE-SCEN-001 Given scenario reset-and-repopulate, when testkit
+                    repopulates state, then it uses the same
+                    hydration/control-plane path as production startup and
+                    records replay-safe evidence.
+P9-HYDRATE-SCEN-002 Given scenario parent orders after hydration, when replayed,
+                    then they are submitted through SorEngine and not used to
+                    fake recovered startup state.
+P9-HYDRATE-SCEN-003 Given scenario evidence, when a run completes, then reset,
+                    hydration, market checksum, order counts, route/child/fill/
+                    reject events, and final state are linked.
+P9-HYDRATE-SCEN-004 Given architecture checks, then scenario/testkit concepts do
+                    not leak into sor-core or hot-path API classes.
+P9-HYDRATE-SCEN-005 Given full module checks, then API, core, testkit,
+                    transport, and test-server tests prove hydration behavior
+                    without introducing scenario concepts into sor-core.
+P9-HYDRATE-SCEN-006 Given a scenario starts with active venue-resting children,
+                    then testkit hydrates child snapshots through the same API
+                    and the resulting parent aggregates are deterministic.
+P9-HYDRATE-SCEN-007 Given the same scenario seed and snapshot inputs, when
+                    replayed twice, then hydration lifecycle evidence and
+                    starting-state checksums are stable.
+P9-HYDRATE-SCEN-008 Given scenario child snapshots are supplied in different
+                    orders, then sorted bulk apply yields the same aggregates
+                    and replay checksum.
+P9-HYDRATE-SCEN-009 Given a corrupt scenario snapshot with parent/child
+                    aggregate mismatch or duplicate child IDs, then scenario
+                    hydration fails closed with replay evidence.
+```
+
 ---
 
 ## 9.5 OMS/EMS Input Contract
@@ -807,6 +1178,11 @@ SorStateSeed
 ```
 
 This seed is control-plane input. It is not part of the per-order hot path.
+
+For production startup, the seed is mandatory when OMS/EMS has live working
+orders for the engine's scope. If OMS/EMS declares there are no active orders,
+the declaration itself should be represented as an auditable empty snapshot with
+source timestamp, scope, and sequence metadata.
 
 ---
 
@@ -867,6 +1243,12 @@ boundaries.
     HTTP/demo wrapper.
 17. Refresh the production JDK baseline and enable Compact Object Headers with
     ZGC after test and benchmark evidence.
+18. Add startup hydration API and snapshot contracts for OMS/EMS order-state
+    snapshots and market-data snapshots.
+19. Implement engine startup hydration and readiness gating so the engine
+    rejects new parent intent until hydration commits successfully.
+20. Update scenario/testkit reset-and-repopulate to use the same hydration path
+    as production startup.
 
 ---
 
@@ -896,6 +1278,8 @@ SorEngine and sor-api remain scenario-agnostic.
 The production runtime profile uses a current production JDK 25 patch release
 with ZGC and Compact Object Headers enabled, backed by regression and JMH
 evidence.
+Startup hydration from OMS/EMS order-state snapshots and market-data snapshots
+is explicit, audited, and required before accepting new parent intent.
 The full Gradle and Python client test suites pass.
 ```
 
