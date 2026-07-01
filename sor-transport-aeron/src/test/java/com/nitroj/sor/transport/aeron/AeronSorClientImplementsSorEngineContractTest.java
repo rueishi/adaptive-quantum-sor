@@ -6,6 +6,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies the Aeron client preserves the public SorEngine contract.
+ *
+ * <p>Run with transport tests to ensure remote clients remain substitutable for embedded engines.</p>
+ */
 class AeronSorClientImplementsSorEngineContractTest {
     @ParameterizedTest(name = "{0}")
     @ValueSource(strings = {"aeron:ipc", "aeron:udp?endpoint=localhost:40123"})

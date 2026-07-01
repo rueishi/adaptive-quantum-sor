@@ -5,6 +5,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+/**
+ * Verifies shutdown drain behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 class ShutdownDrainTest {
     @Test
     void closeAfterQueuedOrdersCompletesWithinDrainTimeout() {

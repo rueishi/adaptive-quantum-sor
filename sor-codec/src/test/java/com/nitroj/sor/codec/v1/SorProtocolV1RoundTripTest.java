@@ -6,6 +6,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies encode/decode round trips for protocol v1 messages.
+ *
+ * <p>Run with codec tests to ensure transports can recover every supported message type.</p>
+ */
 class SorProtocolV1RoundTripTest {
     @ParameterizedTest
     @MethodSource("com.nitroj.sor.codec.v1.ProtocolFixtures#messages")

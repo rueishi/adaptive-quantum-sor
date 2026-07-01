@@ -1,3 +1,12 @@
+/**
+ * @file
+ * @brief Deterministic implementation of the CUDA-Q strategic optimizer ABI.
+ *
+ * This implementation performs exhaustive subset search over the QUBO input.
+ * It mirrors the ABI expected by future CUDA-Q acceleration while remaining
+ * testable on CPU.
+ */
+
 #include "cudaq_strategic_optimizer.h"
 
 #include <climits>

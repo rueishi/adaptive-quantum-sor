@@ -7,6 +7,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies the Java SDK publication metadata is suitable for Maven Central-style publishing.
+ *
+ * <p>Run with client tests before release packaging changes.</p>
+ */
 class MavenCentralPublishDryRunTest {
     @Test
     void buildFileContainsPublicationMetadataRequiredByCentral() throws Exception {

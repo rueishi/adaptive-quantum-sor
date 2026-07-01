@@ -30,6 +30,9 @@ public record OrderStatus(
         long remainingQuantity,
         long updatedEpochNanos
 ) {
+    /**
+     * Validates the immutable order status view.
+     */
     public OrderStatus {
         if (parentOrderId <= 0) {
             throw new IllegalArgumentException("parentOrderId must be positive");

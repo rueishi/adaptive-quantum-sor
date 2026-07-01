@@ -16,6 +16,6 @@ GC_LOG_DIR="${ADAPTIVE_QUANTUM_SOR_GC_LOG_DIR:-$ROOT_DIR/build/logs}"
 
 mkdir -p "$GC_LOG_DIR"
 
-export JAVA_OPTS="-XX:+UseZGC -XX:+AlwaysPreTouch -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -XX:+UseTransparentHugePages -XX:+UseNUMA -Xlog:gc*:file=${GC_LOG_DIR}/gc-%t.log:time,uptime,level,tags:filecount=10,filesize=100M ${JAVA_OPTS:-}"
+export JAVA_OPTS="-XX:+UseZGC -XX:+UseCompactObjectHeaders -XX:+AlwaysPreTouch -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -XX:+UseTransparentHugePages -XX:+UseNUMA -Xlog:gc*:file=${GC_LOG_DIR}/gc-%t.log:time,uptime,level,tags:filecount=10,filesize=100M ${JAVA_OPTS:-}"
 
 exec "$ROOT_DIR/gradlew" :sor-test-server:run --args="$*"

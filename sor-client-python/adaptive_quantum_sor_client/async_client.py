@@ -1,4 +1,7 @@
-"""Asynchronous httpx-based Adaptive Quantum SOR client."""
+"""
+Purpose: Provides the asynchronous aiohttp-based Python SDK client for SOR HTTP endpoints.
+Usage: Use AsyncSorClient from async applications, notebooks, or tests that need non-blocking HTTP calls.
+"""
 
 from __future__ import annotations
 

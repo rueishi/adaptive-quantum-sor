@@ -9,6 +9,11 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies concurrent submit no loss behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 class ConcurrentSubmitNoLossTest {
     @Test
     void concurrentProducersReceiveUniqueSequentialParentIds() throws Exception {

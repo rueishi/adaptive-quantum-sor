@@ -1,4 +1,7 @@
-"""Synchronous requests-based Adaptive Quantum SOR client."""
+"""
+Purpose: Provides the synchronous requests-based Python SDK client for SOR HTTP endpoints.
+Usage: Use SorClient from scripts or applications that need blocking order, status, stats, policy, and event calls.
+"""
 
 from __future__ import annotations
 

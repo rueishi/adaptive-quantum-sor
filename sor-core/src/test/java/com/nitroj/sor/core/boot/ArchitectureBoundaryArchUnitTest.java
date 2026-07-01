@@ -22,8 +22,8 @@ class ArchitectureBoundaryArchUnitTest {
                         "com.nitroj.sor.sim..",
                         "com.nitroj.sor.http..",
                         "com.nitroj.sor.transport..",
-                        "com.nitroj.adaptive.quantum.sor.api..",
-                        "com.nitroj.adaptive.quantum.sor.scenario..");
+                        "com.nitroj.sor.testserver..",
+                        "com.nitroj.sor.testkit.scenario..");
 
         rule.check(CORE_CLASSES);
     }

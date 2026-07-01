@@ -1,3 +1,8 @@
+"""
+Purpose: Verifies test retry semantics behavior for the Python SDK or notebook compatibility layer.
+Usage: Run with pytest to protect packaging, retries, typing, and HTTP client contracts.
+"""
+
 from __future__ import annotations
 
 from typing import Any

@@ -1,7 +1,7 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.optimizer.CudaTacticalOptimizerStub;
-import com.nitroj.adaptive.quantum.sor.optimizer.TacticalPolicyResult;
+import com.nitroj.sor.core.optimizer.CudaTacticalOptimizerStub;
+import com.nitroj.sor.core.optimizer.TacticalPolicyResult;
 
 /**
  * Responsibility: represent the Java-to-native tactical optimizer bridge.

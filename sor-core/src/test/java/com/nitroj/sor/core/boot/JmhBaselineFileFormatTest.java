@@ -9,8 +9,8 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Responsibility: verifies the committed Phase 8 JMH baseline has the metadata
- * and benchmark rows required by the regression gate.
+ * Responsibility: verifies the committed JMH baseline has the metadata and
+ * benchmark rows required by the regression gate.
  *
  * <p>Role in system: P8-01 establishes a fixed benchmark floor. Later cards
  * may update the numbers deliberately, but they must preserve this parseable
@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class JmhBaselineFileFormatTest {
     private static final Path BASELINE = Path.of("docs/testing/PHASE_8_JMH_BASELINE.md");
+    private static final Path CORE_BUILD = Path.of("sor-core/build.gradle");
 
     /**
      * Confirms the baseline document includes all required sections and the
@@ -45,8 +46,24 @@ class JmhBaselineFileFormatTest {
         assertContains(markdown, "## Optimizer Cycle Latency");
         assertContains(markdown, "OpenJDK 25");
         assertContains(markdown, "Generational ZGC");
+        assertContains(markdown, "Compact Object Headers");
+        assertContains(markdown, "-XX:+UseCompactObjectHeaders");
         assertContains(markdown,
-                "| com.nitroj.adaptive.quantum.sor.benchmark.PolicyDrivenSorJmhBenchmark.strictRouteInto | 70.304 |");
+                "| com.nitroj.sor.core.benchmark.PolicyDrivenSorJmhBenchmark.strictRouteInto | 70.304 |");
+    }
+
+    /**
+     * Confirms the JMH forked VM uses the same runtime profile documented by
+     * the baseline file.
+     *
+     * @throws IOException if the core build file cannot be read
+     */
+    @Test
+    void jmhTaskAppendsProductionRuntimeProfileToForkedVm() throws IOException {
+        final String build = Files.readString(CORE_BUILD);
+
+        assertContains(build, "-jvmArgsAppend");
+        assertContains(build, "-XX:+UseZGC -XX:+UseCompactObjectHeaders -XX:+AlwaysPreTouch");
     }
 
     /**

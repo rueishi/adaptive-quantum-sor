@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Run static-vs-adaptive SOR comparison over a feature CSV and write Markdown."""
+"""
+Purpose: Compares SOR research datasets for regression and model-evaluation workflows.
+Usage: Run it as a CLI script to inspect dataset drift or quality differences.
+"""
 
 import argparse
 import csv

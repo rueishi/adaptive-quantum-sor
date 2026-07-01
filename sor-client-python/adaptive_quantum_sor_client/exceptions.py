@@ -1,4 +1,7 @@
-"""Exceptions raised by the Adaptive Quantum SOR Python client."""
+"""
+Purpose: Defines Python SDK exception types for HTTP failures and retry exhaustion.
+Usage: Catch these exceptions around SDK calls to implement caller-side error handling.
+"""
 
 
 class SorClientError(RuntimeError):

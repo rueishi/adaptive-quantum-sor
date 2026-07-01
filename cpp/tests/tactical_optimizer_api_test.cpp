@@ -1,7 +1,12 @@
-// Unit tests for the Phase 2 tactical optimizer C ABI.
-//
-// These tests intentionally use standard assert instead of an external test
-// framework so the Adaptive Quantum SOR native build remains dependency-free.
+/**
+ * @file
+ * @brief Tests the tactical optimizer C ABI.
+ *
+ * Run through CTest or the Gradle native build before changing tactical
+ * optimizer status codes or function signatures. The test covers symbol
+ * reachability, successful validation, null/empty buffer rejection, and timeout
+ * reporting.
+ */
 #include "../tactical_optimizer_api.h"
 
 #include <cassert>

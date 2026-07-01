@@ -1,10 +1,10 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchAllocationBackend;
-import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchAllocationBackendResult;
-import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchAllocationProblem;
-import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchAllocationStatus;
-import com.nitroj.adaptive.quantum.sor.optimizer.batch.BatchVenueAllocator;
+import com.nitroj.sor.core.optimizer.batch.BatchAllocationBackend;
+import com.nitroj.sor.core.optimizer.batch.BatchAllocationBackendResult;
+import com.nitroj.sor.core.optimizer.batch.BatchAllocationProblem;
+import com.nitroj.sor.core.optimizer.batch.BatchAllocationStatus;
+import com.nitroj.sor.core.optimizer.batch.BatchVenueAllocator;
 
 /**
  * Responsibility: placeholder native/cuOpt boundary for Phase 6 batch allocation.

@@ -1,3 +1,8 @@
+"""
+Purpose: Verifies test notebook compat behavior for the Python SDK or notebook compatibility layer.
+Usage: Run with pytest to protect packaging, retries, typing, and HTTP client contracts.
+"""
+
 from pathlib import Path
 
 

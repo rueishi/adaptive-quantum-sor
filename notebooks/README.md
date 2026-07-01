@@ -1,11 +1,18 @@
 # Jupyter Notebook User Guide
 
 This folder contains the notebook workflows for live SOR demos, scenario
-experiments, and research inspection. The notebooks call the local Java engine
-API and use the helper package in `tools/notebook-helpers/adaptive_quantum_sor_notebooks`.
+experiments, and research inspection. The notebooks call Java HTTP APIs and use
+the helper package in `tools/notebook-helpers/adaptive_quantum_sor_notebooks`.
 
 The notebooks are for testing, research, and observability. They are not part of
 the production hot path.
+
+`SorNotebookClient` can call supported built-in user HTTP endpoints such as
+`/orders`, `/policy/current`, `/control/state`, `/control/market-data`,
+`/control/reset`, `/healthz`, `/ready`, and `/metrics`. Scenario helpers such
+as `/scenario/run`, `/scenario/reset`, `/scenario/summary`, and
+`/scenario/events` are test-server/demo-only and are provided by
+`sor-test-server`.
 
 ## What Is In This Folder
 
@@ -19,7 +26,7 @@ Related files outside this folder:
 
 ```text
 scripts/start-jupyter-lab.sh                    starts the notebook API and JupyterLab
-tools/notebook-helpers/adaptive_quantum_sor_notebooks/client.py           notebook API client
+tools/notebook-helpers/adaptive_quantum_sor_notebooks/notebook_client.py  notebook API client
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/live_monitor.py     live dashboard widgets and templates
 tools/notebook-helpers/adaptive_quantum_sor_notebooks/scenario_report.py  scenario runner widgets and report templates
 tools/python-research/examples/*.csv                           research datasets

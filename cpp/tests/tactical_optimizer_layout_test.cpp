@@ -1,4 +1,11 @@
-// Unit tests for the Phase 2 tactical optimizer C buffer layout.
+/**
+ * @file
+ * @brief Tests the tactical optimizer native buffer layout.
+ *
+ * Run through CTest or the Gradle native build to keep Java and C++ layout
+ * assumptions aligned. The test checks magic/schema constants and the
+ * dimension-derived lengths Java uses to pack trailing int32 arrays.
+ */
 #include "../tactical_optimizer_layout.h"
 
 #include <cassert>

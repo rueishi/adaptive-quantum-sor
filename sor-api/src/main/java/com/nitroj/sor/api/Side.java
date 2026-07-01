@@ -16,7 +16,9 @@ package com.nitroj.sor.api;
  * ambiguity on hot API boundaries.</p>
  */
 public final class Side {
+    /** Buy-side order direction. */
     public static final int BUY = 1;
+    /** Sell-side order direction. */
     public static final int SELL = 2;
 
     private Side() {

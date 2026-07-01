@@ -8,6 +8,11 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies native linker diagnostics when expected shared libraries are absent.
+ *
+ * <p>Run with native optimizer tests to keep setup failures actionable.</p>
+ */
 class MissingLibraryDiagnosticTest {
     @TempDir Path dir;
 

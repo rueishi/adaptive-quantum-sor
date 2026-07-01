@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Responsibility: verifies that the committed production launcher carries the
- * JVM flags required by P8-01.
+ * JVM flags required by the P9-17 runtime profile.
  *
  * <p>Role in system: `scripts/run_engine.sh` is the operator-facing launch
  * path until P8-22 packages the standalone server. This test keeps the script
- * aligned with the JDK 25/ZGC baseline.</p>
+ * aligned with the JDK 25/ZGC/Compact Object Headers baseline.</p>
  *
  * <p>Relationships: complements Gradle's test JVM configuration. Gradle proves
  * the verification path; this script proves the production launch path.</p>
@@ -38,6 +38,7 @@ class RunScriptFlagPresenceTest {
         final String script = Files.readString(RUN_SCRIPT);
 
         assertContainsOnce(script, "-XX:+UseZGC");
+        assertContainsOnce(script, "-XX:+UseCompactObjectHeaders");
         assertContainsOnce(script, "-XX:+AlwaysPreTouch");
         assertContainsOnce(script, "-XX:+UseTransparentHugePages");
         assertContainsOnce(script, "-XX:+UseNUMA");

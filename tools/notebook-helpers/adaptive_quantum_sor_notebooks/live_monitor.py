@@ -1,4 +1,7 @@
-"""Notebook-facing live dashboard helpers."""
+"""
+Purpose: Provides notebook-friendly live monitoring helpers for SOR HTTP stats and events.
+Usage: Use it in Jupyter workflows to poll current stats and build live views.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +14,7 @@ from typing import Mapping
 import pandas as pd
 from IPython.display import HTML, clear_output, display
 
-from .client import SorNotebookClient
+from .notebook_client import SorNotebookClient
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8080"

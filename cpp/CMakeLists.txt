@@ -1,4 +1,4 @@
-# Phase 2 CMake build for the native tactical optimizer.
+# CMake build for the native tactical optimizer.
 #
 # Gradle invokes this file through nativeConfigure/nativeBuild/nativeTest so the
 # Java and native verification paths are owned by one build entrypoint. CUDA is
@@ -8,7 +8,6 @@ project(adaptive_quantum_sor_native LANGUAGES CXX)
 
 include(CTest)
 include(CheckLanguage)
-find_package(JNI REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,12 +17,6 @@ add_library(tactical_optimizer_api STATIC
 )
 
 target_include_directories(tactical_optimizer_api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_library(tactical_optimizer_jni SHARED
-    tactical_optimizer_jni.cpp
-)
-target_link_libraries(tactical_optimizer_jni PRIVATE tactical_optimizer_api JNI::JNI)
-target_include_directories(tactical_optimizer_jni PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(cudaq_strategic_optimizer SHARED
     cudaq_strategic_optimizer.cpp

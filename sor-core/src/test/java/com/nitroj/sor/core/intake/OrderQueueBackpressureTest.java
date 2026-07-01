@@ -12,6 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Verifies order queue backpressure behavior for ring-buffer intake for parent orders and inbound fills.
+ *
+ * <p>Run with :sor-core:test to protect hot-path queueing and backpressure tests.</p>
+ */
 class OrderQueueBackpressureTest {
     @Test
     void saturatedRingRejectsThenAcceptsAfterDrain() throws Exception {

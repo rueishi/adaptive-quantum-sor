@@ -9,6 +9,11 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies event stream behavior remains consistent across Aeron and embedded paths.
+ *
+ * <p>Run with transport tests before changing event propagation or client callbacks.</p>
+ */
 class SorEventStreamParityTest {
     @Test
     void aeronAndEmbeddedEmitSameRouteEventSubtype() throws Exception {

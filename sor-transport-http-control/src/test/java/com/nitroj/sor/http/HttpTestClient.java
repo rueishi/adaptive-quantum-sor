@@ -5,6 +5,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * Provides a small HTTP helper for exercising control-plane endpoints in tests.
+ *
+ * <p>Use it from transport tests to keep request/response assertions concise.</p>
+ */
 final class HttpTestClient {
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 

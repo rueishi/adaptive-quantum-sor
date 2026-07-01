@@ -3,8 +3,8 @@
 ## Implemented Scope
 
 P8-20 adds the Java client SDK, public API compatibility signature checks,
-Javadoc coverage, smoke tests, quickstart project, and Maven Central dry-run
-publishing guard.
+Javadoc coverage, smoke tests, quickstart project, and Maven Central-ready
+publishing metadata guard.
 
 ## Acceptance Criteria Evidence
 
@@ -33,4 +33,3 @@ none
 ```bash
 ./gradlew :sor-client-java:test
 ```
-

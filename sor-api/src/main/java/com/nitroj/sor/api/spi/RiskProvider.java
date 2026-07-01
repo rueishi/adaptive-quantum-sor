@@ -20,6 +20,9 @@ public interface RiskProvider {
      *
      * <p>Hot-path method. Must not allocate. Must not block. Must return within
      * the documented nanosecond risk budget.</p>
+     *
+     * @param request reusable request populated by the engine
+     * @param decision reusable decision populated by the provider
      */
     void check(RiskCheckRequest request, RiskDecision decision);
 }

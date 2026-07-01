@@ -10,6 +10,11 @@ import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Benchmarks latency parity across Java and native optimizer entry points.
+ *
+ * <p>Run with JMH when validating native optimizer overhead or regression budgets.</p>
+ */
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1)

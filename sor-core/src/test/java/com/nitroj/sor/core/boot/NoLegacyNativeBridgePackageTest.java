@@ -20,7 +20,7 @@ final class NoLegacyNativeBridgePackageTest {
             final var offenders = paths
                     .filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !path.endsWith("NoLegacyNativeBridgePackageTest.java"))
-                    .filter(path -> read(path).contains("com.nitroj.adaptive.quantum.sor.nativebridge"))
+                    .filter(path -> read(path).contains("com.nitroj.sor.core.nativebridge"))
                     .toList();
             assertEquals(java.util.List.of(), offenders);
         }

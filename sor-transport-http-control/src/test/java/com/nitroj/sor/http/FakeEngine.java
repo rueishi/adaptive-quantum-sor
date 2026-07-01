@@ -9,6 +9,11 @@ import com.nitroj.sor.api.SorEventListener;
 
 import java.util.Optional;
 
+/**
+ * Provides a lightweight in-memory SorEngine/SorControlPlane test double for HTTP control-plane tests.
+ *
+ * <p>Use it from HTTP transport tests instead of booting the full core engine.</p>
+ */
 final class FakeEngine implements SorEngine {
     boolean ready;
 

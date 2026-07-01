@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -32,7 +33,9 @@ class LegacyTestSuitePassesPostLayoutTest {
     @Test
     void coreSourceSetsMovedIntoSorCore() {
         assertTrue(Files.isRegularFile(Path.of("sor-core/src/main/java/com/nitroj/sor/core/SorEngineImpl.java")));
-        assertTrue(Files.isRegularFile(Path.of("sor-test-server/src/test/java/com/nitroj/adaptive/quantum/sor/e2e/SorEndToEndTest.java")));
-        assertTrue(Files.isRegularFile(Path.of("sor-core/src/jmh/java/com/nitroj/adaptive/quantum/sor/benchmark/PolicyDrivenSorJmhBenchmark.java")));
+        assertTrue(Files.isRegularFile(Path.of("sor-test-server/src/test/java/com/nitroj/sor/testserver/e2e/SorEndToEndTest.java")));
+        assertTrue(Files.isRegularFile(Path.of("sor-core/src/jmh/java/com/nitroj/sor/core/benchmark/PolicyDrivenSorJmhBenchmark.java")));
+        assertFalse(Files.exists(Path.of("sor-test-server/src/test/java/com/nitroj/adaptive/quantum/sor/e2e/SorEndToEndTest.java")));
+        assertFalse(Files.exists(Path.of("sor-core/src/jmh/java/com/nitroj/adaptive/quantum/sor/benchmark/PolicyDrivenSorJmhBenchmark.java")));
     }
 }

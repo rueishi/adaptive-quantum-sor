@@ -7,6 +7,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies public Java SDK types retain Javadoc coverage.
+ *
+ * <p>Run with client tests before publishing SDK artifacts.</p>
+ */
 class JavadocCoverageTest {
     @Test
     void publicSdkTypesHaveSourceJavadocs() throws Exception {

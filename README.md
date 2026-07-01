@@ -19,7 +19,8 @@ transports, simulator-owned integrations, and a standalone sample server.
 ```text
 sor-api                    Public engine contract, DTOs, events, and SPI.
 sor-core                   Embedded engine plus transitional compatibility code.
-sor-test-server             SPI-facing simulators, scenarios, and sample server.
+sor-testkit                 Reusable simulator fixtures and scenario replay support.
+sor-test-server             Runnable notebook/demo HTTP API and sample server.
 sor-transport-aeron        Low-latency remote transport over SBE/Aeron.
 sor-transport-http-control Research and ops HTTP control plane.
 sor-optimizers-native      Native optimizer boundary.
@@ -38,7 +39,7 @@ Research/Ops   HTTP control plane for notebooks, health, metrics, and OpenAPI.
 The launchable simulator sample server application class is:
 
 ```text
-com.nitroj.sor.sim.server.SimulatorServerApplication
+com.nitroj.sor.testserver.SimulatorServerApplication
 ```
 
 The server exposes the HTTP control-plane API for Python and Jupyter:
@@ -57,7 +58,8 @@ source checkout, through `sor-test-server/run_sample_server.sh` from a packaged
 ```text
 sor-api/                     Public API, DTOs, events, SPI, and ABI tests.
 sor-core/                    Engine internals, policy, execution, and native build.
-sor-test-server/              Simulator adapters, scenarios, sample server, Jib image, Helm chart.
+sor-testkit/                 Simulator adapters, scenario replay, scenario catalog resources.
+sor-test-server/              Notebook/demo HTTP API, sample server, Jib image, Helm chart.
 sor-transport-aeron/         Aeron transport client/server wrapper.
 sor-transport-http-control/  HTTP health, readiness, metrics, OpenAPI, and order control.
 sor-observability/           Metrics and observability helpers.
@@ -68,7 +70,7 @@ cpp/                         CMake native tactical and strategic optimizer artif
 notebooks/                   JupyterLab demo and research notebooks.
 tools/notebook-helpers/      Notebook-only widgets, reports, and API helper code.
 tools/python-research/       Research datasets, scenario catalog, and model scripts.
-sor-test-server/src/main/resources/scenarios/
+sor-testkit/src/main/resources/scenarios/
                              User-readable replayable scenario catalog.
 docs/                        Categorized architecture, integration, release, testing, and report docs.
 scripts/                     Local test, benchmark, engine, and Jupyter launch helpers.
@@ -77,7 +79,8 @@ scripts/                     Local test, benchmark, engine, and Jupyter launch h
 ## Prerequisites
 
 - Java 25. The scripts default `JAVA_HOME` to
-  `/usr/lib/jvm/java-25-openjdk-amd64` for Phase 8 paths where applicable.
+  `/usr/lib/jvm/java-25-openjdk-amd64` where applicable. The production JVM
+  profile is `-XX:+UseZGC -XX:+UseCompactObjectHeaders -XX:+AlwaysPreTouch`.
 - Gradle available to the lightweight `./gradlew` launcher. The repository does
   not currently bundle a full Gradle wrapper JAR; `./gradlew` delegates to the
   Gradle installation in the developer environment.
@@ -194,7 +197,7 @@ See `notebooks/README.md` for the interactive workflow.
 
 ## Scenarios
 
-The scenario catalog under `sor-test-server/src/main/resources/scenarios/<category>/*.yaml` drives replayable
+The scenario catalog under `sor-testkit/src/main/resources/scenarios/<category>/*.yaml` drives replayable
 simulation tests and notebook/API scenario exploration. Scenarios cover baseline
 replay, regime transitions, liquidity disappearance, stale feeds, venue outages,
 toxic venues, lineage, live reset modes, feature/ML generation, risk, throttles,
@@ -215,7 +218,7 @@ PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quan
 PYTHONPATH=tools/notebook-helpers:tools/python-research python3 -m adaptive_quantum_sor_research.scenario_catalog suggest zero-liquidity-safe-route
 ```
 
-See `sor-test-server/src/main/resources/scenarios/README.md` for category and catalog details.
+See `sor-testkit/src/main/resources/scenarios/README.md` for category and catalog details.
 
 ## Python Research And Notebook Helpers
 

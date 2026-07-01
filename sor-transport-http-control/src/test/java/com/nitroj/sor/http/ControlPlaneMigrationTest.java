@@ -8,6 +8,11 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies migration behavior from notebook/test endpoints to reusable HTTP control-plane endpoints.
+ *
+ * <p>Run with transport HTTP tests to keep Phase 9 endpoint ownership clear.</p>
+ */
 class ControlPlaneMigrationTest {
     @Test
     void legacyNotebookRuntimeArtifactsAreGone() {

@@ -11,6 +11,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies the Java SDK public API remains compatible for clients.
+ *
+ * <p>Run with client tests before changing SDK method names, constructors, or package structure.</p>
+ */
 class SdkApiCompatibilityTest {
     @Test
     void publicMethodManifestMatchesCommittedSnapshot() throws Exception {

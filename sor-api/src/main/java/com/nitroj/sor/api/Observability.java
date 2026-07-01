@@ -20,6 +20,8 @@ public interface Observability {
      * Records route-decision latency in nanoseconds.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @param nanos route decision latency in nanoseconds
      */
     void recordRouteDecisionLatency(long nanos);
 
@@ -27,6 +29,8 @@ public interface Observability {
      * Records current parent-order ring depth.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @param depth current parent-order ring depth
      */
     void recordParentOrderRingDepth(int depth);
 
@@ -34,6 +38,8 @@ public interface Observability {
      * Records a parent-order backpressure rejection.
      *
      * <p>Hot-path method. Must not allocate. Must not block.</p>
+     *
+     * @param reasonCode backpressure reason code
      */
     void recordBackpressureRejected(int reasonCode);
 
@@ -41,6 +47,10 @@ public interface Observability {
      * Records a policy publication event.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param policyVersion published policy version
+     * @param policyHash64 published policy hash
+     * @param durationNanos publication duration in nanoseconds
      */
     void recordPolicyPublished(long policyVersion, long policyHash64, long durationNanos);
 
@@ -48,6 +58,8 @@ public interface Observability {
      * Renders metrics in Prometheus text exposition format when supported.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return Prometheus text exposition, or an empty string when unsupported
      */
     default String prometheusText() {
         return "";
@@ -57,6 +69,8 @@ public interface Observability {
      * Returns an allocation-free no-op implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return no-op observability implementation
      */
     static Observability noop() {
         return NoopObservability.INSTANCE;

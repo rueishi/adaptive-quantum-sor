@@ -33,20 +33,23 @@ class ModuleDependencyGraphTest {
             "sor-test-server->sor-api",
             "sor-test-server->sor-core",
             "sor-test-server->sor-observability",
+            "sor-test-server->sor-testkit",
             "sor-test-server->sor-transport-aeron",
             "sor-test-server->sor-transport-http-control",
+            "sor-testkit->sor-api",
+            "sor-testkit->sor-core",
             "sor-observability->sor-api",
             "sor-transport-http-control->sor-api",
             "sor-transport-http-control->sor-observability",
             "sor-transport-aeron->sor-api",
             "sor-transport-aeron->sor-codec",
             "sor-transport-aeron->sor-core",
-            "sor-transport-aeron->sor-test-server",
+            "sor-transport-aeron->sor-testkit",
             "sor-client-java->sor-api",
             "sor-client-java->sor-codec",
             "sor-client-java->sor-transport-aeron",
             "sor-client-java->sor-core",
-            "sor-client-java->sor-test-server"
+            "sor-client-java->sor-testkit"
     );
 
     /**
@@ -86,12 +89,13 @@ class ModuleDependencyGraphTest {
         final Set<String> disallowedReferences = Set.of(
                 "com.nitroj.sor.sim",
                 "com.nitroj.sor.server",
+                "com.nitroj.sor.testkit",
                 "com.nitroj.sor.http",
                 "com.nitroj.sor.transport",
                 "SorServerApplication",
                 "SimulatorServerApplication",
                 "HttpControlPlaneServer",
-                "SorHttpApiServer"
+                "NotebookScenarioHttpServer"
         );
 
         try (var paths = Files.walk(Path.of("sor-core/src/main/java/com/nitroj/sor/core"))) {

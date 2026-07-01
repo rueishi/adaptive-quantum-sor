@@ -1,6 +1,6 @@
 package com.nitroj.sor.optnative;
 
-import com.nitroj.adaptive.quantum.sor.optimizer.TacticalPolicyResult;
+import com.nitroj.sor.core.optimizer.TacticalPolicyResult;
 
 /**
  * Responsibility: carry native tactical optimizer result and diagnostics.

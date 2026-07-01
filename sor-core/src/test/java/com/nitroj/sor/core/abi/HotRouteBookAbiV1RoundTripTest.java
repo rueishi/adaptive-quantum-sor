@@ -1,6 +1,6 @@
 package com.nitroj.sor.core.abi;
 
-import com.nitroj.adaptive.quantum.sor.policy.HotRouteBook;
+import com.nitroj.sor.core.policy.HotRouteBook;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

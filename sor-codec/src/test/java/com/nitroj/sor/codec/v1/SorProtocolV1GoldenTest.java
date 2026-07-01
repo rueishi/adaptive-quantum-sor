@@ -9,6 +9,11 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies encoded protocol v1 bytes against golden fixtures.
+ *
+ * <p>Run in CI to detect accidental wire-format drift.</p>
+ */
 class SorProtocolV1GoldenTest {
     @ParameterizedTest
     @MethodSource("com.nitroj.sor.codec.v1.ProtocolFixtures#messages")

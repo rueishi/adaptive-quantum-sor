@@ -10,6 +10,11 @@ import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Benchmarks the Aeron IPC-style transport latency path.
+ *
+ * <p>Run with JMH when comparing embedded, IPC, and UDP submission overhead.</p>
+ */
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1)

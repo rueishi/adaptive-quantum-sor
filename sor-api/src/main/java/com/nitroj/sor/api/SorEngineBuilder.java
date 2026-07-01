@@ -61,6 +61,9 @@ public final class SorEngineBuilder {
      * Supplies public engine configuration.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param config public engine configuration
+     * @return this builder
      */
     public SorEngineBuilder config(final SorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -72,6 +75,9 @@ public final class SorEngineBuilder {
      * Supplies the market data source SPI implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param source market data source implementation
+     * @return this builder
      */
     public SorEngineBuilder marketData(final MarketDataSource source) {
         this.marketData = Objects.requireNonNull(source, "marketData source must not be null");
@@ -83,6 +89,9 @@ public final class SorEngineBuilder {
      * Supplies the venue adapter SPI implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param adapter venue adapter implementation
+     * @return this builder
      */
     public SorEngineBuilder venueAdapter(final VenueAdapter adapter) {
         this.venueAdapter = Objects.requireNonNull(adapter, "venueAdapter must not be null");
@@ -94,6 +103,9 @@ public final class SorEngineBuilder {
      * Supplies the synchronous risk provider SPI implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param provider synchronous risk provider implementation
+     * @return this builder
      */
     public SorEngineBuilder riskProvider(final RiskProvider provider) {
         this.riskProvider = Objects.requireNonNull(provider, "riskProvider must not be null");
@@ -105,6 +117,9 @@ public final class SorEngineBuilder {
      * Supplies the persistence SPI implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param persistence persistence implementation
+     * @return this builder
      */
     public SorEngineBuilder persistence(final Persistence persistence) {
         this.persistence = Objects.requireNonNull(persistence, "persistence must not be null");
@@ -116,6 +131,9 @@ public final class SorEngineBuilder {
      * Supplies the clock SPI implementation.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @param clock clock implementation
+     * @return this builder
      */
     public SorEngineBuilder clock(final Clock clock) {
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
@@ -128,6 +146,9 @@ public final class SorEngineBuilder {
      *
      * <p>Control-plane method, not hot-path. If omitted, the engine uses a
      * no-op implementation.</p>
+     *
+     * @param observability observability implementation
+     * @return this builder
      */
     public SorEngineBuilder observability(final Observability observability) {
         this.observability = Objects.requireNonNull(observability, "observability must not be null");
@@ -164,6 +185,8 @@ public final class SorEngineBuilder {
      * Returns the configured engine settings for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured engine settings
      */
     public SorConfig config() { return config; }
 
@@ -171,6 +194,8 @@ public final class SorEngineBuilder {
      * Returns the configured market data source for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured market data source
      */
     public MarketDataSource marketData() { return marketData; }
 
@@ -178,6 +203,8 @@ public final class SorEngineBuilder {
      * Returns the configured venue adapter for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured venue adapter
      */
     public VenueAdapter venueAdapter() { return venueAdapter; }
 
@@ -185,6 +212,8 @@ public final class SorEngineBuilder {
      * Returns the configured risk provider for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured risk provider
      */
     public RiskProvider riskProvider() { return riskProvider; }
 
@@ -192,6 +221,8 @@ public final class SorEngineBuilder {
      * Returns the configured persistence provider for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured persistence provider
      */
     public Persistence persistence() { return persistence; }
 
@@ -199,6 +230,8 @@ public final class SorEngineBuilder {
      * Returns the configured clock for implementation construction.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured clock
      */
     public Clock clock() { return clock; }
 
@@ -206,6 +239,8 @@ public final class SorEngineBuilder {
      * Returns the configured observability bridge.
      *
      * <p>Control-plane method, not hot-path.</p>
+     *
+     * @return configured observability bridge
      */
     public Observability observability() { return observability; }
 }

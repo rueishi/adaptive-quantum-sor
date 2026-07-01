@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies policy-version tags transition correctly across publications.
+ *
+ * <p>Run with observability tests to keep policy lineage metrics accurate.</p>
+ */
 class PolicyVersionTagTransitionTest {
     @Test
     void metricsRemainValidAcrossPolicyVersionBumps() {

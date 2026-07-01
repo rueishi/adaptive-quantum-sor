@@ -18,6 +18,8 @@ public interface Clock {
      *
      * <p>Hot-path method. Must not allocate. Must not block. Must return within
      * 100 nanoseconds for the system implementation.</p>
+     *
+     * @return monotonic nanoseconds
      */
     long nanoTime();
 
@@ -26,6 +28,8 @@ public interface Clock {
      *
      * <p>Hot-path method. Must not allocate. Must not block. Must return within
      * 100 nanoseconds for the system implementation.</p>
+     *
+     * @return wall-clock epoch nanoseconds
      */
     long epochNanos();
 
@@ -34,6 +38,8 @@ public interface Clock {
      *
      * <p>Control-plane method, not hot-path. The returned clock methods are
      * hot-path-safe.</p>
+     *
+     * @return default system-backed clock
      */
     static Clock systemNano() {
         return SystemClock.INSTANCE;

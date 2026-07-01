@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Train deterministic Phase 4 Adaptive Quantum SOR model artifacts from an exported CSV dataset."""
+"""
+Purpose: Trains research ML models for fill probability, slippage, toxicity, or regime signals.
+Usage: Run it as a CLI script after generating datasets for local research experiments.
+"""
 
 import argparse
 import csv

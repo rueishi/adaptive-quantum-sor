@@ -7,6 +7,11 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies client reconnect behavior across Aeron server lifecycle transitions.
+ *
+ * <p>Run with transport tests before changing broker registration or channel lifecycle.</p>
+ */
 class AeronSessionReconnectTest {
     @Test
     void clientEmitsDownThenUpAroundReconnect() {

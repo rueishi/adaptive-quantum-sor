@@ -7,6 +7,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Verifies protocol fixtures and generated encodings remain reproducible.
+ *
+ * <p>Run with codec tests to keep releases auditable and deterministic.</p>
+ */
 class SorProtocolV1ReproducibleGenerationTest {
     @Test
     void generationTaskWritesDeterministicMarkerSource() throws Exception {

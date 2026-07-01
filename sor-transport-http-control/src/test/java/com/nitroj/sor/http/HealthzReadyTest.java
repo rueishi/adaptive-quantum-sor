@@ -6,6 +6,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Verifies health and readiness endpoints exposed by the HTTP control plane.
+ *
+ * <p>Run with HTTP transport tests before changing liveness or readiness behavior.</p>
+ */
 class HealthzReadyTest {
     @Test
     void healthzIsAliveAndReadyMirrorsEngine() throws Exception {

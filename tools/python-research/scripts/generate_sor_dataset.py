@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Generate deterministic scenario-rich SOR feature datasets."""
+"""
+Purpose: Generates research datasets from SOR scenario or synthetic routing data.
+Usage: Run it as a CLI script when preparing model-training or comparison inputs.
+"""
 
 import argparse
 import csv

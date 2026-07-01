@@ -5,17 +5,22 @@ import com.nitroj.sor.api.Side;
 import com.nitroj.sor.api.SorConfig;
 import com.nitroj.sor.api.SorEngine;
 import com.nitroj.sor.api.SorEngineBuilder;
-import com.nitroj.sor.sim.adapters.InMemoryPersistence;
-import com.nitroj.sor.sim.adapters.ManualClock;
-import com.nitroj.sor.sim.adapters.SimulatedMarketDataSource;
-import com.nitroj.sor.sim.adapters.SimulatedRiskProvider;
-import com.nitroj.sor.sim.adapters.SimulatedVenueAdapter;
+import com.nitroj.sor.testkit.sim.adapters.InMemoryPersistence;
+import com.nitroj.sor.testkit.sim.adapters.ManualClock;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedMarketDataSource;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedRiskProvider;
+import com.nitroj.sor.testkit.sim.adapters.SimulatedVenueAdapter;
 import com.nitroj.sor.transport.aeron.AeronSorServer;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Smoke-tests the Java SDK against an in-process SOR setup.
+ *
+ * <p>Run with client tests to verify SDK submit/warmup behavior without requiring an external server.</p>
+ */
 class SdkSmokeTest {
     @Test
     void submitsOneOrderThroughAeronSdkFacade() {
