@@ -32,6 +32,10 @@ public final class SorLifecycleEventTypes {
     public static final long REJECT_DELIVERED = 9_007L;
     /** Market data update was rejected. */
     public static final long MARKET_DATA_REJECTED = 9_008L;
+    /** Startup hydration was accepted. */
+    public static final long HYDRATION_ACCEPTED = 9_009L;
+    /** Startup hydration was rejected or failed closed. */
+    public static final long HYDRATION_REJECTED = 9_010L;
 
     private SorLifecycleEventTypes() {
     }

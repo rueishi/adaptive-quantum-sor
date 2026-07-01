@@ -1,9 +1,16 @@
 package com.nitroj.sor.core;
 
+import com.nitroj.sor.api.ChildOrderStateSnapshot;
 import com.nitroj.sor.api.OrderStatusCode;
+import com.nitroj.sor.api.OrderStateSnapshot;
+import com.nitroj.sor.api.ParentOrderStateSnapshot;
 import com.nitroj.sor.api.spi.FillReport;
 import com.nitroj.sor.api.spi.RejectReport;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -138,6 +145,76 @@ final class EngineOrderBook {
         return snapshot;
     }
 
+    /**
+     * Applies an OMS/EMS startup snapshot as a warm-path bulk operation.
+     *
+     * <p>Control-plane method, not hot-path. This method deliberately does not
+     * call {@link #recordChildOrder(long, long, int, long, long)} because
+     * recovered child state is not a newly emitted route. It validates into
+     * temporary maps, sorts children by ID for deterministic folding, derives
+     * parent aggregates from children, and only then publishes the rebuilt
+     * parent/child maps.</p>
+     *
+     * @param snapshot parent and child startup snapshot
+     * @return apply result with deterministic loaded counts and checksum
+     */
+    SnapshotApplyResult applySnapshot(final OrderStateSnapshot snapshot) {
+        if (snapshot == null) {
+            throw new IllegalArgumentException("snapshot must not be null");
+        }
+        final HashMap<Long, ParentState> rebuiltParents = new HashMap<>();
+        for (ParentOrderStateSnapshot parent : snapshot.parents()) {
+            rebuiltParents.put(parent.parentOrderId(), new ParentState(
+                    parent.parentOrderId(),
+                    parent.originalQuantity(),
+                    parent.filledQuantity(),
+                    parent.leavesQuantity(),
+                    parent.pendingChildQuantity(),
+                    parent.status(),
+                    parent.updatedEpochNanos()));
+        }
+        final List<ChildOrderStateSnapshot> sortedChildren = new ArrayList<>(List.of(snapshot.children()));
+        sortedChildren.sort(Comparator.comparingLong(ChildOrderStateSnapshot::childOrderId));
+        final HashMap<Long, ChildState> rebuiltChildren = new HashMap<>();
+        final HashMap<Long, ParentAggregate> aggregates = new HashMap<>();
+        for (ChildOrderStateSnapshot child : sortedChildren) {
+            final ParentState parent = rebuiltParents.get(child.parentOrderId());
+            if (parent == null) {
+                throw new IllegalArgumentException("child order snapshot references missing parentOrderId");
+            }
+            rebuiltChildren.put(child.childOrderId(), new ChildState(
+                    child.childOrderId(),
+                    child.parentOrderId(),
+                    child.venueId(),
+                    child.originalQuantity(),
+                    child.leavesQuantity(),
+                    child.filledQuantity(),
+                    child.status()));
+            aggregates.computeIfAbsent(child.parentOrderId(), ignored -> new ParentAggregate())
+                    .add(child.leavesQuantity(), child.filledQuantity());
+        }
+        for (ParentState parent : rebuiltParents.values()) {
+            final ParentAggregate aggregate = aggregates.get(parent.parentOrderId);
+            if (aggregate == null) {
+                if (parent.pendingChildQuantity != 0) {
+                    throw new IllegalArgumentException("parent pending child quantity disagrees with child snapshot");
+                }
+            } else {
+                if (parent.pendingChildQuantity != aggregate.pendingChildQuantity) {
+                    throw new IllegalArgumentException("parent pending child quantity disagrees with child snapshot");
+                }
+                if (parent.filledQuantity != aggregate.filledQuantity) {
+                    throw new IllegalArgumentException("parent filled quantity disagrees with child snapshot");
+                }
+            }
+        }
+        parents.clear();
+        children.clear();
+        parents.putAll(rebuiltParents);
+        children.putAll(rebuiltChildren);
+        return new SnapshotApplyResult(rebuiltParents.size(), rebuiltChildren.size(), snapshot.checksum());
+    }
+
     ParentSnapshot parent(final long parentOrderId) {
         final ParentState state = parents.get(parentOrderId);
         return state == null ? null : state.snapshot();
@@ -178,6 +255,14 @@ final class EngineOrderBook {
     void clear() {
         parents.clear();
         children.clear();
+    }
+
+    record SnapshotApplyResult(int parentCount, int childCount, long checksum) {
+        SnapshotApplyResult {
+            if (parentCount < 0 || childCount < 0) {
+                throw new IllegalArgumentException("snapshot apply counts must be non-negative");
+            }
+        }
     }
 
     private ParentState requireParent(final long parentOrderId) {
@@ -274,6 +359,16 @@ final class EngineOrderBook {
         private ChildSnapshot snapshot() {
             return new ChildSnapshot(childOrderId, parentOrderId, venueId, originalQuantity, remainingQuantity,
                     filledQuantity, status);
+        }
+    }
+
+    private static final class ParentAggregate {
+        private long pendingChildQuantity;
+        private long filledQuantity;
+
+        private void add(final long leavesQuantity, final long childFilledQuantity) {
+            pendingChildQuantity += leavesQuantity;
+            filledQuantity += childFilledQuantity;
         }
     }
 }
